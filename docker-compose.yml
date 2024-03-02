@@ -1,0 +1,50 @@
+version: '3.8'
+services:
+  # app:
+  #   container_name: kaidemy_be
+  #   #Dev mode
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+   
+  #   # depends_on:
+  #   #   - db
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - 3000:3000
+    # networks:
+    #   - app_db
+
+  db:
+    container_name: kaidemy_db
+    image: mysql:5.6
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234567
+      MYSQL_DATABASE: kaidemy
+      MYSQL_USER: kaidemy
+      MYSQL_PASSWORD: 1234567
+    ports:
+      - 3306:3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+    # networks:
+    #   - app_db
+
+  # redis:
+  #   container_name: nestjs_boilerplate_redis
+  #   image: redis:7-alpine
+  #   restart: always
+  #   command: redis-server --save 20 1 --loglevel warning --requirepass $REDIS_PASSWORD
+  #   ports:
+  #     - $REDIS_HOST_PORT:$REDIS_PORT
+  #   volumes:
+  #     - .docker/redis:/data
+  #   networks:
+  #     - app_redis
+volumes:
+  mysql_data:
+# networks:
+#   app_db:
+  # app_redis:

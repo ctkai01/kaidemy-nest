@@ -1,0 +1,72 @@
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post, UseFilters
+} from '@nestjs/common';
+// import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
+// import { AtGuard, RtGuard } from 'src/guards';
+// import { TransformInterceptor } from '../../custom-response/core.response';
+import { GetCurrentUserID, Public } from 'src/decorators';
+import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
+import { ResponseData } from '../../interface/response.interface';
+import { ChangePasswordDto } from './dto/create-user-dto';
+import { UserService } from './user.service';
+
+@Controller('users')
+@UseFilters(new HttpExceptionValidateFilter())
+export class UserController {
+  constructor(private userService: UserService) {}
+
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.userService.changePassword(changePasswordDto, userID);
+  }
+
+  // @Public()
+  // @Post('change-password')
+  // @HttpCode(HttpStatus.OK)
+  // signup(
+  //   @Body() changePasswordDto: ChangePasswordDto,
+  //   @GetCurrentUserID() userID: number,
+  // ): Promise<ResponseData> {
+  //   return this.userService.changePassword(changePasswordDto, userID);
+  // }
+
+  // @Public()
+  // @Post('login')
+  // @HttpCode(HttpStatus.OK)
+  // login(@Body() loginUserDto: LoginUserDto): Promise<ResponseData> {
+  //   return this.authService.loginUser(loginUserDto);
+  // }
+
+  // @Public()
+  // @Post('/login')
+  // @UseInterceptors(TransformInterceptor)
+  // @UseFilters(new HttpExceptionValidateFilter())
+  // login(@Body() loginUserDto: LoginUserDto): Promise<ResponseData> {
+  //   return this.authService.login(loginUserDto);
+  // }
+
+  // @UseGuards(AtGuard)
+  // @Post('logout')
+  // logout(@GetCurrentUserId() userId: number): Promise<void> {
+  //   return this.authService.logout(userId);
+  // }
+
+  // @Public()
+  // @UseGuards(RtGuard)
+  // @Post('refreshToken')
+  // refreshToken(
+  //   @Request() req: any,
+  //   @GetCurrentUser('refresh_token') refreshToken: string,
+  //   @GetCurrentUserId() userId: any,
+  // ): Promise<Tokens> {
+  //   return this.authService.refreshToken(userId, refreshToken);
+  // }
+}
