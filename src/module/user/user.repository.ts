@@ -52,6 +52,20 @@ export class UserRepository extends Repository<User> {
     }
   }
 
+  async getByEmailToken(emailToken: string): Promise<User> {
+    try {
+      const user = await this.findOne({
+        where: [{ emailToken }],
+      });
+      this.logger.log(prettyJsonString(user));
+      return user;
+    } catch (err) {
+      this.logger.error(err);
+
+      throw new InternalServerErrorException('Something error query');
+    }
+  }
+
   async getByID(id: number): Promise<User> {
     try {
       const user = await this.findOneBy({

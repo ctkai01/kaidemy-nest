@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  UnauthorizedException
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
@@ -6,13 +11,21 @@ import { from, Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { ACCOUNT_NORMAL, DEFAULT_ROLE } from 'src/constants';
 import { User } from 'src/entities/user.entity';
+import { MailForgot } from 'src/interface';
 import { JWTPayload } from 'src/interface/jwt.payload';
 import { hashData } from 'src/utils';
 import { getRepository } from 'typeorm';
 import { ResponseData } from '../../interface/response.interface';
 import { UserLogin, UserRegister } from '../../response';
+import { ProducerService } from '../queues/producer.service';
 import { UserRepository } from '../user/user.repository';
-import { CreateUserDto, ForgotPasswordDto, LoginUserDto } from './dto';
+import {
+  CreateUserDto,
+  ForgotPasswordDto,
+  LoginUserDto,
+  ResetPasswordDto
+} from './dto';
+import { EmailTokenPayload } from './interface/email-token.interface';
 import { Tokens } from './interface/token.interface';
 
 @Injectable()
@@ -22,6 +35,7 @@ export class AuthService {
     private readonly userRepository: UserRepository,
     private config: ConfigService,
     private jwtService: JwtService,
+    private producerService: ProducerService,
   ) {}
   async createUser(createUserDto: CreateUserDto): Promise<ResponseData> {
     const { email, name, password } = createUserDto;
@@ -104,13 +118,23 @@ export class AuthService {
       );
     }
 
-    // Spawn email token by JWT 
-    const emailToken = await this.encodeJWTEmail(email)
+    // Spawn email token by JWT
+    const emailToken = await this.encodeJWTEmail(email);
 
-    user.emailToken = emailToken
-    
+    user.emailToken = emailToken;
+
     await this.userRepository.updateData(user);
 
+    // Send email
+    const emailData: MailForgot = {
+      email: user.email,
+      fullName: user.name,
+      urlRedirect:
+        this.config.get('HOST_RESET_EMAIl_FE') + `/?email=${emailToken}`,
+    };
+    console.log('emailData: ', emailData);
+    console.log('emailData1: ', this.config.get('HOST_RESET_EMAIl_FE'));
+    await this.producerService.addToEmailQueue(emailData);
 
     const responseData: ResponseData = {
       message: 'Forgot successfully!',
@@ -119,8 +143,47 @@ export class AuthService {
     return responseData;
   }
 
+  async resetPassword(
+    resetPasswordDto: ResetPasswordDto,
+  ): Promise<ResponseData> {
+    const { emailToken, password } = resetPasswordDto;
+
+    const user = await this.userRepository.getByEmailToken(emailToken);
+
+    if (!user) {
+      throw new BadRequestException('Email token invalid');
+    }
+
+    if (user.typeAccount != ACCOUNT_NORMAL) {
+      throw new BadRequestException(
+        'Reset password only available for normal account',
+      );
+    }
+
+    // Verify email token
+    const token = await this.decodeJWTEmail(emailToken);
+    this.logger.log(token);
+    if (!token) {
+      throw new BadRequestException('Email token invalid');
+    }
+
+    // Hash new password
+    const passwordHash = await hashData(password);
+
+    user.password = passwordHash;
+    user.emailToken = null;
+
+    await this.userRepository.updateData(user);
+
+    const responseData: ResponseData = {
+      message: 'Reset successfully!',
+    };
+
+    return responseData;
+  }
+
   async encodeJWTEmail(email: string): Promise<string> {
-    const HOUR_SECONDS = 60 * 24;
+    const HOUR_SECONDS = 60 * 60;
     const token = await this.jwtService.signAsync(
       {
         sub: email,
@@ -131,7 +194,20 @@ export class AuthService {
       },
     );
 
-    return token
+    return token;
+  }
+
+  async decodeJWTEmail(emailToken: string): Promise<EmailTokenPayload | null> {
+    try {
+      const data = await this.jwtService.verifyAsync(emailToken, {
+        secret: this.config.get('JWT_SECRET'),
+      });
+
+      return data;
+    } catch (err) {
+      console.log("Err: ", err)
+      return null;
+    }
   }
 
   async getTokens(userID: number, email: string): Promise<Tokens> {

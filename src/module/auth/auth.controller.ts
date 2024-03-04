@@ -17,7 +17,7 @@ import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter'
 import { ResponseData } from '../../interface/response.interface';
 import { Tokens } from './interface/token.interface';
 import { Public } from 'src/decorators';
-import { CreateUserDto, ForgotPasswordDto, LoginUserDto } from './dto';
+import { CreateUserDto, ForgotPasswordDto, LoginUserDto, ResetPasswordDto } from './dto';
 
 @Controller('auth')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -46,6 +46,15 @@ export class AuthController {
     @Body() forgotPasswordDto: ForgotPasswordDto,
   ): Promise<ResponseData> {
     return this.authService.forgotPassword(forgotPasswordDto);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ): Promise<ResponseData> {
+    return this.authService.resetPassword(resetPasswordDto);
   }
 
   // @Public()

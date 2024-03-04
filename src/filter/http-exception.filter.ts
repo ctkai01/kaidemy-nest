@@ -31,6 +31,13 @@ export class HttpExceptionValidateFilter implements ExceptionFilter {
       });
     }
 
+     if (status === HttpStatus.BAD_REQUEST) {
+       return response.status(status).json({
+         statusCode: status,
+         message: message,
+       });
+     }
+
     if (status === HttpStatus.NOT_FOUND) {
       return response.status(status).json({
         statusCode: status,
