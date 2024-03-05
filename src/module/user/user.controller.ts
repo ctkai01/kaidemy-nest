@@ -3,8 +3,9 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
-  Post, UseFilters
+  Post, Put, UploadedFile, UseFilters, UseInterceptors
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
@@ -12,6 +13,8 @@ import { GetCurrentUserID, Public } from 'src/decorators';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
 import { ChangePasswordDto } from './dto/create-user-dto';
+import { UpdateProfileDto } from './dto/update-user-dto';
+import { multerImageOptions, multerVideoOptions } from './multer.config';
 import { UserService } from './user.service';
 
 @Controller('users')
@@ -26,6 +29,23 @@ export class UserController {
     @GetCurrentUserID() userID: number,
   ): Promise<ResponseData> {
     return this.userService.changePassword(changePasswordDto, userID);
+  }
+
+  @Post('me')
+  @HttpCode(HttpStatus.OK)
+  profileByMe(@GetCurrentUserID() userID: number): Promise<ResponseData> {
+    return this.userService.profileByMe(userID);
+  }
+
+  @Put('me')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileInterceptor('avatar', multerImageOptions))
+  updateProfile(
+    @UploadedFile() avatar: Express.Multer.File,
+    @Body() updateProfileDto: UpdateProfileDto,
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.userService.updateProfile(userID, updateProfileDto, avatar);
   }
 
   // @Public()

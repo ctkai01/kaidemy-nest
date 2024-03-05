@@ -13,6 +13,7 @@ export class HttpExceptionValidateFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const status = exception.getStatus();
+
     const message =
       exception.getResponse()['message'].length > 1
         ? exception.getResponse()['message']

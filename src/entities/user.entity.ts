@@ -72,6 +72,7 @@ export class User {
   @Column({ nullable: true, name: 'youtube_url' })
   youtubeURL?: string;
 
+  @Exclude({ toPlainOnly: true })
   @Column({ nullable: true, name: 'email_token' })
   emailToken?: string;
 

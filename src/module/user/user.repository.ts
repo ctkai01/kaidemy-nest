@@ -9,7 +9,6 @@ import { prettyJsonString } from 'src/utils';
 // import { ActiveStatus, Status } from 'src/constants';
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
-  // test() {}
   private logger = new Logger(UserRepository.name);
 
   constructor(

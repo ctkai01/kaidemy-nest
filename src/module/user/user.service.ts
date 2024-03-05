@@ -1,4 +1,10 @@
-import { HttpException, Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { from, Observable, of } from 'rxjs';
@@ -12,6 +18,10 @@ import { ChangePasswordDto } from './dto/create-user-dto';
 import { UserRepository } from './user.repository';
 import * as bcrypt from 'bcryptjs';
 import { hashData } from 'src/utils';
+import { UpdateProfileDto } from './dto/update-user-dto';
+import { UploadService } from '../upload/upload.service';
+import { url } from 'inspector';
+import { UploadResource } from 'src/constants';
 
 @Injectable()
 export class UserService {
@@ -20,6 +30,7 @@ export class UserService {
     private readonly userRepository: UserRepository,
     private config: ConfigService,
     private jwtService: JwtService,
+    private readonly uploadService: UploadService,
   ) {}
   async changePassword(
     changePasswordDto: ChangePasswordDto,
@@ -35,14 +46,12 @@ export class UserService {
     const isCorrectPassword = await bcrypt.compare(old_password, user.password);
 
     if (!isCorrectPassword) {
-       throw new InternalServerErrorException(
-         'Old password incorrect',
-       );
+      throw new InternalServerErrorException('Old password incorrect');
     }
 
     const newHashPassword = await hashData(new_password);
     this.logger.log(`isCorrectPassword: ${isCorrectPassword}`);
-    user.password = newHashPassword
+    user.password = newHashPassword;
     await this.userRepository.updateData(user);
 
     const responseData: ResponseData = {
@@ -52,7 +61,79 @@ export class UserService {
     return responseData;
   }
 
-  
+  async profileByMe(userID: number): Promise<ResponseData> {
+    const user = await this.userRepository.getByID(userID);
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    const responseData: ResponseData = {
+      message: 'Get profile successfully!',
+      data: user,
+    };
+
+    return responseData;
+  }
+
+  async updateProfile(
+    userID: number,
+    updateProfileDto: UpdateProfileDto,
+    avatar: Express.Multer.File,
+  ): Promise<ResponseData> {
+    const user = await this.userRepository.getByID(userID);
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    if (avatar) {
+      // Remove avatar previous
+      if (user.avatar) {
+        await this.uploadService.deleteResource(user.avatar);
+      }
+
+      const avatarURL = await this.uploadService.uploadResource(
+        avatar,
+        UploadResource.Avatar,
+      );
+      user.avatar = avatarURL;
+    }
+
+    user.name = updateProfileDto.name;
+
+    user.biography = updateProfileDto.biography
+      ? updateProfileDto.biography
+      : null;
+    user.headline = updateProfileDto.headline
+      ? updateProfileDto.headline
+      : null;
+    user.linkedInURL = updateProfileDto.linkedInURL
+      ? updateProfileDto.linkedInURL
+      : null;
+    user.twitterURL = updateProfileDto.twitterURL
+      ? updateProfileDto.twitterURL
+      : null;
+    user.websiteURL = updateProfileDto.websiteURL
+      ? updateProfileDto.websiteURL
+      : null;
+    user.youtubeURL = updateProfileDto.youtubeURL
+      ? updateProfileDto.youtubeURL
+      : null;
+
+    user.facebookURL = updateProfileDto.facebookURL
+      ? updateProfileDto.facebookURL
+      : null;
+
+    this.userRepository.save(user);
+
+    const responseData: ResponseData = {
+      message: 'Update profile successfully!',
+      data: user,
+    };
+
+    return responseData;
+  }
 
   // async login(loginUserDto: LoginUserDto) {
   //   const { account, password } = loginUserDto;

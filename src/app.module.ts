@@ -7,6 +7,8 @@ import { User } from './entities/user.entity';
 import { AuthGuard } from './guards/auth.guard';
 import { AuthModule } from './module/auth/auth.module';
 import { EmailModule } from './module/email/email.module';
+import { UploadService } from './module/upload/upload.service';
+import { UploadModule } from './module/upload/upload.module';
 
 @Module({
   imports: [
@@ -52,6 +54,7 @@ import { EmailModule } from './module/email/email.module';
     }),
     AuthModule,
     EmailModule,
+    UploadModule,
   ],
   providers: [
     {
@@ -62,6 +65,7 @@ import { EmailModule } from './module/email/email.module';
       provide: 'CONFIG_APP',
       useValue: new ConfigService(),
     },
+    UploadService,
   ],
 })
 export class AppModule {}

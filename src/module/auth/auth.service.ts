@@ -184,6 +184,7 @@ export class AuthService {
 
   async encodeJWTEmail(email: string): Promise<string> {
     const HOUR_SECONDS = 60 * 60;
+
     const token = await this.jwtService.signAsync(
       {
         sub: email,
