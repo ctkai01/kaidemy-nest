@@ -3,15 +3,18 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
-  Post, Put, UploadedFile, UseFilters, UseInterceptors
+  Param,
+  Post, Put, UploadedFile, UseFilters, UseGuards, UseInterceptors
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
 import { GetCurrentUserID, Public } from 'src/decorators';
+import { AdminRoleGuard } from 'src/guards/admin-role.guard';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
+import { BlockUserDto } from './dto/block-user-dto';
 import { ChangePasswordDto } from './dto/create-user-dto';
 import { UpdateProfileDto } from './dto/update-user-dto';
 import { multerImageOptions, multerVideoOptions } from './multer.config';
@@ -46,6 +49,16 @@ export class UserController {
     @GetCurrentUserID() userID: number,
   ): Promise<ResponseData> {
     return this.userService.updateProfile(userID, updateProfileDto, avatar);
+  }
+
+  @Put(':id/block')
+  @UseGuards(AdminRoleGuard)
+  @HttpCode(HttpStatus.OK)
+  blockUser(
+    @Param('id') userID: number,
+    @Body() blockUserDto: BlockUserDto,
+  ): Promise<ResponseData> {
+    return this.userService.blockUser(userID, blockUserDto);
   }
 
   // @Public()

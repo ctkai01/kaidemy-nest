@@ -25,6 +25,13 @@ export class HttpExceptionValidateFilter implements ExceptionFilter {
         message: message,
       });
     }
+
+    if (status === HttpStatus.FORBIDDEN) {
+      return response.status(status).json({
+        statusCode: status,
+        message: message,
+      });
+    }
     if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
       return response.status(status).json({
         statusCode: status,

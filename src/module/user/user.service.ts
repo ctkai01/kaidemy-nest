@@ -3,6 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -22,6 +23,7 @@ import { UpdateProfileDto } from './dto/update-user-dto';
 import { UploadService } from '../upload/upload.service';
 import { url } from 'inspector';
 import { UploadResource } from 'src/constants';
+import { BlockUserDto } from './dto/block-user-dto';
 
 @Injectable()
 export class UserService {
@@ -71,6 +73,27 @@ export class UserService {
     const responseData: ResponseData = {
       message: 'Get profile successfully!',
       data: user,
+    };
+
+    return responseData;
+  }
+
+  async blockUser(
+    userID: number,
+    blockUserDto: BlockUserDto,
+  ): Promise<ResponseData> {
+    const user = await this.userRepository.getByID(userID);
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    user.isBlock = blockUserDto.isBlock;
+
+    await this.userRepository.updateData(user);
+
+    const responseData: ResponseData = {
+      message: 'Block user successfully!',
     };
 
     return responseData;
