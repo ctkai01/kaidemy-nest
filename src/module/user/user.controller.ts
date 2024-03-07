@@ -1,12 +1,14 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
-  Post, Put, UploadedFile, UseFilters, UseGuards, UseInterceptors
+  Post, Put, Query, UploadedFile, UseFilters, UseGuards, UseInterceptors
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { PageUserOptionsDto } from 'src/common/paginate/users/page-option.dto';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
@@ -60,6 +62,14 @@ export class UserController {
   ): Promise<ResponseData> {
     return this.userService.blockUser(userID, blockUserDto);
   }
+
+  @Get()
+  @UseGuards(AdminRoleGuard)
+  @HttpCode(HttpStatus.OK)
+  getUsers(@Query() pageUserOptionsDto: PageUserOptionsDto): Promise<ResponseData> {
+    return this.userService.getUsers(pageUserOptionsDto);
+  }
+  
 
   // @Public()
   // @Post('change-password')

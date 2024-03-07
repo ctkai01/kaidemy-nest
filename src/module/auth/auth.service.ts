@@ -1,15 +1,17 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   Logger,
-  UnauthorizedException
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import axios from 'axios';
 import * as bcrypt from 'bcryptjs';
 import { from, Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { ACCOUNT_NORMAL, DEFAULT_ROLE } from 'src/constants';
+import { ACCOUNT_GOOGLE, ACCOUNT_NORMAL, DEFAULT_ROLE } from 'src/constants';
 import { User } from 'src/entities/user.entity';
 import { MailForgot } from 'src/interface';
 import { JWTPayload } from 'src/interface/jwt.payload';
@@ -23,8 +25,9 @@ import {
   CreateUserDto,
   ForgotPasswordDto,
   LoginUserDto,
-  ResetPasswordDto
+  ResetPasswordDto,
 } from './dto';
+import { LoginGoogleDto } from './dto/login-google-dto';
 import { EmailTokenPayload } from './interface/email-token.interface';
 import { Tokens } from './interface/token.interface';
 
@@ -61,6 +64,56 @@ export class AuthService {
     const responseData: ResponseData = {
       data: useRegisterData,
       message: 'Create user successfully!',
+    };
+
+    return responseData;
+  }
+
+  async loginGoogle(loginGoogleDto: LoginGoogleDto): Promise<ResponseData> {
+    const { token } = loginGoogleDto;
+    // const hashPassword = await hashData(createUserDto.password);
+
+    const response = await axios.get(
+      'https://www.googleapis.com/oauth2/v2/userinfo',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    let user = await this.userRepository.getByEmail(response.data.email);
+
+    if (!user) {
+      user = {
+        email: user.email,
+        name: user.name,
+        typeAccount: ACCOUNT_GOOGLE,
+        password: '',
+        role: DEFAULT_ROLE,
+      };
+
+      await this.userRepository.save(user);
+    } else {
+      if (user.isBlock) {
+        throw new InternalServerErrorException('user being blocked');
+      }
+
+      if (user.typeAccount !== ACCOUNT_GOOGLE) {
+        throw new InternalServerErrorException('user not has account google');
+      }
+    }
+
+    const tokens = await this.getTokens(user.id, user.email);
+
+    const useRegisterData: UserRegister = {
+      token: tokens.access_token,
+      user: user,
+    };
+
+    const responseData: ResponseData = {
+      data: useRegisterData,
+      message: 'Login google user successfully!',
     };
 
     return responseData;
@@ -206,7 +259,7 @@ export class AuthService {
 
       return data;
     } catch (err) {
-      console.log("Err: ", err)
+      console.log('Err: ', err);
       return null;
     }
   }

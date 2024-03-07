@@ -18,6 +18,7 @@ import { ResponseData } from '../../interface/response.interface';
 import { Tokens } from './interface/token.interface';
 import { Public } from 'src/decorators';
 import { CreateUserDto, ForgotPasswordDto, LoginUserDto, ResetPasswordDto } from './dto';
+import { LoginGoogleDto } from './dto/login-google-dto';
 
 @Controller('auth')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -55,6 +56,13 @@ export class AuthController {
     @Body() resetPasswordDto: ResetPasswordDto,
   ): Promise<ResponseData> {
     return this.authService.resetPassword(resetPasswordDto);
+  }
+
+  @Public()
+  @Post('login-google')
+  @HttpCode(HttpStatus.OK)
+  loginGoogle(@Body() loginGoogleDto: LoginGoogleDto): Promise<ResponseData> {
+    return this.authService.loginGoogle(loginGoogleDto);
   }
 
   // @Public()

@@ -24,6 +24,9 @@ import { UploadService } from '../upload/upload.service';
 import { url } from 'inspector';
 import { UploadResource } from 'src/constants';
 import { BlockUserDto } from './dto/block-user-dto';
+import { PageMetaDto } from 'src/common/paginate/users/page-meta.dto';
+import { PageDto } from 'src/common/paginate/users/paginate.dto';
+import { PageUserOptionsDto } from 'src/common/paginate/users/page-option.dto';
 
 @Injectable()
 export class UserService {
@@ -96,6 +99,36 @@ export class UserService {
       message: 'Block user successfully!',
     };
 
+    return responseData;
+  }
+
+  async getUsers(
+    pageUserOptionsDto: PageUserOptionsDto,
+  ): Promise<ResponseData> {
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+
+    queryBuilder.orderBy('user.created_at', pageUserOptionsDto.order);
+
+    if (pageUserOptionsDto.search) {
+      queryBuilder.andWhere('user.name LIKE :searchQuery', {
+        searchQuery: `%${pageUserOptionsDto.search}%`,
+      });
+    }
+    queryBuilder.skip(pageUserOptionsDto.skip).take(pageUserOptionsDto.size);
+
+    const itemCount = await queryBuilder.getCount();
+    const { entities } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: pageUserOptionsDto,
+    });
+    const data = new PageDto(entities, pageMetaDto);
+
+    const responseData: ResponseData = {
+      message: 'Get users successfully!',
+      data,
+    };
     return responseData;
   }
 

@@ -14,7 +14,7 @@ async function bootstrap() {
   // await getManager().query(`SET time_zone = 'Asia/Ho_Chi_Minh';`);
   const app = await NestFactory.create(AppModule);
   app.enableCors();
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.setGlobalPrefix('/api');
 
