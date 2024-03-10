@@ -19,6 +19,7 @@ import { hashData } from 'src/utils';
 import { getRepository } from 'typeorm';
 import { ResponseData } from '../../interface/response.interface';
 import { UserLogin, UserRegister } from '../../response';
+import { GoogleAuthenticationService } from '../google/google.service';
 import { ProducerService } from '../queues/producer.service';
 import { UserRepository } from '../user/user.repository';
 import {
@@ -39,6 +40,7 @@ export class AuthService {
     private config: ConfigService,
     private jwtService: JwtService,
     private producerService: ProducerService,
+    private googleAuthenticationService: GoogleAuthenticationService,
   ) {}
   async createUser(createUserDto: CreateUserDto): Promise<ResponseData> {
     const { email, name, password } = createUserDto;
@@ -71,52 +73,49 @@ export class AuthService {
 
   async loginGoogle(loginGoogleDto: LoginGoogleDto): Promise<ResponseData> {
     const { token } = loginGoogleDto;
-    // const hashPassword = await hashData(createUserDto.password);
+    try {
+      const dataInfo =
+        await this.googleAuthenticationService.authenticate(token);
 
-    const response = await axios.get(
-      'https://www.googleapis.com/oauth2/v2/userinfo',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
+      let user = await this.userRepository.getByEmail(dataInfo.email);
 
-    let user = await this.userRepository.getByEmail(response.data.email);
+      if (!user) {
+        user = {
+          email: dataInfo.email,
+          name: dataInfo.name,
+          typeAccount: ACCOUNT_GOOGLE,
+          password: '',
+          role: DEFAULT_ROLE,
+        };
 
-    if (!user) {
-      user = {
-        email: user.email,
-        name: user.name,
-        typeAccount: ACCOUNT_GOOGLE,
-        password: '',
-        role: DEFAULT_ROLE,
+        await this.userRepository.save(user);
+      } else {
+        if (user.isBlock) {
+          throw new InternalServerErrorException('user being blocked');
+        }
+
+        if (user.typeAccount !== ACCOUNT_GOOGLE) {
+          throw new InternalServerErrorException('user not has account google');
+        }
+      }
+
+      const tokens = await this.getTokens(user.id, user.email);
+
+      const useRegisterData: UserRegister = {
+        token: tokens.access_token,
+        user: user,
       };
 
-      await this.userRepository.save(user);
-    } else {
-      if (user.isBlock) {
-        throw new InternalServerErrorException('user being blocked');
-      }
+      const responseData: ResponseData = {
+        data: useRegisterData,
+        message: 'Login google user successfully!',
+      };
 
-      if (user.typeAccount !== ACCOUNT_GOOGLE) {
-        throw new InternalServerErrorException('user not has account google');
-      }
+      return responseData;
+    } catch (err) {
+    throw new InternalServerErrorException('Login google failed');
+
     }
-
-    const tokens = await this.getTokens(user.id, user.email);
-
-    const useRegisterData: UserRegister = {
-      token: tokens.access_token,
-      user: user,
-    };
-
-    const responseData: ResponseData = {
-      data: useRegisterData,
-      message: 'Login google user successfully!',
-    };
-
-    return responseData;
   }
 
   async loginUser(loginUserDto: LoginUserDto): Promise<ResponseData> {

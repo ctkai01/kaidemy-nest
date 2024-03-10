@@ -132,6 +132,21 @@ export class UserService {
     return responseData;
   }
 
+  async getUserByID(userID: number): Promise<ResponseData> {
+    const user = await this.userRepository.findOne({
+      where: [{ id: userID }],
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found")
+    }
+    const responseData: ResponseData = {
+      message: 'Get user successfully!',
+      data: user,
+    };
+    return responseData;
+  }
+
   async updateProfile(
     userID: number,
     updateProfileDto: UpdateProfileDto,

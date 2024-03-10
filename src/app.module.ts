@@ -9,6 +9,8 @@ import { AuthModule } from './module/auth/auth.module';
 import { EmailModule } from './module/email/email.module';
 import { UploadService } from './module/upload/upload.service';
 import { UploadModule } from './module/upload/upload.module';
+import { UserModule } from './module/user/user.module';
+import { LevelModule } from './module/level/level.module';
 
 @Module({
   imports: [
@@ -46,15 +48,17 @@ import { UploadModule } from './module/upload/upload.module';
           database: configService.get('DB_NAME'),
           logging: true,
           keepConnectionAlive: true,
-          extra: { insecureAuth: true },
+          extra: { insecureAuth: true, charset: 'utf8mb4_unicode_ci' },
           entities: [User],
-          timezone: 'Asia/Ho_Chi_Minh',
+          timezone: '+07:00',
         };
       },
     }),
     AuthModule,
     EmailModule,
     UploadModule,
+    // UserModule,
+    LevelModule
   ],
   providers: [
     {
@@ -69,4 +73,3 @@ import { UploadModule } from './module/upload/upload.module';
   ],
 })
 export class AppModule {}
-

@@ -17,7 +17,12 @@ import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter'
 import { ResponseData } from '../../interface/response.interface';
 import { Tokens } from './interface/token.interface';
 import { Public } from 'src/decorators';
-import { CreateUserDto, ForgotPasswordDto, LoginUserDto, ResetPasswordDto } from './dto';
+import {
+  CreateUserDto,
+  ForgotPasswordDto,
+  LoginUserDto,
+  ResetPasswordDto,
+} from './dto';
 import { LoginGoogleDto } from './dto/login-google-dto';
 
 @Controller('auth')
@@ -64,6 +69,13 @@ export class AuthController {
   loginGoogle(@Body() loginGoogleDto: LoginGoogleDto): Promise<ResponseData> {
     return this.authService.loginGoogle(loginGoogleDto);
   }
+
+  // @Public()
+  // @Get('token')
+  // @HttpCode(HttpStatus.OK)
+  // loginGoogle(@Body() loginGoogleDto: LoginGoogleDto): Promise<ResponseData> {
+  //   return this.authService.loginGoogle(loginGoogleDto);
+  // }
 
   // @Public()
   // @Post('/login')

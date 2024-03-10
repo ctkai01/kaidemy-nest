@@ -36,7 +36,7 @@ export class UserController {
     return this.userService.changePassword(changePasswordDto, userID);
   }
 
-  @Post('me')
+  @Get('me')
   @HttpCode(HttpStatus.OK)
   profileByMe(@GetCurrentUserID() userID: number): Promise<ResponseData> {
     return this.userService.profileByMe(userID);
@@ -66,10 +66,18 @@ export class UserController {
   @Get()
   @UseGuards(AdminRoleGuard)
   @HttpCode(HttpStatus.OK)
-  getUsers(@Query() pageUserOptionsDto: PageUserOptionsDto): Promise<ResponseData> {
+  getUsers(
+    @Query() pageUserOptionsDto: PageUserOptionsDto,
+  ): Promise<ResponseData> {
     return this.userService.getUsers(pageUserOptionsDto);
   }
-  
+
+  @Get(':id')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  getUserByID(@Param('id') userID: number): Promise<ResponseData> {
+    return this.userService.getUserByID(userID);
+  }
 
   // @Public()
   // @Post('change-password')
