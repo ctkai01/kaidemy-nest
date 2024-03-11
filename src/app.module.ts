@@ -11,6 +11,7 @@ import { UploadService } from './module/upload/upload.service';
 import { UploadModule } from './module/upload/upload.module';
 import { UserModule } from './module/user/user.module';
 import { LevelModule } from './module/level/level.module';
+import { PriceModule } from './module/price/price.module';
 
 @Module({
   imports: [
@@ -57,7 +58,7 @@ import { LevelModule } from './module/level/level.module';
     AuthModule,
     EmailModule,
     UploadModule,
-    // UserModule,
+    PriceModule,
     LevelModule
   ],
   providers: [

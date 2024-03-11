@@ -1,46 +1,55 @@
 import { ConflictException, InternalServerErrorException, Logger } from '@nestjs/common';
 import { EntityRepository, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Level } from 'src/entities';
+import { Level, Price } from 'src/entities';
 import _ = require('lodash');
 
-@EntityRepository(Level)
-export class LevelRepository extends Repository<Level> {
-  private logger = new Logger(LevelRepository.name);
+@EntityRepository(Price)
+export class PriceRepository extends Repository<Price> {
+  private logger = new Logger(PriceRepository.name);
 
   constructor(
-    @InjectRepository(Level)
-    private levelRepository: Repository<Level>,
+    @InjectRepository(Price)
+    private priceRepository: Repository<Price>,
   ) {
     super(
-      levelRepository.target,
-      levelRepository.manager,
-      levelRepository.queryRunner,
+      priceRepository.target,
+      priceRepository.manager,
+      priceRepository.queryRunner,
     );
   }
-  async createLevel(levelData: Level): Promise<Level> {
+  async createPrice(priceData: Price): Promise<Price> {
     try {
-      const level = this.create(levelData);
-      const levelCreated = await this.save(level);
+      const price = this.create(priceData);
+      const priceCreated = await this.save(price);
 
-      return levelCreated;
+      return priceCreated;
     } catch (err) {
       this.logger.error(err);
       if (err.code === 'ER_DUP_ENTRY') {
-        throw new ConflictException('Name already exists');
+        throw new ConflictException('Tier already exists');
       }
 
       throw new InternalServerErrorException('Something error query');
     }
   }
 
-  async getLevelById(levelID: number): Promise<Level> {
-    const level = await this.findOne({
+  async getPriceById(priceID: number): Promise<Price> {
+    const price = await this.findOne({
       where: {
-        id: levelID
-      }
+        id: priceID,
+      },
     });
-    return level;
+    return price;
+  }
+
+  async getPriceByTier(tier: string): Promise<Price> {
+    const price = await this.findOne({
+      where: {
+        tier
+      },
+    });
+    return price;
   }
 
   // async getUserByUserName(userName: string): Promise<User> {

@@ -24,8 +24,8 @@ import { UploadService } from '../upload/upload.service';
 import { url } from 'inspector';
 import { UploadResource } from 'src/constants';
 import { BlockUserDto } from './dto/block-user-dto';
-import { PageMetaDto } from 'src/common/paginate/users/page-meta.dto';
-import { PageDto } from 'src/common/paginate/users/paginate.dto';
+import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
+import { PageDto } from 'src/common/paginate/paginate.dto';
 import { PageUserOptionsDto } from 'src/common/paginate/users/page-option.dto';
 
 @Injectable()
@@ -138,7 +138,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException("User not found")
+      throw new NotFoundException('User not found');
     }
     const responseData: ResponseData = {
       message: 'Get user successfully!',

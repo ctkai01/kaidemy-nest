@@ -1,99 +1,107 @@
 import {
+  ConflictException,
   Injectable,
-  InternalServerErrorException,
   Logger,
-  NotFoundException,
-  UnauthorizedException,
+  NotFoundException
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import * as bcrypt from 'bcryptjs';
-import { hashData } from 'src/utils';
-import { ResponseData } from '../../interface/response.interface';
-import { LevelRepository } from './level.repository';
-import { CreateLevelDto, UpdateLevelDto } from './dto';
-import { Level } from 'src/entities';
-import { PageLevelOptionsDto } from 'src/common/paginate/levels/page-option.dto';
 import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
+import { PageCommonOptionsDto } from 'src/common/paginate/page-option.dto';
 import { PageDto } from 'src/common/paginate/paginate.dto';
+import { Price } from 'src/entities';
+import { ResponseData } from '../../interface/response.interface';
+import { CreatePriceDto, UpdatePriceDto } from './dto';
+import { PriceRepository } from './price.repository';
 
 @Injectable()
-export class LevelService {
-  private logger = new Logger(LevelService.name);
-  constructor(private readonly levelRepository: LevelRepository) {}
-  async createLevel(createLevelDto: CreateLevelDto): Promise<ResponseData> {
-    const { name } = createLevelDto;
-    const level: Level = {
-      name,
+export class PriceService {
+  private logger = new Logger(PriceService.name);
+  constructor(private readonly priceRepository: PriceRepository) {}
+  async createPrice(createPriceDto: CreatePriceDto): Promise<ResponseData> {
+    const { tier, value } = createPriceDto;
+    const price: Price = {
+      tier,
+      value,
     };
 
-    const levelCreate = await this.levelRepository.createLevel(level);
+    const priceCreate = await this.priceRepository.createPrice(price);
 
     const responseData: ResponseData = {
-      message: 'Create level successfully!',
-      data: levelCreate,
+      message: 'Create price successfully!',
+      data: priceCreate,
     };
 
     return responseData;
   }
 
-  async updateLevel(
-    updateLevelDto: UpdateLevelDto,
-    levelID: number,
+  async updatePrice(
+    updatePriceDto: UpdatePriceDto,
+    priceID: number,
   ): Promise<ResponseData> {
-    const { name } = updateLevelDto;
+    const { tier, value } = updatePriceDto;
 
-    const level = await this.levelRepository.getLevelById(levelID);
+    const price = await this.priceRepository.getPriceById(priceID);
 
-    if (!level) {
-      throw new NotFoundException('Level not found');
+    if (!price) {
+      throw new NotFoundException('Price not found');
     }
 
-    level.name = name;
+    if (tier) {
+      const priceByTier = await this.priceRepository.getPriceByTier(tier);
 
-    await this.levelRepository.save(level);
-    const responseData: ResponseData = {
-      message: 'Update level successfully!',
-      data: level,
-    };
-
-    return responseData;
-  }
-
-  async deleteLevel(levelID: number): Promise<ResponseData> {
-    const level = await this.levelRepository.getLevelById(levelID);
-
-    if (!level) {
-      throw new NotFoundException('Level not found');
+      if (priceByTier && priceByTier.id !== priceID) {
+        throw new ConflictException('Tier already exists');
+      }
+      price.tier = tier;
     }
 
-    await this.levelRepository.delete(level);
+    if (value) {
+      price.value = value;
+    }
 
+    await this.priceRepository.save(price);
     const responseData: ResponseData = {
-      message: 'Delete level successfully!',
+      message: 'Update price successfully!',
+      data: price,
     };
 
     return responseData;
   }
 
-  async getLevels(
-    pageLevelOptionsDto: PageLevelOptionsDto,
-  ): Promise<ResponseData> {
-    const queryBuilder = this.levelRepository.createQueryBuilder('level');
-    queryBuilder.orderBy('level.created_at', pageLevelOptionsDto.order);
+  async deletePrice(priceID: number): Promise<ResponseData> {
+    const price = await this.priceRepository.getPriceById(priceID);
 
-    queryBuilder.skip(pageLevelOptionsDto.skip).take(pageLevelOptionsDto.size);
+    if (!price) {
+      throw new NotFoundException('Price not found');
+    }
+
+    await this.priceRepository.delete(price);
+
+    const responseData: ResponseData = {
+      message: 'Delete price successfully!',
+    };
+
+    return responseData;
+  }
+
+  async getPrices(
+    pageCommonOptionsDto: PageCommonOptionsDto,
+  ): Promise<ResponseData> {
+    const queryBuilder = this.priceRepository.createQueryBuilder('price');
+    queryBuilder.orderBy('price.created_at', pageCommonOptionsDto.order);
+
+    queryBuilder.skip(pageCommonOptionsDto.skip).take(pageCommonOptionsDto.size);
 
     const itemCount = await queryBuilder.getCount();
     const { entities } = await queryBuilder.getRawAndEntities();
 
     const pageMetaDto = new PageMetaDto({
       itemCount,
-      pageOptionsDto: pageLevelOptionsDto,
+      pageOptionsDto: pageCommonOptionsDto,
     });
     const data = new PageDto(entities, pageMetaDto);
 
     const responseData: ResponseData = {
-      message: 'Get levels successfully!',
+      message: 'Get prices successfully!',
       data,
     };
 

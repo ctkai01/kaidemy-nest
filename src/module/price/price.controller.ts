@@ -10,56 +10,53 @@ import {
   Put,
   Query,
   UseFilters,
-  UseGuards,
+  UseGuards
 } from '@nestjs/common';
-import { PageLevelOptionsDto } from 'src/common/paginate/levels/page-option.dto';
-import { PageUserOptionsDto } from 'src/common/paginate/users/page-option.dto';
+import { PageCommonOptionsDto } from 'src/common/paginate/page-option.dto';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
-import { GetCurrentUserID } from 'src/decorators';
 import { AdminRoleGuard } from 'src/guards/admin-role.guard';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
-import {  CreateLevelDto, UpdateLevelDto } from './dto';
-import { LevelService } from './level.service';
+import { CreatePriceDto, UpdatePriceDto } from './dto';
+import { PriceService } from './price.service';
 
-
-@Controller('levels')
+@Controller('prices')
 @UseFilters(new HttpExceptionValidateFilter())
-export class LevelController {
-  constructor(private levelService: LevelService) {}
+export class PriceController {
+  constructor(private priceService: PriceService) {}
 
   @Post('')
   @UseGuards(AdminRoleGuard)
   @HttpCode(HttpStatus.CREATED)
-  createLevel(@Body() createLevelDto: CreateLevelDto): Promise<ResponseData> {
-    return this.levelService.createLevel(createLevelDto);
+  createPrice(@Body() createPriceDto: CreatePriceDto): Promise<ResponseData> {
+    return this.priceService.createPrice(createPriceDto);
   }
 
   @Put(':id')
   @UseGuards(AdminRoleGuard)
   @HttpCode(HttpStatus.OK)
-  updateLevel(
-    @Body() updateLevelDto: UpdateLevelDto,
-    @Param('id') levelID: number,
+  updatePrice(
+    @Body() updatePriceDto: UpdatePriceDto,
+    @Param('id') priceID: number,
   ): Promise<ResponseData> {
-    return this.levelService.updateLevel(updateLevelDto, levelID);
+    return this.priceService.updatePrice(updatePriceDto, priceID);
   }
 
   @Delete(':id')
   @UseGuards(AdminRoleGuard)
   @HttpCode(HttpStatus.OK)
-  deleteLevel(@Param('id') levelID: number): Promise<ResponseData> {
-    return this.levelService.deleteLevel(levelID);
+  deletePrice(@Param('id') priceID: number): Promise<ResponseData> {
+    return this.priceService.deletePrice(priceID);
   }
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  getLevels(
-    @Query() pageLevelOptionsDto: PageLevelOptionsDto,
+  getPrices(
+    @Query() pageCommonOptionsDto: PageCommonOptionsDto,
   ): Promise<ResponseData> {
-    return this.levelService.getLevels(pageLevelOptionsDto);
+    return this.priceService.getPrices(pageCommonOptionsDto);
   }
 
   // @Public()
