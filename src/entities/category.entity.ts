@@ -15,13 +15,17 @@ export class Category {
   @Column({ unique: true })
   name: string;
 
-  @Column({ nullable: true }) // Remove parentId column definition
+  @Column({ nullable: true })
   parentID?: number;
 
+  @ManyToOne(() => Category, { onDelete: 'CASCADE' }) // Set onDelete: 'CASCADE' here
   @JoinColumn({ name: 'parentID', referencedColumnName: 'id' })
   parent?: Category;
 
-  @OneToMany(() => Category, (category) => category.parent, { onDelete: "CASCADE" })
+  @OneToMany(() => Category, (category) => category.parent, {
+    onDelete: 'CASCADE', // Set onDelete: 'CASCADE' here as well
+    cascade: true,
+  })
   children?: Category[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
