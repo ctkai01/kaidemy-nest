@@ -12,6 +12,8 @@ import { UploadModule } from './module/upload/upload.module';
 import { UserModule } from './module/user/user.module';
 import { LevelModule } from './module/level/level.module';
 import { PriceModule } from './module/price/price.module';
+import { CategoryModule } from './module/category/category.module';
+import { Category, Level, Price } from './entities';
 
 @Module({
   imports: [
@@ -50,7 +52,7 @@ import { PriceModule } from './module/price/price.module';
           logging: true,
           keepConnectionAlive: true,
           extra: { insecureAuth: true, charset: 'utf8mb4_unicode_ci' },
-          entities: [User],
+          entities: [User, Price, Level, Category],
           timezone: '+07:00',
         };
       },
@@ -59,7 +61,8 @@ import { PriceModule } from './module/price/price.module';
     EmailModule,
     UploadModule,
     PriceModule,
-    LevelModule
+    LevelModule,
+    CategoryModule,
   ],
   providers: [
     {
