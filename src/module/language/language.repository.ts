@@ -3,27 +3,29 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
 import { EntityRepository, Repository } from 'typeorm';
 import _ = require('lodash');
+import { IssueType } from '../../entities/issue-type.entity';
+import { Language } from 'src/entities';
 
-@EntityRepository(Category)
-export class CategoryRepository extends Repository<Category> {
-  private logger = new Logger(CategoryRepository.name);
+@EntityRepository(Language)
+export class LanguageRepository extends Repository<Language> {
+  private logger = new Logger(LanguageRepository.name);
 
   constructor(
-    @InjectRepository(Category)
-    private categoryRepository: Repository<Category>,
+    @InjectRepository(Language)
+    private languageRepository: Repository<Language>,
   ) {
     super(
-      categoryRepository.target,
-      categoryRepository.manager,
-      categoryRepository.queryRunner,
+      languageRepository.target,
+      languageRepository.manager,
+      languageRepository.queryRunner,
     );
   }
-  async createCategory(categoryData: Category): Promise<Category> {
+  async createLanguage(languageData: Language): Promise<Language> {
     try {
-      const category = this.create(categoryData);
-      const categoryCreated = await this.save(category);
+      const language = this.create(languageData);
+      const languageCreated = await this.save(language);
 
-      return categoryCreated;
+      return languageCreated;
     } catch (err) {
       this.logger.error(err);
       if (err.code === 'ER_DUP_ENTRY') {
@@ -34,32 +36,22 @@ export class CategoryRepository extends Repository<Category> {
     }
   }
 
-  async getCategoryById(categoryID: number): Promise<Category> {
-    const category = await this.findOne({
+  async getLanguageById(languageID: number): Promise<Language> {
+    const language = await this.findOne({
       where: {
-        id: categoryID,
+        id: languageID,
       },
     });
-    return category;
+    return language;
   }
 
-  async getCategoryByIdRelation(categoryID: number): Promise<Category> {
-    const category = await this.findOne({
-      where: {
-        id: categoryID,
-      },
-      relations: ['children'],
-    });
-    return category;
-  }
-
-  async getCategoryByName(name: string): Promise<Category> {
-    const category = await this.findOne({
+  async getLanguageByName(name: string): Promise<Language> {
+    const language = await this.findOne({
       where: {
         name,
       },
     });
-    return category;
+    return language;
   }
 
   // async getUserByUserName(userName: string): Promise<User> {

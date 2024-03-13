@@ -2,120 +2,93 @@ import {
   ConflictException,
   Injectable,
   Logger,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
 import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
 import { PageCommonOptionsDto } from 'src/common/paginate/page-option.dto';
 import { PageDto } from 'src/common/paginate/paginate.dto';
-import { Category } from 'src/entities/category.entity';
+import { Language } from 'src/entities';
 import { ResponseData } from '../../interface/response.interface';
-import { CategoryRepository } from './category.repository';
-import { CreateCategoryDto, UpdateCategoryDto } from './dto';
+import { CreateLanguageDto, UpdateLanguageDto } from './dto';
+import { LanguageRepository } from './language.repository';
 
 @Injectable()
-export class CategoryService {
-  private logger = new Logger(CategoryService.name);
-  constructor(private readonly categoryRepository: CategoryRepository) {}
-  async createCategory(
-    createCategoryDto: CreateCategoryDto,
+export class LanguageService {
+  private logger = new Logger(LanguageService.name);
+  constructor(private readonly languageRepository: LanguageRepository) {}
+  async createLanguage(
+    createLanguageDto: CreateLanguageDto,
   ): Promise<ResponseData> {
-    const { name, parentID } = createCategoryDto;
-    const category: Category = {
+    const { name } = createLanguageDto;
+    const language: Language = {
       name,
-      parentID: parentID,
     };
 
-    const categoryCreate =
-      await this.categoryRepository.createCategory(category);
+    const languageCreate =
+      await this.languageRepository.createLanguage(language);
 
     const responseData: ResponseData = {
-      message: 'Create category successfully!',
-      data: categoryCreate,
+      message: 'Create language successfully!',
+      data: languageCreate,
     };
 
     return responseData;
   }
 
-  async updateCategory(
-    updateCategoryDto: UpdateCategoryDto,
-    categoryID: number,
+  async updateLanguage(
+    updateLanguageDto: UpdateLanguageDto,
+    languageID: number,
   ): Promise<ResponseData> {
-    const { name, parentID } = updateCategoryDto;
+    const { name } = updateLanguageDto;
 
-    const category = await this.categoryRepository.getCategoryById(categoryID);
+    const language = await this.languageRepository.getLanguageById(languageID);
 
-    if (!category) {
-      throw new NotFoundException('Category not found');
+    if (!language) {
+      throw new NotFoundException('Language not found');
     }
 
     if (name) {
-      const priceByTier = await this.categoryRepository.getCategoryByName(name);
+      const languageByName =
+        await this.languageRepository.getLanguageByName(name);
 
-      if (priceByTier && priceByTier.id !== categoryID) {
+      if (languageByName && languageByName.id !== languageID) {
         throw new ConflictException('Name already exists');
       }
-      category.name = name;
+      language.name = name;
     }
 
-    if (parentID) {
-      // console.log('parentID: ', parentID);
-      const categoryParent =
-        await this.categoryRepository.getCategoryById(parentID);
-
-      if (!categoryParent) {
-        throw new NotFoundException('Category parent not found');
-      }
-    }
-    category.parentID = parentID || null;
-
-    await this.categoryRepository.save(category);
+    await this.languageRepository.save(language);
     const responseData: ResponseData = {
-      message: 'Update category successfully!',
-      data: category,
+      message: 'Update language successfully!',
+      data: language,
     };
 
     return responseData;
   }
 
-  async deleteCategory(categoryID: number): Promise<ResponseData> {
-    const category = await this.categoryRepository.getCategoryById(categoryID);
+  async deleteLanguage(languageID: number): Promise<ResponseData> {
+    const issueType =
+      await this.languageRepository.getLanguageById(languageID);
 
-    if (!category) {
-      throw new NotFoundException('Category not found');
+    if (!issueType) {
+      throw new NotFoundException('Language not found');
     }
 
-    await this.categoryRepository.delete(categoryID);
+    await this.languageRepository.delete(languageID);
 
     const responseData: ResponseData = {
-      message: 'Delete category successfully!',
+      message: 'Delete language successfully!',
     };
 
     return responseData;
   }
 
-  async getCategoryByID(categoryID: number): Promise<ResponseData> {
-    const category =
-      await this.categoryRepository.getCategoryByIdRelation(categoryID);
-
-    if (!category) {
-      throw new NotFoundException('Category not found');
-    }
-
-    const responseData: ResponseData = {
-      message: 'Get category successfully!',
-      data: category,
-    };
-
-    return responseData;
-  }
-
-  async getCategories(
+  async getLanguages(
     pageCommonOptionsDto: PageCommonOptionsDto,
   ): Promise<ResponseData> {
-    const queryBuilder = this.categoryRepository.createQueryBuilder('category');
-    queryBuilder
-      .orderBy('category.created_at', pageCommonOptionsDto.order)
-      .leftJoinAndSelect('category.children', 'children')
+    const queryBuilder =
+      this.languageRepository.createQueryBuilder('language');
+    queryBuilder.orderBy('language.created_at', pageCommonOptionsDto.order);
 
     queryBuilder
       .skip(pageCommonOptionsDto.skip)
@@ -131,7 +104,7 @@ export class CategoryService {
     const data = new PageDto(entities, pageMetaDto);
 
     const responseData: ResponseData = {
-      message: 'Get categories successfully!',
+      message: 'Get languages successfully!',
       data,
     };
 

@@ -3,27 +3,28 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
 import { EntityRepository, Repository } from 'typeorm';
 import _ = require('lodash');
+import { IssueType } from '../../entities/issue-type.entity';
 
-@EntityRepository(Category)
-export class CategoryRepository extends Repository<Category> {
-  private logger = new Logger(CategoryRepository.name);
+@EntityRepository(IssueType)
+export class IssueTypeRepository extends Repository<IssueType> {
+  private logger = new Logger(IssueTypeRepository.name);
 
   constructor(
-    @InjectRepository(Category)
-    private categoryRepository: Repository<Category>,
+    @InjectRepository(IssueType)
+    private issueTypeRepository: Repository<IssueType>,
   ) {
     super(
-      categoryRepository.target,
-      categoryRepository.manager,
-      categoryRepository.queryRunner,
+      issueTypeRepository.target,
+      issueTypeRepository.manager,
+      issueTypeRepository.queryRunner,
     );
   }
-  async createCategory(categoryData: Category): Promise<Category> {
+  async createIssueType(issueTypeData: IssueType): Promise<IssueType> {
     try {
-      const category = this.create(categoryData);
-      const categoryCreated = await this.save(category);
+      const issueType = this.create(issueTypeData);
+      const issueTypeCreated = await this.save(issueType);
 
-      return categoryCreated;
+      return issueTypeCreated;
     } catch (err) {
       this.logger.error(err);
       if (err.code === 'ER_DUP_ENTRY') {
@@ -34,32 +35,22 @@ export class CategoryRepository extends Repository<Category> {
     }
   }
 
-  async getCategoryById(categoryID: number): Promise<Category> {
-    const category = await this.findOne({
+  async getIssueTypeById(issueTypeID: number): Promise<IssueType> {
+    const issueType = await this.findOne({
       where: {
-        id: categoryID,
+        id: issueTypeID,
       },
     });
-    return category;
+    return issueType;
   }
 
-  async getCategoryByIdRelation(categoryID: number): Promise<Category> {
-    const category = await this.findOne({
-      where: {
-        id: categoryID,
-      },
-      relations: ['children'],
-    });
-    return category;
-  }
-
-  async getCategoryByName(name: string): Promise<Category> {
-    const category = await this.findOne({
+  async getIssueTypeByName(name: string): Promise<IssueType> {
+    const issueType = await this.findOne({
       where: {
         name,
       },
     });
-    return category;
+    return issueType;
   }
 
   // async getUserByUserName(userName: string): Promise<User> {

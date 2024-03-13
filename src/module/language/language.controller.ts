@@ -10,7 +10,7 @@ import {
   Put,
   Query,
   UseFilters,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { PageCommonOptionsDto } from 'src/common/paginate/page-option.dto';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
@@ -19,54 +19,46 @@ import { PageCommonOptionsDto } from 'src/common/paginate/page-option.dto';
 import { AdminRoleGuard } from 'src/guards/admin-role.guard';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
-import { CategoryService } from './category.service';
-import { CreateCategoryDto, UpdateCategoryDto } from './dto';
+import { CreateLanguageDto, UpdateLanguageDto } from './dto';
+import { LanguageService } from './language.service';
 
-@Controller('categories')
+@Controller('languages')
 @UseFilters(new HttpExceptionValidateFilter())
-export class CategoryController {
-  constructor(private categoryService: CategoryService) {}
+export class LanguageController {
+  constructor(private languageService: LanguageService) {}
 
   @Post('')
   @UseGuards(AdminRoleGuard)
   @HttpCode(HttpStatus.CREATED)
-  createCategory(
-    @Body() createCategoryDto: CreateCategoryDto,
+  createLanguage(
+    @Body() createLanguageDto: CreateLanguageDto,
   ): Promise<ResponseData> {
-    return this.categoryService.createCategory(createCategoryDto);
+    return this.languageService.createLanguage(createLanguageDto);
   }
 
   @Put(':id')
   @UseGuards(AdminRoleGuard)
   @HttpCode(HttpStatus.OK)
-  updateCategory(
-    @Body() updateCategoryDto: UpdateCategoryDto,
-    @Param('id') categoryID: number,
+  updateLanguage(
+    @Body() updateLanguageDto: UpdateLanguageDto,
+    @Param('id') languageID: number,
   ): Promise<ResponseData> {
-    return this.categoryService.updateCategory(updateCategoryDto, categoryID);
+    return this.languageService.updateLanguage(updateLanguageDto, languageID);
   }
 
   @Delete(':id')
   @UseGuards(AdminRoleGuard)
   @HttpCode(HttpStatus.OK)
-  deletePrice(@Param('id') categoryID: number): Promise<ResponseData> {
-    return this.categoryService.deleteCategory(categoryID);
-  }
-
-  @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  getCategoryByID(
-    @Param('id') categoryID: number,
-  ): Promise<ResponseData> {
-    return this.categoryService.getCategoryByID(categoryID);
+  deleteLanguage(@Param('id') languageID: number): Promise<ResponseData> {
+    return this.languageService.deleteLanguage(languageID);
   }
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  getCategories(
+  getLanguages(
     @Query() pageCommonOptionsDto: PageCommonOptionsDto,
   ): Promise<ResponseData> {
-    return this.categoryService.getCategories(pageCommonOptionsDto);
+    return this.languageService.getLanguages(pageCommonOptionsDto);
   }
 
   // @Public()

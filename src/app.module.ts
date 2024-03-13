@@ -13,7 +13,9 @@ import { UserModule } from './module/user/user.module';
 import { LevelModule } from './module/level/level.module';
 import { PriceModule } from './module/price/price.module';
 import { CategoryModule } from './module/category/category.module';
-import { Category, Level, Price } from './entities';
+import { Category, IssueType, Language, Level, Price } from './entities';
+import { IssueTypeModule } from './module/issue_type/issue-type.module';
+import { LanguageModule } from './module/language/language.module';
 
 @Module({
   imports: [
@@ -52,7 +54,7 @@ import { Category, Level, Price } from './entities';
           logging: true,
           keepConnectionAlive: true,
           extra: { insecureAuth: true, charset: 'utf8mb4_unicode_ci' },
-          entities: [User, Price, Level, Category],
+          entities: [User, Price, Level, Category, IssueType, Language],
           timezone: '+07:00',
         };
       },
@@ -63,6 +65,8 @@ import { Category, Level, Price } from './entities';
     PriceModule,
     LevelModule,
     CategoryModule,
+    IssueTypeModule,
+    LanguageModule,
   ],
   providers: [
     {

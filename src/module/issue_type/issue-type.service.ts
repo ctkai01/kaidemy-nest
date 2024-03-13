@@ -2,120 +2,94 @@ import {
   ConflictException,
   Injectable,
   Logger,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
 import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
 import { PageCommonOptionsDto } from 'src/common/paginate/page-option.dto';
 import { PageDto } from 'src/common/paginate/paginate.dto';
-import { Category } from 'src/entities/category.entity';
+import { IssueType } from 'src/entities';
 import { ResponseData } from '../../interface/response.interface';
-import { CategoryRepository } from './category.repository';
-import { CreateCategoryDto, UpdateCategoryDto } from './dto';
+import { CreateIssueTypeDto, UpdateIssueTypeDto } from './dto';
+import { IssueTypeRepository } from './issue-type.repository';
 
 @Injectable()
-export class CategoryService {
-  private logger = new Logger(CategoryService.name);
-  constructor(private readonly categoryRepository: CategoryRepository) {}
-  async createCategory(
-    createCategoryDto: CreateCategoryDto,
+export class IssueTypeService {
+  private logger = new Logger(IssueTypeService.name);
+  constructor(private readonly issueTypeRepository: IssueTypeRepository) {}
+  async createIssueType(
+    createIssueTypeDto: CreateIssueTypeDto,
   ): Promise<ResponseData> {
-    const { name, parentID } = createCategoryDto;
-    const category: Category = {
+    const { name } = createIssueTypeDto;
+    const issueType: IssueType = {
       name,
-      parentID: parentID,
     };
 
-    const categoryCreate =
-      await this.categoryRepository.createCategory(category);
+    const issueTypeCreate =
+      await this.issueTypeRepository.createIssueType(issueType);
 
     const responseData: ResponseData = {
-      message: 'Create category successfully!',
-      data: categoryCreate,
+      message: 'Create issue type successfully!',
+      data: issueTypeCreate,
     };
 
     return responseData;
   }
 
-  async updateCategory(
-    updateCategoryDto: UpdateCategoryDto,
-    categoryID: number,
+  async updateIssueType(
+    updateIssueTypeDto: UpdateIssueTypeDto,
+    issueTypeID: number,
   ): Promise<ResponseData> {
-    const { name, parentID } = updateCategoryDto;
+    const { name } = updateIssueTypeDto;
 
-    const category = await this.categoryRepository.getCategoryById(categoryID);
+    const issueType =
+      await this.issueTypeRepository.getIssueTypeById(issueTypeID);
 
-    if (!category) {
-      throw new NotFoundException('Category not found');
+    if (!issueType) {
+      throw new NotFoundException('Issue type not found');
     }
 
     if (name) {
-      const priceByTier = await this.categoryRepository.getCategoryByName(name);
+      const issueTypeByName =
+        await this.issueTypeRepository.getIssueTypeByName(name);
 
-      if (priceByTier && priceByTier.id !== categoryID) {
+      if (issueTypeByName && issueTypeByName.id !== issueTypeID) {
         throw new ConflictException('Name already exists');
       }
-      category.name = name;
+      issueType.name = name;
     }
 
-    if (parentID) {
-      // console.log('parentID: ', parentID);
-      const categoryParent =
-        await this.categoryRepository.getCategoryById(parentID);
 
-      if (!categoryParent) {
-        throw new NotFoundException('Category parent not found');
-      }
-    }
-    category.parentID = parentID || null;
-
-    await this.categoryRepository.save(category);
+    await this.issueTypeRepository.save(issueType);
     const responseData: ResponseData = {
-      message: 'Update category successfully!',
-      data: category,
+      message: 'Update issue type successfully!',
+      data: issueType,
     };
 
     return responseData;
   }
 
-  async deleteCategory(categoryID: number): Promise<ResponseData> {
-    const category = await this.categoryRepository.getCategoryById(categoryID);
+  async deleteIssueType(issueTypeID: number): Promise<ResponseData> {
+    const issueType = await this.issueTypeRepository.getIssueTypeById(issueTypeID);
 
-    if (!category) {
-      throw new NotFoundException('Category not found');
+    if (!issueType) {
+      throw new NotFoundException('Issue type not found');
     }
 
-    await this.categoryRepository.delete(categoryID);
+    await this.issueTypeRepository.delete(issueTypeID);
 
     const responseData: ResponseData = {
-      message: 'Delete category successfully!',
+      message: 'Delete issue type successfully!',
     };
 
     return responseData;
   }
 
-  async getCategoryByID(categoryID: number): Promise<ResponseData> {
-    const category =
-      await this.categoryRepository.getCategoryByIdRelation(categoryID);
-
-    if (!category) {
-      throw new NotFoundException('Category not found');
-    }
-
-    const responseData: ResponseData = {
-      message: 'Get category successfully!',
-      data: category,
-    };
-
-    return responseData;
-  }
-
-  async getCategories(
+  async getIssueTypes(
     pageCommonOptionsDto: PageCommonOptionsDto,
   ): Promise<ResponseData> {
-    const queryBuilder = this.categoryRepository.createQueryBuilder('category');
+    const queryBuilder = this.issueTypeRepository.createQueryBuilder('issue_type');
     queryBuilder
-      .orderBy('category.created_at', pageCommonOptionsDto.order)
-      .leftJoinAndSelect('category.children', 'children')
+      .orderBy('issue_type.created_at', pageCommonOptionsDto.order)
 
     queryBuilder
       .skip(pageCommonOptionsDto.skip)
@@ -131,7 +105,7 @@ export class CategoryService {
     const data = new PageDto(entities, pageMetaDto);
 
     const responseData: ResponseData = {
-      message: 'Get categories successfully!',
+      message: 'Get issue types successfully!',
       data,
     };
 
