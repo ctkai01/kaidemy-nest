@@ -6,6 +6,7 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
+import { Course } from './course.entity';
 
 @Entity({ name: 'categories' })
 export class Category {
@@ -27,6 +28,9 @@ export class Category {
     cascade: true,
   })
   children?: Category[];
+
+  @OneToMany(() => Course, (course) => course.category)
+  courses?: Course[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;

@@ -1,152 +1,163 @@
+import { InjectStripeClient } from '@golevelup/nestjs-stripe';
 import {
-  ConflictException,
   Injectable,
   Logger,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
-import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
-import { PageCommonOptionsDto } from 'src/common/paginate/page-option.dto';
-import { PageDto } from 'src/common/paginate/paginate.dto';
-import { Category } from 'src/entities/category.entity';
+
+import { Course } from 'src/entities';
+import Stripe from 'stripe';
 import { ResponseData } from '../../interface/response.interface';
-import { CategoryRepository } from './category.repository';
-import { CreateCategoryDto, UpdateCategoryDto } from './dto';
-
+import { CategoryRepository } from '../category/category.repository';
+import { CourseRepository } from './course.repository';
+import { CreateCourseDto } from './dto';
 @Injectable()
-export class CategoryService {
-  private logger = new Logger(CategoryService.name);
-  constructor(private readonly categoryRepository: CategoryRepository) {}
-  async createCategory(
-    createCategoryDto: CreateCategoryDto,
-  ): Promise<ResponseData> {
-    const { name, parentID } = createCategoryDto;
+export class CourseService {
+  private logger = new Logger(CourseService.name);
+  constructor(
+    @InjectStripeClient() private readonly stripeClient: Stripe,
+    private readonly courseRepository: CourseRepository,
+    private readonly categoryRepository: CategoryRepository,
+  ) {}
+  async createCourse(createCourseDto: CreateCourseDto, userID: number): Promise<ResponseData> {
+    const { title, categoryID, subCategoryID } = createCourseDto;
+    console.log('createCourseDto: ', createCourseDto);
 
-    // Check parentID exist
-    if (parentID) {
-      const parentCategory =
-        await this.categoryRepository.getCategoryById(parentID);
-      if (!parentCategory) {
-        throw new NotFoundException('Parent category not found');
-      }
-    }
+    this.categoryRepository.getCategoryById(categoryID);
+    const [category, subCategory] = await Promise.all([
+      await this.categoryRepository.getCategoryById(categoryID),
+      await this.categoryRepository.getCategoryById(subCategoryID)
+    ])
 
-    const category: Category = {
-      name,
-      parentID: parentID,
-    };
-
-    const categoryCreate =
-      await this.categoryRepository.createCategory(category);
-
-    const responseData: ResponseData = {
-      message: 'Create category successfully!',
-      data: categoryCreate,
-    };
-
-    return responseData;
-  }
-
-  async updateCategory(
-    updateCategoryDto: UpdateCategoryDto,
-    categoryID: number,
-  ): Promise<ResponseData> {
-    const { name, parentID } = updateCategoryDto;
-
-    const category = await this.categoryRepository.getCategoryById(categoryID);
-
-    if (!category) {
+    if (!category || !subCategory) {
       throw new NotFoundException('Category not found');
     }
 
-    if (name) {
-      const priceByTier = await this.categoryRepository.getCategoryByName(name);
+    const productStripeParams = {
+      name: title,
+    };
 
-      if (priceByTier && priceByTier.id !== categoryID) {
-        throw new ConflictException('Name already exists');
-      }
-      category.name = name;
-    }
+    const p = await this.stripeClient.products.create(productStripeParams);
 
-    if (parentID) {
-      // console.log('parentID: ', parentID);
-      const categoryParent =
-        await this.categoryRepository.getCategoryById(parentID);
+    const courseData: Partial<Course> = {
+      title,
+      categoryId: categoryID,
+      subCategoryId: subCategoryID,
+      productIdStripe: p.id,
+      userID: userID,
+    };
 
-      if (!categoryParent) {
-        throw new NotFoundException('Category parent not found');
-      }
-    }
-    category.parentID = parentID || null;
+    const courseCreate = await this.courseRepository.createCourse(courseData);
 
-    await this.categoryRepository.save(category);
     const responseData: ResponseData = {
-      message: 'Update category successfully!',
-      data: category,
+      message: 'Create course successfully!',
+      data: courseCreate,
     };
 
     return responseData;
   }
 
-  async deleteCategory(categoryID: number): Promise<ResponseData> {
-    const category = await this.categoryRepository.getCategoryById(categoryID);
+  // async updateCategory(
+  //   updateCategoryDto: UpdateCategoryDto,
+  //   categoryID: number,
+  // ): Promise<ResponseData> {
+  //   const { name, parentID } = updateCategoryDto;
 
-    if (!category) {
-      throw new NotFoundException('Category not found');
-    }
+  //   const category = await this.categoryRepository.getCategoryById(categoryID);
 
-    await this.categoryRepository.delete(categoryID);
+  //   if (!category) {
+  //     throw new NotFoundException('Category not found');
+  //   }
 
-    const responseData: ResponseData = {
-      message: 'Delete category successfully!',
-    };
+  //   if (name) {
+  //     const priceByTier = await this.categoryRepository.getCategoryByName(name);
 
-    return responseData;
-  }
+  //     if (priceByTier && priceByTier.id !== categoryID) {
+  //       throw new ConflictException('Name already exists');
+  //     }
+  //     category.name = name;
+  //   }
 
-  async getCategoryByID(categoryID: number): Promise<ResponseData> {
-    const category =
-      await this.categoryRepository.getCategoryByIdRelation(categoryID);
+  //   if (parentID) {
+  //     // console.log('parentID: ', parentID);
+  //     const categoryParent =
+  //       await this.categoryRepository.getCategoryById(parentID);
 
-    if (!category) {
-      throw new NotFoundException('Category not found');
-    }
+  //     if (!categoryParent) {
+  //       throw new NotFoundException('Category parent not found');
+  //     }
+  //   }
+  //   category.parentID = parentID || null;
 
-    const responseData: ResponseData = {
-      message: 'Get category successfully!',
-      data: category,
-    };
+  //   await this.categoryRepository.save(category);
+  //   const responseData: ResponseData = {
+  //     message: 'Update category successfully!',
+  //     data: category,
+  //   };
 
-    return responseData;
-  }
+  //   return responseData;
+  // }
 
-  async getCategories(
-    pageCommonOptionsDto: PageCommonOptionsDto,
-  ): Promise<ResponseData> {
-    const queryBuilder = this.categoryRepository.createQueryBuilder('category');
-    queryBuilder
-      .orderBy('category.created_at', pageCommonOptionsDto.order)
-      .leftJoinAndSelect('category.children', 'children');
+  // async deleteCategory(categoryID: number): Promise<ResponseData> {
+  //   const category = await this.categoryRepository.getCategoryById(categoryID);
 
-    queryBuilder
-      .skip(pageCommonOptionsDto.skip)
-      .take(pageCommonOptionsDto.size);
+  //   if (!category) {
+  //     throw new NotFoundException('Category not found');
+  //   }
 
-    const itemCount = await queryBuilder.getCount();
-    const { entities } = await queryBuilder.getRawAndEntities();
+  //   await this.categoryRepository.delete(categoryID);
 
-    const pageMetaDto = new PageMetaDto({
-      itemCount,
-      pageOptionsDto: pageCommonOptionsDto,
-    });
-    const data = new PageDto(entities, pageMetaDto);
+  //   const responseData: ResponseData = {
+  //     message: 'Delete category successfully!',
+  //   };
 
-    const responseData: ResponseData = {
-      message: 'Get categories successfully!',
-      data,
-    };
+  //   return responseData;
+  // }
 
-    return responseData;
-  }
+  // async getCategoryByID(categoryID: number): Promise<ResponseData> {
+  //   const category =
+  //     await this.categoryRepository.getCategoryByIdRelation(categoryID);
+
+  //   if (!category) {
+  //     throw new NotFoundException('Category not found');
+  //   }
+
+  //   const responseData: ResponseData = {
+  //     message: 'Get category successfully!',
+  //     data: category,
+  //   };
+
+  //   return responseData;
+  // }
+
+  // async getCategories(
+  //   pageCommonOptionsDto: PageCommonOptionsDto,
+  // ): Promise<ResponseData> {
+  //   const queryBuilder = this.categoryRepository.createQueryBuilder('category');
+  //   queryBuilder
+  //     .orderBy('category.created_at', pageCommonOptionsDto.order)
+  //     .leftJoinAndSelect('category.children', 'children');
+
+  //   queryBuilder
+  //     .skip(pageCommonOptionsDto.skip)
+  //     .take(pageCommonOptionsDto.size);
+
+  //   const itemCount = await queryBuilder.getCount();
+  //   const { entities } = await queryBuilder.getRawAndEntities();
+
+  //   const pageMetaDto = new PageMetaDto({
+  //     itemCount,
+  //     pageOptionsDto: pageCommonOptionsDto,
+  //   });
+  //   const data = new PageDto(entities, pageMetaDto);
+
+  //   const responseData: ResponseData = {
+  //     message: 'Get categories successfully!',
+  //     data,
+  //   };
+
+  //   return responseData;
+  // }
 
   // async profileByMe(userID: number): Promise<ResponseData> {
   //   const user = await this.userRepository.getByID(userID);

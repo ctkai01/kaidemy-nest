@@ -1,22 +1,30 @@
-import { Logger, Module } from '@nestjs/common';
+import { StripeModule } from '@golevelup/nestjs-stripe';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
+import {
+  Category,
+  Course,
+  IssueType,
+  Language,
+  Level,
+  Price
+} from './entities';
 import { User } from './entities/user.entity';
 import { AuthGuard } from './guards/auth.guard';
 import { AuthModule } from './module/auth/auth.module';
-import { EmailModule } from './module/email/email.module';
-import { UploadService } from './module/upload/upload.service';
-import { UploadModule } from './module/upload/upload.module';
-import { UserModule } from './module/user/user.module';
-import { LevelModule } from './module/level/level.module';
-import { PriceModule } from './module/price/price.module';
 import { CategoryModule } from './module/category/category.module';
-import { Category, IssueType, Language, Level, Price } from './entities';
+import { CourseModule } from './module/courses/course.module';
+import { EmailModule } from './module/email/email.module';
 import { IssueTypeModule } from './module/issue_type/issue-type.module';
 import { LanguageModule } from './module/language/language.module';
-
+import { LevelModule } from './module/level/level.module';
+import { PriceModule } from './module/price/price.module';
+import { UploadModule } from './module/upload/upload.module';
+import { UploadService } from './module/upload/upload.service';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -43,7 +51,7 @@ import { LanguageModule } from './module/language/language.module';
       // ,
       useFactory: async (configService: ConfigService) => {
         return {
-          type: 'mysql',
+          type: 'postgres',
           autoLoadEntities: true,
           synchronize: true,
           host: configService.get('DB_HOST'),
@@ -54,7 +62,7 @@ import { LanguageModule } from './module/language/language.module';
           logging: true,
           keepConnectionAlive: true,
           extra: { insecureAuth: true, charset: 'utf8mb4_unicode_ci' },
-          entities: [User, Price, Level, Category, IssueType, Language],
+          entities: [User, Price, Level, Category, IssueType, Language, Course],
           timezone: '+07:00',
         };
       },
@@ -67,6 +75,7 @@ import { LanguageModule } from './module/language/language.module';
     CategoryModule,
     IssueTypeModule,
     LanguageModule,
+    CourseModule,
   ],
   providers: [
     {
@@ -78,6 +87,6 @@ import { LanguageModule } from './module/language/language.module';
       useValue: new ConfigService(),
     },
     UploadService,
-  ],
+  ], 
 })
 export class AppModule {}

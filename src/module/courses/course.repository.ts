@@ -1,68 +1,66 @@
-import { ConflictException, InternalServerErrorException, Logger } from '@nestjs/common';
+import { InternalServerErrorException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Category } from 'src/entities/category.entity';
+import { Course } from 'src/entities';
 import { EntityRepository, Repository } from 'typeorm';
 import _ = require('lodash');
 
-@EntityRepository(Category)
-export class CategoryRepository extends Repository<Category> {
-  private logger = new Logger(CategoryRepository.name);
+@EntityRepository(Course)
+export class CourseRepository extends Repository<Course> {
+  private logger = new Logger(CourseRepository.name);
 
   constructor(
-    @InjectRepository(Category)
-    private categoryRepository: Repository<Category>,
+    @InjectRepository(Course)
+    private courseRepository: Repository<Course>,
   ) {
     super(
-      categoryRepository.target,
-      categoryRepository.manager,
-      categoryRepository.queryRunner,
+      courseRepository.target,
+      courseRepository.manager,
+      courseRepository.queryRunner,
     );
   }
-  async createCategory(categoryData: Category): Promise<Category> {
+  async createCourse(courseData: Partial<Course>): Promise<Course> {
     try {
-      const category = this.create(categoryData);
-      const categoryCreated = await this.save(category);
+      const course = this.create(courseData);
+      const courseCreated = await this.save(course);
 
-      return categoryCreated;
+      return courseCreated;
     } catch (err) {
       this.logger.error(err);
-      if (err.code === 'ER_DUP_ENTRY') {
-        throw new ConflictException('Name already exists');
-      }
+      // if (err.code === 'ER_DUP_ENTRY') {
+      //   throw new ConflictException('Name already exists');
+      // }
 
       throw new InternalServerErrorException('Something error query');
     }
   }
 
-  async getCategoryById(categoryID: number): Promise<Category> {
-    const category = await this.findOne({
-      where: {
-        id: categoryID,
-      },
-    });
-    console.log("What: ", category)
-    console.log('What 1: ', categoryID);
-    return category;
-  }
+  // async getCategoryById(categoryID: number): Promise<Category> {
+  //   const category = await this.findOne({
+  //     where: {
+  //       id: categoryID,
+  //     },
+  //   });
+  //   return category;
+  // }
 
-  async getCategoryByIdRelation(categoryID: number): Promise<Category> {
-    const category = await this.findOne({
-      where: {
-        id: categoryID,
-      },
-      relations: ['children'],
-    });
-    return category;
-  }
+  // async getCategoryByIdRelation(categoryID: number): Promise<Category> {
+  //   const category = await this.findOne({
+  //     where: {
+  //       id: categoryID,
+  //     },
+  //     relations: ['children'],
+  //   });
+  //   return category;
+  // }
 
-  async getCategoryByName(name: string): Promise<Category> {
-    const category = await this.findOne({
-      where: {
-        name,
-      },
-    });
-    return category;
-  }
+  // async getCategoryByName(name: string): Promise<Category> {
+  //   const category = await this.findOne({
+  //     where: {
+  //       name,
+  //     },
+  //   });
+  //   return category;
+  // }
 
   // async getUserByUserName(userName: string): Promise<User> {
   //   const user = (await this.find({ where: { user_name: userName } })).shift();

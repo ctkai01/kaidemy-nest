@@ -18,17 +18,16 @@ services:
 
   db:
     container_name: kaidemy_db
-    image: mysql:5.6
+    image: postgres:latest
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: 1234567
-      MYSQL_DATABASE: kaidemy
-      MYSQL_USER: kaidemy
-      MYSQL_PASSWORD: 1234567
+      POSTGRES_DB: kaidemy
+      POSTGRES_USER: kaidemy
+      POSTGRES_PASSWORD: 1234567
     ports:
-      - 3306:3306
+      - "5432:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     # networks:
     #   - app_db
 
@@ -54,7 +53,7 @@ services:
   #   networks:
   #     - app_redis
 volumes:
-  mysql_data:
+  postgres_data:
 # networks:
 #   app_db:
   # app_redis:
