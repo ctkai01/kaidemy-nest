@@ -1,46 +1,54 @@
-import { InternalServerErrorException, Logger } from '@nestjs/common';
+import { ConflictException, InternalServerErrorException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Course } from 'src/entities';
+import { Category } from 'src/entities/category.entity';
 import { EntityRepository, Repository } from 'typeorm';
 import _ = require('lodash');
+import { Curriculum } from 'src/entities';
 
-@EntityRepository(Course)
-export class CourseRepository extends Repository<Course> {
-  private logger = new Logger(CourseRepository.name);
+@EntityRepository(Curriculum)
+export class CurriculumRepository extends Repository<Curriculum> {
+  private logger = new Logger(CurriculumRepository.name);
 
   constructor(
-    @InjectRepository(Course)
-    private courseRepository: Repository<Course>,
+    @InjectRepository(Curriculum)
+    private curriculumRepository: Repository<Curriculum>,
   ) {
     super(
-      courseRepository.target,
-      courseRepository.manager,
-      courseRepository.queryRunner,
+      curriculumRepository.target,
+      curriculumRepository.manager,
+      curriculumRepository.queryRunner,
     );
   }
-  async createCourse(courseData: Partial<Course>): Promise<Course> {
+  async createCurriculum(curriculumData: Curriculum): Promise<Curriculum> {
     try {
-      const course = this.create(courseData);
-      const courseCreated = await this.save(course);
+      const curriculum = this.create(curriculumData);
+      const curriculumCreated = await this.save(curriculum);
 
-      return courseCreated;
+      return curriculumCreated;
     } catch (err) {
       this.logger.error(err);
-      // if (err.code === 'ER_DUP_ENTRY') {
-      //   throw new ConflictException('Name already exists');
-      // }
 
       throw new InternalServerErrorException('Something error query');
     }
   }
 
-  async getCourseByID(courseID: number): Promise<Course | null> {
-    const course = await this.findOne({
+  async getCurriculumById(curriculumID: number): Promise<Curriculum | null> {
+    const curriculum = await this.findOne({
       where: {
-        id: courseID,
+        id: curriculumID,
       },
     });
-    return course;
+    return curriculum;
+  }
+
+  async getCurriculumByIdWithRelation(curriculumID: number): Promise<Curriculum | null> {
+    const curriculum = await this.findOne({
+      where: {
+        id: curriculumID,
+      },
+      relations: ['course'],
+    });
+    return curriculum;
   }
 
   // async getCategoryByIdRelation(categoryID: number): Promise<Category> {

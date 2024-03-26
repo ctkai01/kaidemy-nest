@@ -18,6 +18,7 @@ import { AuthGuard } from './guards/auth.guard';
 import { AuthModule } from './module/auth/auth.module';
 import { CategoryModule } from './module/category/category.module';
 import { CourseModule } from './module/courses/course.module';
+import { CurriculumModule } from './module/curriculum/curriculum.module';
 import { EmailModule } from './module/email/email.module';
 import { IssueTypeModule } from './module/issue_type/issue-type.module';
 import { LanguageModule } from './module/language/language.module';
@@ -76,6 +77,7 @@ import { UploadService } from './module/upload/upload.service';
     IssueTypeModule,
     LanguageModule,
     CourseModule,
+    CurriculumModule,
   ],
   providers: [
     {
@@ -87,6 +89,6 @@ import { UploadService } from './module/upload/upload.service';
       useValue: new ConfigService(),
     },
     UploadService,
-  ], 
+  ],
 })
 export class AppModule {}

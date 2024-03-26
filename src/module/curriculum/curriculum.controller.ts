@@ -2,70 +2,72 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
   HttpCode,
   HttpStatus,
   Param,
   Post,
   Put,
-  Query,
   UseFilters,
-  UseGuards
 } from '@nestjs/common';
-import { PageCommonOptionsDto } from 'src/common/paginate/page-option.dto';
+import { GetCurrentUserID } from 'src/decorators';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
-import { AdminRoleGuard } from 'src/guards/admin-role.guard';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
-import { CategoryService } from './category.service';
-import { CreateCategoryDto, UpdateCategoryDto } from './dto';
+import { CurriculumService } from './curriculum.service';
+import { CreateCurriculumDto, UpdateCurriculumDto } from './dto';
 
-@Controller('categories')
+@Controller('curriculums')
 @UseFilters(new HttpExceptionValidateFilter())
-export class CategoryController {
-  constructor(private categoryService: CategoryService) {}
+export class CurriculumController {
+  constructor(private curriculumService: CurriculumService) {}
 
   @Post('')
-  @UseGuards(AdminRoleGuard)
   @HttpCode(HttpStatus.CREATED)
-  createCategory(
-    @Body() createCategoryDto: CreateCategoryDto,
+  createCurriculum(
+    @Body() createCurriculumDto: CreateCurriculumDto,
+    @GetCurrentUserID() userID: number,
   ): Promise<ResponseData> {
-    return this.categoryService.createCategory(createCategoryDto);
+    return this.curriculumService.createCurriculum(createCurriculumDto, userID);
   }
 
   @Put(':id')
-  @UseGuards(AdminRoleGuard)
   @HttpCode(HttpStatus.OK)
-  updateCategory(
-    @Body() updateCategoryDto: UpdateCategoryDto,
-    @Param('id') categoryID: number,
+  updateCurriculum(
+    @Body() updateCurriculumDto: UpdateCurriculumDto,
+    @Param('id') curriculumID: number,
+    @GetCurrentUserID() userID: number,
   ): Promise<ResponseData> {
-    return this.categoryService.updateCategory(updateCategoryDto, categoryID);
+    return this.curriculumService.updateCurriculum(
+      updateCurriculumDto,
+      userID,
+      curriculumID,
+    );
   }
 
   @Delete(':id')
-  @UseGuards(AdminRoleGuard)
   @HttpCode(HttpStatus.OK)
-  deleteCategory(@Param('id') categoryID: number): Promise<ResponseData> {
-    return this.categoryService.deleteCategory(categoryID);
-  }
-
-  @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  getCategoryByID(@Param('id') categoryID: number): Promise<ResponseData> {
-    return this.categoryService.getCategoryByID(categoryID);
-  }
-
-  @Get()
-  @HttpCode(HttpStatus.OK)
-  getCategories(
-    @Query() pageCommonOptionsDto: PageCommonOptionsDto,
+  deleteCurriculum(
+    @Param('id') curriculumID: number,
+    @GetCurrentUserID() userID: number,
   ): Promise<ResponseData> {
-    return this.categoryService.getCategories(pageCommonOptionsDto);
+    return this.curriculumService.deleteCurriculum(curriculumID, userID);
   }
+
+  // @Get(':id')
+  // @HttpCode(HttpStatus.OK)
+  // getCategoryByID(@Param('id') categoryID: number): Promise<ResponseData> {
+  //   return this.categoryService.getCategoryByID(categoryID);
+  // }
+
+  // @Get()
+  // @HttpCode(HttpStatus.OK)
+  // getCategories(
+  //   @Query() pageCommonOptionsDto: PageCommonOptionsDto,
+  // ): Promise<ResponseData> {
+  //   return this.categoryService.getCategories(pageCommonOptionsDto);
+  // }
 
   // @Public()
   // @Post('change-password')

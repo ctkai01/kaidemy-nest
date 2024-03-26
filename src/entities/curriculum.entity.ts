@@ -10,7 +10,7 @@ import { Course } from './course.entity'; // Import the Course entity
 @Entity({ name: 'curriculums' })
 export class Curriculum {
   @PrimaryGeneratedColumn()
-  id: number;
+  id?: number;
 
   @Column({ type: 'varchar', length: 150, nullable: false })
   title: string;
@@ -23,7 +23,7 @@ export class Curriculum {
 
   @ManyToOne(() => Course, { onDelete: 'CASCADE' }) // Define the ManyToOne relationship with Course
   @JoinColumn({ name: 'courseId', referencedColumnName: 'id' })
-  course: Course;
+  course?: Course;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt?: Date;
