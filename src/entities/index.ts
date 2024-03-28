@@ -6,3 +6,5 @@ export * from './issue-type.entity';
 export * from './language.entity';
 export * from './course.entity';
 export * from './curriculum.entity';
+export * from './asset.entity';
+export * from './lecture.entity';

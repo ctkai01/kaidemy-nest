@@ -4,27 +4,28 @@ import { Category } from 'src/entities/category.entity';
 import { EntityRepository, Repository } from 'typeorm';
 import _ = require('lodash');
 import { Curriculum } from 'src/entities';
+import { Lecture } from 'src/entities/lecture.entity';
 
-@EntityRepository(Curriculum)
-export class CurriculumRepository extends Repository<Curriculum> {
-  private logger = new Logger(CurriculumRepository.name);
+@EntityRepository(Lecture)
+export class LectureRepository extends Repository<Lecture> {
+  private logger = new Logger(LectureRepository.name);
 
   constructor(
-    @InjectRepository(Curriculum)
-    private curriculumRepository: Repository<Curriculum>,
+    @InjectRepository(Lecture)
+    private lectureRepository: Repository<Lecture>,
   ) {
     super(
-      curriculumRepository.target,
-      curriculumRepository.manager,
-      curriculumRepository.queryRunner,
+      lectureRepository.target,
+      lectureRepository.manager,
+      lectureRepository.queryRunner,
     );
   }
-  async createCurriculum(curriculumData: Curriculum): Promise<Curriculum> {
+  async createLecture(lectureData: Lecture): Promise<Lecture> {
     try {
-      const curriculum = this.create(curriculumData);
-      const curriculumCreated = await this.save(curriculum);
+      const lecture = this.create(lectureData);
+      const lectureCreated = await this.save(lecture);
 
-      return curriculumCreated;
+      return lectureCreated;
     } catch (err) {
       this.logger.error(err);
 
@@ -32,27 +33,39 @@ export class CurriculumRepository extends Repository<Curriculum> {
     }
   }
 
-  async getCurriculumById(curriculumID: number): Promise<Curriculum | null> {
-    const curriculum = await this.findOne({
+  async getLectureById(lectureID: number): Promise<Lecture | null> {
+    const lecture = await this.findOne({
       where: {
-        id: curriculumID,
+        id: lectureID,
       },
     });
-    return curriculum;
+    return lecture;
   }
 
-  async getCurriculumByIdWithRelation(
-    curriculumID: number,
+  async getLectureByIdWithRelation(
+    lectureID: number,
     relations: string[],
-  ): Promise<Curriculum | null> {
-    const curriculum = await this.findOne({
+  ): Promise<Lecture | null> {
+    const lecture = await this.findOne({
       where: {
-        id: curriculumID,
+        id: lectureID,
       },
       relations: relations,
     });
-    return curriculum;
+    return lecture;
   }
+
+  // async getCurriculumByIdWithRelation(
+  //   curriculumID: number,
+  // ): Promise<Curriculum | null> {
+  //   const curriculum = await this.findOne({
+  //     where: {
+  //       id: curriculumID,
+  //     },
+  //     relations: ['course'],
+  //   });
+  //   return curriculum;
+  // }
 
   // async getCategoryByIdRelation(categoryID: number): Promise<Category> {
   //   const category = await this.findOne({

@@ -3,56 +3,49 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
 import { EntityRepository, Repository } from 'typeorm';
 import _ = require('lodash');
-import { Curriculum } from 'src/entities';
+import { Asset, Curriculum } from 'src/entities';
+import { Lecture } from 'src/entities/lecture.entity';
 
-@EntityRepository(Curriculum)
-export class CurriculumRepository extends Repository<Curriculum> {
-  private logger = new Logger(CurriculumRepository.name);
+@EntityRepository(Asset)
+export class AssetRepository extends Repository<Asset> {
+  private logger = new Logger(AssetRepository.name);
 
   constructor(
-    @InjectRepository(Curriculum)
-    private curriculumRepository: Repository<Curriculum>,
+    @InjectRepository(Asset)
+    private assetRepository: Repository<Asset>,
   ) {
     super(
-      curriculumRepository.target,
-      curriculumRepository.manager,
-      curriculumRepository.queryRunner,
+      assetRepository.target,
+      assetRepository.manager,
+      assetRepository.queryRunner,
     );
   }
-  async createCurriculum(curriculumData: Curriculum): Promise<Curriculum> {
-    try {
-      const curriculum = this.create(curriculumData);
-      const curriculumCreated = await this.save(curriculum);
+  
+  // async createLecture(assetData: Asset): Promise<Asset> {
+  //   try {
+  //     const lecture = this.create(lectureData);
+  //     const lectureCreated = await this.save(lecture);
 
-      return curriculumCreated;
-    } catch (err) {
-      this.logger.error(err);
+  //     return lectureCreated;
+  //   } catch (err) {
+  //     this.logger.error(err);
 
-      throw new InternalServerErrorException('Something error query');
-    }
-  }
+  //     throw new InternalServerErrorException('Something error query');
+  //   }
+  // }
 
-  async getCurriculumById(curriculumID: number): Promise<Curriculum | null> {
-    const curriculum = await this.findOne({
-      where: {
-        id: curriculumID,
-      },
-    });
-    return curriculum;
-  }
-
-  async getCurriculumByIdWithRelation(
-    curriculumID: number,
-    relations: string[],
-  ): Promise<Curriculum | null> {
-    const curriculum = await this.findOne({
-      where: {
-        id: curriculumID,
-      },
-      relations: relations,
-    });
-    return curriculum;
-  }
+  
+  // async getCurriculumByIdWithRelation(
+  //   curriculumID: number,
+  // ): Promise<Curriculum | null> {
+  //   const curriculum = await this.findOne({
+  //     where: {
+  //       id: curriculumID,
+  //     },
+  //     relations: ['course'],
+  //   });
+  //   return curriculum;
+  // }
 
   // async getCategoryByIdRelation(categoryID: number): Promise<Category> {
   //   const category = await this.findOne({

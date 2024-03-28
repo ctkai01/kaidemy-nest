@@ -1,119 +1,232 @@
 import {
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Curriculum } from 'src/entities';
+import {
+  LectureType,
+  CourseStatus,
+  UploadType,
+  AssetType,
+} from 'src/constants';
+import { Asset } from 'src/entities';
+import { Lecture } from 'src/entities/lecture.entity';
 import { ResponseData } from '../../interface/response.interface';
+import { AssetRepository } from '../asset/asset.repository';
 import { CourseRepository } from '../courses/course.repository';
-import { CurriculumRepository } from './curriculum.repository';
-import { CreateCurriculumDto, UpdateCurriculumDto } from './dto';
+import { CurriculumRepository } from '../curriculum/curriculum.repository';
+import { UploadService } from '../upload/upload.service';
+// import { CurriculumRepository } from './lecture.repository';
+import { CreateLectureDto, UpdateLectureDto } from './dto';
+import { LectureRepository } from './lecture.repository';
 
 @Injectable()
-export class CurriculumService {
-  private logger = new Logger(CurriculumService.name);
+export class LectureService {
+  private logger = new Logger(LectureService.name);
   constructor(
     private readonly curriculumRepository: CurriculumRepository,
     private readonly courseRepository: CourseRepository,
+    private readonly lectureRepository: LectureRepository,
+    private readonly assetRepository: AssetRepository,
+    private readonly uploadService: UploadService,
   ) {}
-  async createCurriculum(
-    createCurriculumDto: CreateCurriculumDto,
+  async createLecture(
+    createLectureDto: CreateLectureDto,
     userID: number,
   ): Promise<ResponseData> {
-    const { title, description, courseID } = createCurriculumDto;
+    const { title, curriculumID } = createLectureDto;
 
-    // Check course exist
-    const course = await this.courseRepository.getCourseByID(courseID);
-    if (!course) {
-      throw new NotFoundException('Course not found');
+    // Check curriculum exist
+    const curriculum =
+      await this.curriculumRepository.getCurriculumByIdWithRelation(
+        curriculumID,
+        ['course'],
+      );
+    if (!curriculum) {
+      throw new NotFoundException('Curriculum not found');
     }
 
     // Check permission author course
-    if (userID !== course.userID) {
+    if (userID !== curriculum.course.userID) {
       throw new ForbiddenException('Not author of course');
     }
-    const curriculum: Curriculum = {
+
+    const lecture: Lecture = {
+      title,
+      type: LectureType.LECTURE,
+      curriculumID,
+    };
+
+    const lectureCreate = await this.lectureRepository.createLecture(lecture);
+
+    // Update status
+    const course = curriculum.course;
+    course.reviewStatus = CourseStatus.REVIEW_INIT;
+
+    await this.courseRepository.save(course);
+
+    const responseData: ResponseData = {
+      message: 'Create lecture successfully!',
+      data: lectureCreate,
+    };
+
+    return responseData;
+  }
+
+  async updateLecture(
+    updateLectureDto: UpdateLectureDto,
+    userID: number,
+    lectureID: number,
+  ): Promise<ResponseData> {
+    const {
       title,
       description,
-      courseId: courseID,
-    };
+      typeUpdate,
+      article,
+      isPromotional,
+      assetType,
+      assetID,
+    } = updateLectureDto;
+     const responseData: ResponseData = {
+       message: 'Update lecture successfully!',
+       // data: curriculum,
+     };
 
-    const curriculumCreate =
-      await this.curriculumRepository.createCurriculum(curriculum);
+     return responseData;
+    // Check lecture exist
+    const lecture = await this.lectureRepository.getLectureByIdWithRelation(
+      lectureID,
+      ['assets'],
+    );
 
-    const responseData: ResponseData = {
-      message: 'Create curriculum successfully!',
-      data: curriculumCreate,
-    };
+    if (!lecture) {
+      throw new NotFoundException('Lecture not found');
+    }
 
-    return responseData;
-  }
+    // Check must lecture type
+    if (lecture.type !== LectureType.LECTURE) {
+      throw new InternalServerErrorException('Should lecture type');
+    }
 
-  async updateCurriculum(
-    updateCurriculumDto: UpdateCurriculumDto,
-    userID: number,
-    curriculumID: number,
-  ): Promise<ResponseData> {
-    const { title, description } = updateCurriculumDto;
-
-    // Check curriculum exist
-
+    //Check curriculum exist
     const curriculum =
       await this.curriculumRepository.getCurriculumByIdWithRelation(
-        curriculumID,
-        ["course"]
+        lecture.curriculumID,
+        ['course'],
       );
+
     if (!curriculum) {
       throw new NotFoundException('Curriculum not found');
     }
 
-    // Check permission author course
+    // // Check permission author course
     if (userID !== curriculum.course.userID) {
       throw new ForbiddenException('Not author of course');
     }
 
-    curriculum.title = title;
-    curriculum.description = description || '';
+    if (typeUpdate === UploadType.REMOVE_ASSET) {
+      if (assetType === AssetType.WATCH) {
+        let assetWatchType: Asset;
+        lecture.assets.forEach((asset) => {
+          if (asset.type === AssetType.WATCH) {
+            assetWatchType = asset;
+          }
+        });
 
-    await this.curriculumRepository.save(curriculum);
+        if (!assetWatchType) {
+          throw new NotFoundException('Video not exist');
+        }
 
-    delete curriculum.course;
-    const responseData: ResponseData = {
-      message: 'Update curriculum successfully!',
-      data: curriculum,
-    };
+        // Delete asset bunny
+        await this.uploadService.deleteVideo(assetWatchType.bunnyId);
 
-    return responseData;
-  }
+        // Delete old asset
+        await this.assetRepository.delete(assetWatchType.id);
+      }
 
-  async deleteCurriculum(
-    curriculumID: number,
-    userID: number,
-  ): Promise<ResponseData> {
-    // Check curriculum exist
+      if (assetType === AssetType.RESOURCE && assetID) {
+        let assetResourceType: Asset;
+        lecture.assets.forEach((asset) => {
+          if (asset.type === AssetType.RESOURCE && asset.id === assetID) {
+            assetResourceType = asset;
+          }
+        });
+        if (!assetResourceType) {
+          throw new NotFoundException('Resource not exist');
+        }
 
-    const curriculum =
-      await this.curriculumRepository.getCurriculumByIdWithRelation(
-        curriculumID,
-        ["course"]
-      );
-    if (!curriculum) {
-      throw new NotFoundException('Curriculum not found');
+        // Delete asset bunny
+        await this.uploadService.deleteResource(assetResourceType.url);
+
+        // Delete old asset
+        await this.assetRepository.delete(assetResourceType.id);
+      }
     }
 
-    // Check permission author course
-    if (userID !== curriculum.course.userID) {
-      throw new ForbiddenException('Not author of course');
+    if (typeUpdate === UploadType.UPLOAD_ARTICLE) {
+      lecture.article = article || '';
+      lecture.title = title;
+      lecture.isPromotional = isPromotional || false;
+      lecture.description = description || '';
+
+      await this.lectureRepository.save(lecture);
     }
 
-    await this.curriculumRepository.delete(curriculumID);
-    const responseData: ResponseData = {
-      message: 'Delete curriculum successfully!',
-    };
+    if (typeUpdate === UploadType.UPLOAD_ASSET) {
+      if (assetType === AssetType.WATCH) {
+        let assetWatchType: Asset;
+        lecture.assets.forEach((asset) => {
+          if (asset.type === AssetType.WATCH) {
+            assetWatchType = asset;
+          }
+        });
 
-    return responseData;
+        if (assetWatchType) {
+          throw new NotFoundException('Limit upload video');
+        }
+
+        // await this.uploadService.uploadVideo();
+
+      }
+    }
+    // curriculum.title = title;
+    // curriculum.description = description || '';
+
+    // await this.curriculumRepository.save(curriculum);
+
+    // delete curriculum.course;
+   
   }
+
+  // async deleteCurriculum(
+  //   curriculumID: number,
+  //   userID: number,
+  // ): Promise<ResponseData> {
+  //   // Check curriculum exist
+
+  //   const curriculum =
+  //     await this.curriculumRepository.getCurriculumByIdWithRelation(
+  //       curriculumID,
+  //     );
+  //   if (!curriculum) {
+  //     throw new NotFoundException('Curriculum not found');
+  //   }
+
+  //   // Check permission author course
+  //   if (userID !== curriculum.course.userID) {
+  //     throw new ForbiddenException('Not author of course');
+  //   }
+
+  //   let a = await this.curriculumRepository.delete(curriculumID);
+  //   console.log('A: ', a);
+  //   const responseData: ResponseData = {
+  //     message: 'Delete curriculum successfully!',
+  //   };
+
+  //   return responseData;
+  // }
 
   // async updateCategory(
   //   updateCategoryDto: UpdateCategoryDto,

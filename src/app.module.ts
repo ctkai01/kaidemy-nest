@@ -22,6 +22,7 @@ import { CurriculumModule } from './module/curriculum/curriculum.module';
 import { EmailModule } from './module/email/email.module';
 import { IssueTypeModule } from './module/issue_type/issue-type.module';
 import { LanguageModule } from './module/language/language.module';
+import { LectureModule } from './module/lecture/lecture.module';
 import { LevelModule } from './module/level/level.module';
 import { PriceModule } from './module/price/price.module';
 import { UploadModule } from './module/upload/upload.module';
@@ -78,6 +79,7 @@ import { UploadService } from './module/upload/upload.service';
     LanguageModule,
     CourseModule,
     CurriculumModule,
+    LectureModule,
   ],
   providers: [
     {
