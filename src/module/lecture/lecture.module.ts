@@ -20,6 +20,6 @@ import { LectureService } from './lecture.service';
   ],
   providers: [LectureService, LectureRepository],
   controllers: [LectureController],
-  exports: [LectureService],
+  exports: [LectureService, LectureRepository],
 })
 export class LectureModule {}

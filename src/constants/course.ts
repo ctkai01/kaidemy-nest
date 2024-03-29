@@ -16,7 +16,15 @@ export enum AssetType {
 }
 
 export enum UploadType {
-  UPLOAD_ASSET = 1,
   UPLOAD_ARTICLE,
   REMOVE_ASSET,
 }
+
+// export enum AssetKind {
+//   MEDIA = 1,
+//   RESOURCE
+// }
+// var (
+// 	MediaType = 1
+// 	ResourceType = 2
+// )

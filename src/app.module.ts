@@ -27,6 +27,9 @@ import { LevelModule } from './module/level/level.module';
 import { PriceModule } from './module/price/price.module';
 import { UploadModule } from './module/upload/upload.module';
 import { UploadService } from './module/upload/upload.service';
+import { QuizModule } from './module/quiz/quiz.module';
+import { QuestionModule } from './module/question/question.module';
+import { AnswerModule } from './module/answer/answer.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -80,6 +83,9 @@ import { UploadService } from './module/upload/upload.service';
     CourseModule,
     CurriculumModule,
     LectureModule,
+    QuizModule,
+    QuestionModule,
+    AnswerModule,
   ],
   providers: [
     {

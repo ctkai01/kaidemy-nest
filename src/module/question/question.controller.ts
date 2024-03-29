@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -8,34 +7,52 @@ import {
   Param,
   Post,
   Put,
-  UploadedFile,
-  UseFilters,
-  UseInterceptors,
+  UseFilters
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { GetCurrentUserID } from 'src/decorators';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
-import { CreateLectureDto, UpdateLectureDto } from './dto';
-import { LectureService } from './lecture.service';
-import { multerImageOptions, multerResourceOptions, multerVideoOptions } from './multer.config';
-import { MarkLectureDto } from './dto/mark-lecture-dto';
+import { CreateQuestionDto, UpdateQuestionDto } from './dto';
+import { QuestionService } from './question.service';
 
-@Controller('lectures')
+@Controller('questions')
 @UseFilters(new HttpExceptionValidateFilter())
-export class LectureController {
-  constructor(private lectureService: LectureService) {}
+export class QuestionController {
+  constructor(private questionService: QuestionService) {}
 
   @Post('')
   @HttpCode(HttpStatus.CREATED)
   createLecture(
-    @Body() createLectureDto: CreateLectureDto,
+    @Body() createQuestionDto: CreateQuestionDto,
     @GetCurrentUserID() userID: number,
   ): Promise<ResponseData> {
-    return this.lectureService.createLecture(createLectureDto, userID);
+    return this.questionService.createQuestion(createQuestionDto, userID);
+  }
+
+  @Put(':id')
+  @HttpCode(HttpStatus.OK)
+  updateQuestion(
+    @Body() updateQuestionDto: UpdateQuestionDto,
+    @Param('id') questionID: number,
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.questionService.updateQuestion(
+      updateQuestionDto,
+      userID,
+      questionID,
+    );
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  deleteQuestion(
+    @Param('id') questionID: number,
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.questionService.deleteQuestion(userID, questionID);
   }
   //  @UseInterceptors(FileInterceptor('avatar', multerImageOptions))
   //   updateProfile(
@@ -43,60 +60,60 @@ export class LectureController {
   //     @Body() updateProfileDto: UpdateProfileDto,
   //     @GetCurrentUserID() userID: number,
   //   ): Promise<ResponseData> {
-  @Put(':id')
-  @HttpCode(HttpStatus.OK)
-  updateLecture(
-    @Body() updateLectureDto: UpdateLectureDto,
-    @Param('id') lectureID: number,
-    @GetCurrentUserID() userID: number,
-  ): Promise<ResponseData> {
-    return this.lectureService.updateLecture(
-      updateLectureDto,
-      userID,
-      lectureID,
-    );
-  }
+  // @Put(':id')
+  // @HttpCode(HttpStatus.OK)
+  // updateLecture(
+  //   @Body() updateLectureDto: UpdateLectureDto,
+  //   @Param('id') lectureID: number,
+  //   @GetCurrentUserID() userID: number,
+  // ): Promise<ResponseData> {
+  //   return this.lectureService.updateLecture(
+  //     updateLectureDto,
+  //     userID,
+  //     lectureID,
+  //   );
+  // }
 
-  @Put(':id/resource')
-  @HttpCode(HttpStatus.OK)
-  @UseInterceptors(FileInterceptor('asset', multerResourceOptions))
-  updateLectureUploadResource(
-    @Param('id') lectureID: number,
-    @GetCurrentUserID() userID: number,
-    @UploadedFile() asset: Express.Multer.File,
-  ): Promise<ResponseData> {
-    return this.lectureService.uploadResourceLecture(userID, lectureID, asset);
-  }
+  // @Put(':id/resource')
+  // @HttpCode(HttpStatus.OK)
+  // @UseInterceptors(FileInterceptor('asset', multerResourceOptions))
+  // updateLectureUploadResource(
+  //   @Param('id') lectureID: number,
+  //   @GetCurrentUserID() userID: number,
+  //   @UploadedFile() asset: Express.Multer.File,
+  // ): Promise<ResponseData> {
+  //   return this.lectureService.uploadResourceLecture(userID, lectureID, asset);
+  // }
 
-  @Put(':id/video')
-  @HttpCode(HttpStatus.OK)
-  @UseInterceptors(FileInterceptor('asset', multerVideoOptions))
-  updateLectureUploadVideo(
-    @Param('id') lectureID: number,
-    @GetCurrentUserID() userID: number,
-    @UploadedFile() asset: Express.Multer.File,
-  ): Promise<ResponseData> {
-    return this.lectureService.uploadVideoLecture(userID, lectureID, asset);
-  }
+  // @Put(':id/video')
+  // @HttpCode(HttpStatus.OK)
+  // @UseInterceptors(FileInterceptor('asset', multerVideoOptions))
+  // updateLectureUploadVideo(
+  //   @Param('id') lectureID: number,
+  //   @GetCurrentUserID() userID: number,
+  //   @UploadedFile() asset: Express.Multer.File,
+  // ): Promise<ResponseData> {
+  //   return this.lectureService.uploadVideoLecture(userID, lectureID, asset);
+  // }
 
-  @Post(':id/mark')
-  @HttpCode(HttpStatus.OK)
-  markLecture(
-    @Param('id') lectureID: number,
-    @Body() markLectureDto: MarkLectureDto,
-    @GetCurrentUserID() userID: number,
-  ): Promise<ResponseData> {
-    return this.lectureService.markLecture(userID, lectureID, markLectureDto);
-  }
+  // @Post(':id/mark')
+  // @HttpCode(HttpStatus.OK)
+  // markLecture(
+  //   @Param('id') lectureID: number,
+  //   @Body() markLectureDto: MarkLectureDto,
+  //   @GetCurrentUserID() userID: number,
+  // ): Promise<ResponseData> {
+  //   return this.lectureService.markLecture(userID, lectureID, markLectureDto);
+  // }
 
-  @Delete(':id')
-  @HttpCode(HttpStatus.OK)
-  deleteLecture(
-    @Param('id') lectureID: number,
-    @GetCurrentUserID() userID: number,
-  ): Promise<ResponseData> {
-    return this.lectureService.deleteLecture(userID, lectureID);
-  }
+  // @Delete(':id')
+  // @HttpCode(HttpStatus.OK)
+  // deleteLecture(
+  //   @Param('id') lectureID: number,
+  //   @GetCurrentUserID() userID: number,
+  // ): Promise<ResponseData> {
+  //   return this.lectureService.deleteLecture(userID, lectureID);
+  // }
 
   // @Delete(':id')
   // @HttpCode(HttpStatus.OK)

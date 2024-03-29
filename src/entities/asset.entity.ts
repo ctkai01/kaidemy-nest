@@ -31,7 +31,7 @@ import { Lecture } from './lecture.entity';
 @Entity({ name: 'assets' })
 export class Asset {
   @PrimaryGeneratedColumn()
-  id: number;
+  id?: number;
 
   @Column({ type: 'varchar', length: 240, nullable: false })
   url: string;
@@ -43,16 +43,16 @@ export class Asset {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'lectureId', referencedColumnName: 'id' })
-  lecture: Lecture;
+  lecture?: Lecture;
 
   @Column({ type: 'varchar', nullable: true })
-  bunnyId: string;
+  bunnyId?: string;
 
   @Column({ type: 'int', nullable: false })
   type: number;
 
   @Column({ type: 'int', nullable: true })
-  duration: number;
+  duration?: number;
 
   @Column({ type: 'bigint', nullable: true })
   size: number;
