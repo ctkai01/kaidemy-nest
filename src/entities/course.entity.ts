@@ -2,9 +2,11 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Cart } from './cart.entity';
 import { Category } from './category.entity';
 
 @Entity({ name: 'courses' })
@@ -34,7 +36,7 @@ export class Course {
   })
   intendedFor?: string[];
 
-   @Column({
+  @Column({
     nullable: true,
     type: 'jsonb',
     array: true,
@@ -115,6 +117,8 @@ export class Course {
   //     onDelete: 'CASCADE',
   //   })
   //   learnings: Learning[];
+  @ManyToMany(() => Cart)
+  carts: Cart[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;

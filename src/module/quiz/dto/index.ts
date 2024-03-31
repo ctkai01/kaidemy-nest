@@ -1,2 +1,2 @@
 export * from "./create-quiz-dto"
-export * from "./update-lecture-dto"
+export * from "./update-quiz-dto"
