@@ -2,22 +2,22 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Cart, Course, Curriculum } from 'src/entities';
 import { Lecture } from 'src/entities/lecture.entity';
+import { CourseModule } from '../courses/course.module';
 import { CurriculumModule } from '../curriculum/curriculum.module';
 import { LectureModule } from '../lecture/lecture.module';
-import { QuizService } from './quiz.service';
-import { QuizController } from './quiz.controller';
-import { CourseModule } from '../courses/course.module';
-import { CartRepository } from '../cart/cart.repository';
+import { CartController } from './cart.controller';
+import { CartRepository } from './cart.repository';
+import { CartService } from './cart.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Course, Curriculum, Lecture, Cart]),
     CurriculumModule,
-    LectureModule,
     CourseModule,
+    LectureModule,
   ],
-  providers: [QuizService, CartRepository],
-  controllers: [QuizController],
-  exports: [QuizService, CartRepository],
+  providers: [CartService, CartRepository],
+  controllers: [CartController],
+  exports: [CartService, CartRepository],
 })
-export class QuizModule {}
+export class CartModule {}

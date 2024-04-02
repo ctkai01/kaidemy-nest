@@ -1,13 +1,7 @@
 import {
   Body,
-  Controller,
-  Delete,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-  Put,
-  UseFilters
+  Controller, HttpCode,
+  HttpStatus, Post, UseFilters
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
@@ -15,45 +9,44 @@ import { GetCurrentUserID } from 'src/decorators';
 // import { TransformInterceptor } from '../../custom-response/core.response';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
-import { CreateQuestionDto, UpdateQuestionDto } from './dto';
-import { QuestionService } from './question.service';
+import { CartService } from './cart.service';
+import { CreateQuestionDto } from './dto';
 
-@Controller('questions')
+@Controller('carts')
 @UseFilters(new HttpExceptionValidateFilter())
-export class QuestionController {
-  constructor(private questionService: QuestionService) {}
+export class CartController {
+  constructor(private cartService: CartService) {}
 
   @Post('')
   @HttpCode(HttpStatus.CREATED)
   createLecture(
-    @Body() createQuestionDto: CreateQuestionDto,
     @GetCurrentUserID() userID: number,
   ): Promise<ResponseData> {
-    return this.questionService.createQuestion(createQuestionDto, userID);
+    return this.cartService.createCart(userID);
   }
 
-  @Put(':id')
-  @HttpCode(HttpStatus.OK)
-  updateQuestion(
-    @Body() updateQuestionDto: UpdateQuestionDto,
-    @Param('id') questionID: number,
-    @GetCurrentUserID() userID: number,
-  ): Promise<ResponseData> {
-    return this.questionService.updateQuestion(
-      updateQuestionDto,
-      userID,
-      questionID,
-    );
-  }
+  // @Put(':id')
+  // @HttpCode(HttpStatus.OK)
+  // updateQuestion(
+  //   @Body() updateQuestionDto: UpdateQuestionDto,
+  //   @Param('id') questionID: number,
+  //   @GetCurrentUserID() userID: number,
+  // ): Promise<ResponseData> {
+  //   return this.questionService.updateQuestion(
+  //     updateQuestionDto,
+  //     userID,
+  //     questionID,
+  //   );
+  // }
 
-  @Delete(':id')
-  @HttpCode(HttpStatus.OK)
-  deleteQuestion(
-    @Param('id') questionID: number,
-    @GetCurrentUserID() userID: number,
-  ): Promise<ResponseData> {
-    return this.questionService.deleteQuestion(userID, questionID);
-  }
+  // @Delete(':id')
+  // @HttpCode(HttpStatus.OK)
+  // deleteQuestion(
+  //   @Param('id') questionID: number,
+  //   @GetCurrentUserID() userID: number,
+  // ): Promise<ResponseData> {
+  //   return this.questionService.deleteQuestion(userID, questionID);
+  // }
   //  @UseInterceptors(FileInterceptor('avatar', multerImageOptions))
   //   updateProfile(
   //     @UploadedFile() avatar: Express.Multer.File,

@@ -38,11 +38,11 @@ export class Cart {
   userId: number;
 
   @Column({ nullable: true })
-  key: string;
+  key?: string;
 
   @ManyToMany(() => Course)
   @JoinTable()
-  courses: Course[];
+  courses?: Course[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;

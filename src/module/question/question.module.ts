@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Course, Curriculum } from 'src/entities';
+import { Course, Curriculum, Question } from 'src/entities';
 import { Lecture } from 'src/entities/lecture.entity';
 import { CourseModule } from '../courses/course.module';
 import { CurriculumModule } from '../curriculum/curriculum.module';
@@ -11,7 +11,7 @@ import { QuestionService } from './question.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Course, Curriculum, Lecture]),
+    TypeOrmModule.forFeature([Course, Curriculum, Lecture, Question]),
     CurriculumModule,
     CourseModule,
     LectureModule,

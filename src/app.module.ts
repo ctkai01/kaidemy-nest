@@ -31,6 +31,7 @@ import { QuizModule } from './module/quiz/quiz.module';
 import { QuestionModule } from './module/question/question.module';
 import { AnswerModule } from './module/answer/answer.module';
 import { Cart } from './entities/cart.entity';
+import { CartModule } from './module/cart/cart.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -68,7 +69,16 @@ import { Cart } from './entities/cart.entity';
           logging: true,
           keepConnectionAlive: true,
           extra: { insecureAuth: true, charset: 'utf8mb4_unicode_ci' },
-          entities: [User, Price, Level, Category, IssueType, Language, Course, Cart],
+          entities: [
+            User,
+            Price,
+            Level,
+            Category,
+            IssueType,
+            Language,
+            Course,
+            Cart,
+          ],
           timezone: '+07:00',
         };
       },
@@ -87,6 +97,7 @@ import { Cart } from './entities/cart.entity';
     QuizModule,
     QuestionModule,
     AnswerModule,
+    CartModule,
   ],
   providers: [
     {

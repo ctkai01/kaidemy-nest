@@ -7,58 +7,67 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
 import { EntityRepository, Repository } from 'typeorm';
 import _ = require('lodash');
-import { Curriculum } from 'src/entities';
+import { Cart, Curriculum } from 'src/entities';
 import { Lecture } from 'src/entities/lecture.entity';
 import { Question } from 'src/entities/question.entity';
 
-@EntityRepository(Question)
-export class QuestionRepository extends Repository<Question> {
-  private logger = new Logger(QuestionRepository.name);
+@EntityRepository(Cart)
+export class CartRepository extends Repository<Cart> {
+  private logger = new Logger(CartRepository.name);
 
   constructor(
-    @InjectRepository(Question)
-    private questionRepository: Repository<Question>,
+    @InjectRepository(Cart)
+    private cartRepository: Repository<Cart>,
   ) {
     super(
-      questionRepository.target,
-      questionRepository.manager,
-      questionRepository.queryRunner,
+      cartRepository.target,
+      cartRepository.manager,
+      cartRepository.queryRunner,
     );
   }
-  async createQuestion(questionData: Question): Promise<Question> {
+  async createCart(cartData: Cart): Promise<Cart> {
     try {
-      const question = this.create(questionData);
-      const questionCreated = await this.save(question);
+      const cart = this.create(cartData);
+      const cartCreated = await this.save(cart);
 
-      return questionCreated;
+      return cartCreated;
     } catch (err) {
       this.logger.error(err);
 
       throw new InternalServerErrorException('Something error query');
     }
   }
-
-  async getQuestionById(questionID: number): Promise<Question | null> {
-    const question = await this.findOne({
+  
+  async getCartByUSerID(userID: number): Promise<Cart | null> {
+    const cart = await this.findOne({
       where: {
-        id: questionID,
+        userId: userID,
       },
     });
-    return question;
+    return cart;
   }
 
-  async getQuestionByIdWithRelation(
-    questionID: number,
-    relations: string[],
-  ): Promise<Question | null> {
-    const question = await this.findOne({
-      where: {
-        id: questionID,
-      },
-      relations: relations,
-    });
-    return question;
-  }
+  // async getQuestionById(questionID: number): Promise<Question | null> {
+  //   const question = await this.findOne({
+  //     where: {
+  //       id: questionID,
+  //     },
+  //   });
+  //   return question;
+  // }
+
+  // async getQuestionByIdWithRelation(
+  //   questionID: number,
+  //   relations: string[],
+  // ): Promise<Question | null> {
+  //   const question = await this.findOne({
+  //     where: {
+  //       id: questionID,
+  //     },
+  //     relations: relations,
+  //   });
+  //   return question;
+  // }
 
   // async getCurriculumByIdWithRelation(
   //   curriculumID: number,
