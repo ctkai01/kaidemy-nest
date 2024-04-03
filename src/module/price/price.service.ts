@@ -74,7 +74,7 @@ export class PriceService {
       throw new NotFoundException('Price not found');
     }
 
-    await this.priceRepository.delete(price);
+    await this.priceRepository.delete(priceID);
 
     const responseData: ResponseData = {
       message: 'Delete price successfully!',

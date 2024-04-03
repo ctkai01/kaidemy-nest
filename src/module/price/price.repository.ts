@@ -1,4 +1,8 @@
-import { ConflictException, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  ConflictException,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { EntityRepository, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Level, Price } from 'src/entities';
@@ -26,7 +30,7 @@ export class PriceRepository extends Repository<Price> {
       return priceCreated;
     } catch (err) {
       this.logger.error(err);
-      if (err.code === 'ER_DUP_ENTRY') {
+      if (err.code === '23505') {
         throw new ConflictException('Tier already exists');
       }
 
@@ -46,7 +50,7 @@ export class PriceRepository extends Repository<Price> {
   async getPriceByTier(tier: string): Promise<Price> {
     const price = await this.findOne({
       where: {
-        tier
+        tier,
       },
     });
     return price;

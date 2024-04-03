@@ -1,10 +1,13 @@
 import {
+  BadRequestException,
   HttpException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
   UnauthorizedException,
+  forwardRef,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -18,24 +21,38 @@ import { ResponseData } from '../../interface/response.interface';
 import { ChangePasswordDto } from './dto/create-user-dto';
 import { UserRepository } from './user.repository';
 import * as bcrypt from 'bcryptjs';
-import { hashData } from 'src/utils';
+import { generateHashKey, hashData } from 'src/utils';
 import { UpdateProfileDto } from './dto/update-user-dto';
 import { UploadService } from '../upload/upload.service';
 import { url } from 'inspector';
-import { UploadResource } from 'src/constants';
+import {
+  ACCOUNT_STRIPE_PENDING,
+  ACCOUNT_STRIPE_VERIFY,
+  NORMAL_USER,
+  TEACHER,
+  UploadResource,
+} from 'src/constants';
 import { BlockUserDto } from './dto/block-user-dto';
 import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
 import { PageDto } from 'src/common/paginate/paginate.dto';
 import { PageUserOptionsDto } from 'src/common/paginate/users/page-option.dto';
+import { InjectStripeClient } from '@golevelup/nestjs-stripe';
+import Stripe from 'stripe';
+import { VerifyTeacherDto } from './dto/verify-teacher-dto';
+import { AuthService } from '../auth/auth.service';
+import { UserLogin, UserRegister } from 'src/response';
 
 @Injectable()
 export class UserService {
   private logger = new Logger(UserService.name);
   constructor(
+    @InjectStripeClient() private readonly stripeClient: Stripe,
     private readonly userRepository: UserRepository,
     private config: ConfigService,
     private jwtService: JwtService,
     private readonly uploadService: UploadService,
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
   ) {}
   async changePassword(
     changePasswordDto: ChangePasswordDto,
@@ -203,6 +220,103 @@ export class UserService {
       data: user,
     };
 
+    return responseData;
+  }
+
+  async requestTeacher(userID: number): Promise<ResponseData> {
+    const user = await this.userRepository.findOne({
+      where: [{ id: userID }],
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.role !== NORMAL_USER) {
+      throw new BadRequestException('Only for normal user');
+    }
+
+    if (user.accountStripeStatus === ACCOUNT_STRIPE_VERIFY) {
+      throw new BadRequestException('Already teacher');
+    }
+
+    try {
+      const account = await this.stripeClient.accounts.create({
+        type: 'express',
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+      });
+      const key = generateHashKey();
+      const accountLink = await this.stripeClient.accountLinks.create({
+        account: account.id,
+        refresh_url: `http://localhost:5173/register-teacher?refresh_url=true`,
+        return_url: `http://localhost:5173/register-teacher?return_url=true&key=${key}`,
+        type: 'account_onboarding',
+      });
+
+      user.keyAccountStripe = key;
+      user.accountStripeID = account.id;
+      user.accountStripeStatus = ACCOUNT_STRIPE_PENDING;
+
+      this.userRepository.save(user);
+
+      const linkResponse = {
+        link: accountLink.url,
+      };
+      const responseData: ResponseData = {
+        message: 'Request register teacher successfully!',
+        data: linkResponse,
+      };
+      return responseData;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Failed to create Stripe account: ' + error.message,
+      );
+    }
+  }
+
+  async verifyTeacher(
+    userID: number,
+    verifyTeacherDto: VerifyTeacherDto,
+  ): Promise<ResponseData> {
+    const { key } = verifyTeacherDto
+    const user = await this.userRepository.findOne({
+      where: [{ id: userID }],
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.role !== NORMAL_USER) {
+      throw new BadRequestException('Only for normal user');
+    }
+
+    if (user.accountStripeStatus === ACCOUNT_STRIPE_VERIFY) {
+      throw new BadRequestException('Already teacher');
+    }
+
+     if (user.keyAccountStripe !== key) {
+       throw new BadRequestException('Key verify incorrect');
+     }
+
+    user.keyAccountStripe = '';
+    user.role = TEACHER;
+    user.accountStripeStatus = ACCOUNT_STRIPE_VERIFY;
+
+    this.userRepository.save(user);
+
+    const tokens = await this.authService.getTokens(user.id, user.email);
+    const useLoginData: UserLogin = {
+      token: tokens.access_token,
+      user: user,
+    };
+    const responseData: ResponseData = {
+      message: 'Verify register teacher successfully!',
+      data: useLoginData,
+    };
     return responseData;
   }
 

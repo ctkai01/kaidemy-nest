@@ -1,4 +1,8 @@
-import { ConflictException, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  ConflictException,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { EntityRepository, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Level } from 'src/entities';
@@ -26,7 +30,7 @@ export class LevelRepository extends Repository<Level> {
       return levelCreated;
     } catch (err) {
       this.logger.error(err);
-      if (err.code === 'ER_DUP_ENTRY') {
+      if (err.code === '23505') {
         throw new ConflictException('Name already exists');
       }
 
@@ -37,8 +41,8 @@ export class LevelRepository extends Repository<Level> {
   async getLevelById(levelID: number): Promise<Level> {
     const level = await this.findOne({
       where: {
-        id: levelID
-      }
+        id: levelID,
+      },
     });
     return level;
   }

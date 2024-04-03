@@ -1,10 +1,15 @@
-import { ConflictException, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  ConflictException,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { EntityRepository, Repository } from 'typeorm';
 // import { defaultAvatar, getStartEndDateNowTimeStamp } from 'src/untils/until';
 import { User } from 'src/entities/user.entity';
 import _ = require('lodash');
 import { InjectRepository } from '@nestjs/typeorm';
 import { prettyJsonString } from 'src/utils';
+import {} from "pg"
 // import moment = require('moment');
 // import { ActiveStatus, Status } from 'src/constants';
 @EntityRepository(User)
@@ -29,7 +34,8 @@ export class UserRepository extends Repository<User> {
       return userCreated;
     } catch (err) {
       this.logger.error(err);
-      if (err.code === 'ER_DUP_ENTRY') {
+     
+      if (err.code === '23505') {
         throw new ConflictException('Email already exists');
       }
 

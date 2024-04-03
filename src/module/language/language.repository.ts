@@ -1,4 +1,8 @@
-import { ConflictException, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  ConflictException,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
 import { EntityRepository, Repository } from 'typeorm';
@@ -28,7 +32,7 @@ export class LanguageRepository extends Repository<Language> {
       return languageCreated;
     } catch (err) {
       this.logger.error(err);
-      if (err.code === 'ER_DUP_ENTRY') {
+      if (err.code === '23505') {
         throw new ConflictException('Name already exists');
       }
 

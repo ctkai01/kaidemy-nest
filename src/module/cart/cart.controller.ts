@@ -1,7 +1,7 @@
 import {
   Body,
-  Controller, HttpCode,
-  HttpStatus, Post, UseFilters
+  Controller, Delete, HttpCode,
+  HttpStatus, Param, Post, UseFilters
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
@@ -19,10 +19,34 @@ export class CartController {
 
   @Post('')
   @HttpCode(HttpStatus.CREATED)
-  createLecture(
+  createCart(@GetCurrentUserID() userID: number): Promise<ResponseData> {
+    return this.cartService.createCart(userID);
+  }
+
+  @Post('/item/:id')
+  @HttpCode(HttpStatus.OK)
+  addCourseToCart(
+    @GetCurrentUserID() userID: number,
+    @Param('id') courseID: number,
+  ): Promise<ResponseData> {
+    return this.cartService.addCourseToCart(userID, courseID);
+  }
+
+  @Delete('/item/:id')
+  @HttpCode(HttpStatus.OK)
+  deleteCourseToCart(
+    @GetCurrentUserID() userID: number,
+    @Param('id') courseID: number,
+  ): Promise<ResponseData> {
+    return this.cartService.deleteCourseToCart(userID, courseID);
+  }
+
+  @Post('/claims')
+  @HttpCode(HttpStatus.OK)
+  claimsPayment(
     @GetCurrentUserID() userID: number,
   ): Promise<ResponseData> {
-    return this.cartService.createCart(userID);
+    return this.cartService.claimsPayment(userID);
   }
 
   // @Put(':id')

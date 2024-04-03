@@ -26,9 +26,6 @@ export class CourseRepository extends Repository<Course> {
       return courseCreated;
     } catch (err) {
       this.logger.error(err);
-      // if (err.code === 'ER_DUP_ENTRY') {
-      //   throw new ConflictException('Name already exists');
-      // }
 
       throw new InternalServerErrorException('Something error query');
     }

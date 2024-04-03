@@ -21,6 +21,7 @@ import { ChangePasswordDto } from './dto/create-user-dto';
 import { UpdateProfileDto } from './dto/update-user-dto';
 import { multerImageOptions, multerVideoOptions } from './multer.config';
 import { UserService } from './user.service';
+import { VerifyTeacherDto } from './dto/verify-teacher-dto';
 
 @Controller('users')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -77,6 +78,21 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   getUserByID(@Param('id') userID: number): Promise<ResponseData> {
     return this.userService.getUserByID(userID);
+  }
+
+  @Post('request-teacher')
+  @HttpCode(HttpStatus.OK)
+  requestTeacher(@GetCurrentUserID() userID: number): Promise<ResponseData> {
+    return this.userService.requestTeacher(userID);
+  }
+
+  @Post('verify-teacher')
+  @HttpCode(HttpStatus.OK)
+  verifyTeacher(
+    @GetCurrentUserID() userID: number,
+    @Body() verifyTeacherDto: VerifyTeacherDto,
+  ): Promise<ResponseData> {
+    return this.userService.verifyTeacher(userID, verifyTeacherDto);
   }
 
   // @Public()

@@ -1,8 +1,10 @@
 import { InjectStripeClient } from '@golevelup/nestjs-stripe';
 import {
+  ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   Logger,
-  NotFoundException
+  NotFoundException,
 } from '@nestjs/common';
 
 import { Course } from 'src/entities';
@@ -10,7 +12,12 @@ import Stripe from 'stripe';
 import { ResponseData } from '../../interface/response.interface';
 import { CategoryRepository } from '../category/category.repository';
 import { CourseRepository } from './course.repository';
-import { CreateCourseDto } from './dto';
+import { CreateCourseDto, UpdateCourseDto } from './dto';
+import { LanguageRepository } from '../language/language.repository';
+import { LevelRepository } from '../level/level.repository';
+import { PriceRepository } from '../price/price.repository';
+import { UploadService } from '../upload/upload.service';
+import { CourseStatus, UploadResource } from 'src/constants';
 @Injectable()
 export class CourseService {
   private logger = new Logger(CourseService.name);
@@ -18,16 +25,23 @@ export class CourseService {
     @InjectStripeClient() private readonly stripeClient: Stripe,
     private readonly courseRepository: CourseRepository,
     private readonly categoryRepository: CategoryRepository,
+    private readonly languageRepository: LanguageRepository,
+    private readonly levelRepository: LevelRepository,
+    private readonly priceRepository: PriceRepository,
+    private readonly uploadService: UploadService,
   ) {}
-  async createCourse(createCourseDto: CreateCourseDto, userID: number): Promise<ResponseData> {
+  async createCourse(
+    createCourseDto: CreateCourseDto,
+    userID: number,
+  ): Promise<ResponseData> {
     const { title, categoryID, subCategoryID } = createCourseDto;
     console.log('createCourseDto: ', createCourseDto);
 
     this.categoryRepository.getCategoryById(categoryID);
     const [category, subCategory] = await Promise.all([
       await this.categoryRepository.getCategoryById(categoryID),
-      await this.categoryRepository.getCategoryById(subCategoryID)
-    ])
+      await this.categoryRepository.getCategoryById(subCategoryID),
+    ]);
 
     if (!category || !subCategory) {
       throw new NotFoundException('Category not found');
@@ -37,21 +51,190 @@ export class CourseService {
       name: title,
     };
 
-    const p = await this.stripeClient.products.create(productStripeParams);
+    try {
+      const p = await this.stripeClient.products.create(productStripeParams);
 
-    const courseData: Partial<Course> = {
+      const courseData: Partial<Course> = {
+        title,
+        categoryId: categoryID,
+        subCategoryId: subCategoryID,
+        productIdStripe: p.id,
+        userID: userID,
+      };
+
+      const courseCreate = await this.courseRepository.createCourse(courseData);
+
+      const responseData: ResponseData = {
+        message: 'Create course successfully!',
+        data: courseCreate,
+      };
+
+      return responseData;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Failed to create Stripe product: ' + error.message,
+      );
+    }
+  }
+
+  async updateCourse(
+    updateCourseDto: UpdateCourseDto,
+    userID: number,
+    courseID: number,
+    image: Express.Multer.File,
+  ): Promise<ResponseData> {
+    const {
       title,
-      categoryId: categoryID,
-      subCategoryId: subCategoryID,
-      productIdStripe: p.id,
-      userID: userID,
+      categoryID,
+      subCategoryID,
+      congratulationsMessage,
+      description,
+      intendedFor,
+      languageID,
+      levelID,
+      outcomes,
+      priceID,
+      primarilyTeach,
+      requirements,
+      subtitle,
+      welcomeMessage,
+    } = updateCourseDto;
+
+    // Check course
+    const course = await this.courseRepository.getCourseByID(courseID);
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    if (userID !== course.userID) {
+      throw new ForbiddenException('Not author of course');
+    }
+
+    course.welcomeMessage = welcomeMessage || '';
+    course.congratulationsMessage = congratulationsMessage || '';
+
+    course.title = title;
+
+    course.outComes = outcomes || [];
+    course.requirements = requirements || [];
+    course.intendedFor = intendedFor || [];
+
+    course.description = description || '';
+    course.subtitle = subtitle || '';
+    course.primarilyTeach = primarilyTeach || '';
+
+    const productParams: Stripe.ProductUpdateParams = {
+      name: title,
     };
 
-    const courseCreate = await this.courseRepository.createCourse(courseData);
+    if (categoryID) {
+      // Check category
+      const category =
+        await this.categoryRepository.getCategoryById(categoryID);
 
+      if (!category) {
+        throw new ForbiddenException('Category not found');
+      }
+
+      course.categoryId = categoryID;
+    } else {
+      course.categoryId = null;
+    }
+
+    if (subCategoryID) {
+      // Check category
+      const subCategory =
+        await this.categoryRepository.getCategoryById(subCategoryID);
+
+      if (!subCategory) {
+        throw new ForbiddenException('Subcategory not found');
+      }
+      course.subCategoryId = subCategoryID;
+    } else {
+      course.subCategoryId = null;
+    }
+
+    if (languageID) {
+      // Check language
+      const language =
+        await this.languageRepository.getLanguageById(languageID);
+
+      if (!language) {
+        throw new ForbiddenException('Language not found');
+      }
+
+      course.languageId = languageID;
+    } else {
+      course.languageId = null;
+    }
+
+    if (levelID) {
+      // Check level
+      const level = await this.levelRepository.getLevelById(levelID);
+
+      if (!level) {
+        throw new ForbiddenException('Level not found');
+      }
+
+      course.levelId = levelID;
+    } else {
+      course.levelId = null;
+    }
+
+    if (priceID) {
+      // Check price
+      const price = await this.priceRepository.getPriceById(priceID);
+
+      if (!price) {
+        throw new ForbiddenException('Price not found');
+      }
+
+      course.priceId = priceID;
+
+      const priceParams: Stripe.PriceCreateParams = {
+        currency: 'usd',
+        unit_amount: price.value * 100,
+        product: course.productIdStripe,
+      };
+      try {
+        const priceTripe = await this.stripeClient.prices.create(priceParams);
+        productParams.default_price = priceTripe.id;
+      } catch (error) {
+        throw new InternalServerErrorException(
+          'Failed to create Stripe price: ' + error.message,
+        );
+      }
+    } else {
+      course.levelId = null;
+    }
+
+    if (image) {
+      if (course.image) {
+        // Remove previous image course
+        let resourceFile = course.image.split('/').slice(-2).join('/');
+        resourceFile = `https://sg.storage.bunnycdn.com/kaidemy/${resourceFile}`;
+
+        await this.uploadService.deleteResource(resourceFile);
+      }
+
+      const avatarURL = await this.uploadService.uploadResource(
+        image,
+        UploadResource.Avatar,
+      );
+      productParams.images = [avatarURL];
+      course.image = avatarURL;
+    }
+
+    await this.stripeClient.products.update(course.productIdStripe, productParams);
+   
+    course.reviewStatus = CourseStatus.REVIEW_INIT;
+
+    await this.courseRepository.save(course);
+    
     const responseData: ResponseData = {
-      message: 'Create course successfully!',
-      data: courseCreate,
+      message: 'Update course successfully!',
+      data: course,
     };
 
     return responseData;

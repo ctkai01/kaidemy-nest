@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Cart } from './cart.entity';
 import { Category } from './category.entity';
+import { Price } from './price.entity';
 
 @Entity({ name: 'courses' })
 export class Course {
@@ -16,33 +17,33 @@ export class Course {
 
   @Column({
     nullable: true,
-    type: 'jsonb',
+    type: 'text',
     array: true,
     transformer: {
-      to: (value: string[]) => JSON.stringify(value),
-      from: (value: string) => JSON.parse(value) as string[],
+      to: (value: string[]) => value, // No need to stringify
+      from: (value: string) => value, // No need to parse
     },
   })
   outComes?: string[];
 
   @Column({
     nullable: true,
-    type: 'jsonb',
+    type: 'text',
     array: true,
     transformer: {
-      to: (value: string[]) => JSON.stringify(value),
-      from: (value: string) => JSON.parse(value) as string[],
+      to: (value: string[]) => value, // No need to stringify
+      from: (value: string) => value, // No need to parse
     },
   })
   intendedFor?: string[];
 
   @Column({
     nullable: true,
-    type: 'jsonb',
+    type: 'text',
     array: true,
     transformer: {
-      to: (value: string[]) => JSON.stringify(value),
-      from: (value: string) => JSON.parse(value) as string[],
+      to: (value: string[]) => value, // No need to stringify
+      from: (value: string) => value, // No need to parse
     },
   })
   requirements?: string[];
@@ -102,21 +103,14 @@ export class Course {
   @JoinColumn({ name: 'categoryId' })
   category: Category;
 
+  @ManyToOne(() => Price, (price) => price.courses)
+  @JoinColumn({ name: 'priceId' })
+  price: Price;
+
   @ManyToOne(() => Category)
   @JoinColumn({ name: 'subCategoryId', referencedColumnName: 'id' })
   subCategory: Category;
 
-  //   @OneToMany(() => Curriculum, (curriculum) => curriculum.course, {
-  //     cascade: true,
-  //     onDelete: 'CASCADE',
-  //   })
-  //   curriculums: Curriculum[];
-
-  //   @OneToMany(() => Learning, (learning) => learning.course, {
-  //     cascade: true,
-  //     onDelete: 'CASCADE',
-  //   })
-  //   learnings: Learning[];
   @ManyToMany(() => Cart)
   carts: Cart[];
 

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,11 +14,12 @@ import { GoogleModule } from '../google/google.module';
   imports: [
     TypeOrmModule.forFeature([User]),
     ConfigModule,
-    UserModule,
+    // UserModule,
     JwtModule.register({}),
     // PassportModule.register({ defaultStrategy: 'google' }),
     QueueModule,
     GoogleModule,
+    forwardRef(() => UserModule),
   ],
   providers: [AuthService, GoogleStrategy],
   controllers: [AuthController],

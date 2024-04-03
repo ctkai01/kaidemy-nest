@@ -37,12 +37,22 @@ export class CartRepository extends Repository<Cart> {
       throw new InternalServerErrorException('Something error query');
     }
   }
-  
-  async getCartByUSerID(userID: number): Promise<Cart | null> {
+
+  async getCartByUserID(userID: number): Promise<Cart | null> {
     const cart = await this.findOne({
       where: {
         userId: userID,
       },
+    });
+    return cart;
+  }
+
+  async getCartByUserIDRelation(userID: number, relations: string[]): Promise<Cart | null> {
+    const cart = await this.findOne({
+      where: {
+        userId: userID,
+      },
+      relations
     });
     return cart;
   }

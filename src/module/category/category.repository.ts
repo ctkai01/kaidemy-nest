@@ -1,4 +1,8 @@
-import { ConflictException, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  ConflictException,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from 'src/entities/category.entity';
 import { EntityRepository, Repository } from 'typeorm';
@@ -26,7 +30,7 @@ export class CategoryRepository extends Repository<Category> {
       return categoryCreated;
     } catch (err) {
       this.logger.error(err);
-      if (err.code === 'ER_DUP_ENTRY') {
+      if (err.code === '23505') {
         throw new ConflictException('Name already exists');
       }
 
@@ -40,7 +44,7 @@ export class CategoryRepository extends Repository<Category> {
         id: categoryID,
       },
     });
-    console.log("What: ", category)
+    console.log('What: ', category);
     console.log('What 1: ', categoryID);
     return category;
   }

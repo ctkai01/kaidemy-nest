@@ -7,7 +7,7 @@ export const DEFAULT_ROLE = NORMAL_USER;
 
 // For stripe state
 export const ACCOUNT_STRIPE_PENDING = 1
-export const ACCOUNT_STRIPE_VERIFY = 1;
+export const ACCOUNT_STRIPE_VERIFY = 2;
 
 // For type account
 export const ACCOUNT_NORMAL = 1

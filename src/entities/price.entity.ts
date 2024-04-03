@@ -12,8 +12,9 @@ import { Exclude } from 'class-transformer';
 // } from 'src/constants';
 import {
   Column,
-  Entity, PrimaryGeneratedColumn
+  Entity, OneToMany, PrimaryGeneratedColumn
 } from 'typeorm';
+import { Course } from './course.entity';
 // import { ChatMember } from './chat-member.entity';
 // import { CommentUser } fr/om './c/omment-user.entity';
 // import { Comment } from './/comme/nt.entity';
@@ -37,6 +38,9 @@ export class Price {
 
   @Column()
   value: number;
+
+  @OneToMany(() => Course, (course) => course.price)
+  courses?: Course[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;
