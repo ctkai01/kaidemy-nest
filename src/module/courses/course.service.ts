@@ -193,7 +193,7 @@ export class CourseService {
       course.priceId = priceID;
 
       const priceParams: Stripe.PriceCreateParams = {
-        currency: 'usd',
+        currency: 'gbp',
         unit_amount: price.value * 100,
         product: course.productIdStripe,
       };
