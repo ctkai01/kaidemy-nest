@@ -22,12 +22,17 @@ export class AuthGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
+
     if (isPublic) {
       // 💡 See this condition
       return true;
     }
+    const request: Request = context.switchToHttp().getRequest();
 
-    const request = context.switchToHttp().getRequest();
+    if (request.url === '/api/webhook') {
+      return true;
+    }
+   
     const token = this.extractTokenFromHeader(request);
     if (!token) {
       throw new UnauthorizedException();

@@ -4,11 +4,13 @@ import {
   JoinColumn,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Cart } from './cart.entity';
 import { Category } from './category.entity';
 import { Price } from './price.entity';
+import { Checkout } from './checkout.entity';
 
 @Entity({ name: 'courses' })
 export class Course {
@@ -113,6 +115,9 @@ export class Course {
 
   @ManyToMany(() => Cart)
   carts: Cart[];
+
+  @OneToMany(() => Checkout, (checkout) => checkout.course)
+  checkout?: Checkout[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;

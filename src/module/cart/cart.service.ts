@@ -5,7 +5,7 @@ import {
   Logger,
   NotFoundException
 } from '@nestjs/common';
-import { Cart } from 'src/entities';
+import { Cart, Checkout } from 'src/entities';
 import { ResponseData } from '../../interface/response.interface';
 import { CourseRepository } from '../courses/course.repository';
 import { CurriculumRepository } from '../curriculum/curriculum.repository';
@@ -17,6 +17,8 @@ import { PriceModule } from '../price/price.module';
 import { PriceRepository } from '../price/price.repository';
 import Stripe from 'stripe';
 import { InjectStripeClient } from '@golevelup/nestjs-stripe';
+import { UserRepository } from '../user/user.repository';
+import { getRepository } from 'typeorm';
 
 @Injectable()
 export class CartService {
@@ -24,6 +26,7 @@ export class CartService {
   constructor(
     @InjectStripeClient() private readonly stripeClient: Stripe,
     private readonly curriculumRepository: CurriculumRepository,
+    private readonly userRepository: UserRepository,
     private readonly courseRepository: CourseRepository,
     private readonly lectureRepository: LectureRepository,
     private readonly cartRepository: CartRepository,
@@ -119,7 +122,7 @@ export class CartService {
 
     cart.courses = cart.courses.filter((course) => course.id !== courseID);
 
-    this.cartRepository.save(cart);
+    await this.cartRepository.save(cart);
 
     const responseData: ResponseData = {
       message: 'Remove course from cart successfully!',
@@ -129,6 +132,8 @@ export class CartService {
   }
 
   async claimsPayment(userID: number): Promise<ResponseData> {
+    const user = await this.userRepository.getUserByIDRelation(userID, ["checkout"]);
+
     // Get cart by user id
     const cart = await this.cartRepository.getCartByUserIDRelation(userID, [
       'courses.price',
@@ -143,7 +148,8 @@ export class CartService {
     }
     let totalPrice = 0;
 
-    const checkoutSessionLineItemParams: Stripe.Checkout.SessionCreateParams.LineItem[] = []
+    const checkoutSessionLineItemParams: Stripe.Checkout.SessionCreateParams.LineItem[] =
+      [];
 
     // cart.courses.forEach(async (course) => {
     //   console.log('Price: ', course.price);
@@ -171,9 +177,9 @@ export class CartService {
       });
     });
 
-await Promise.all(promises);
-    const key = "xzxz"
-    const applicationFee = totalPrice * 10 / 100
+    await Promise.all(promises);
+    const key = 'xzxz';
+    const applicationFee = (totalPrice * 10) / 100;
 
     console.log(
       'checkoutSessionLineItemParams: ',
@@ -181,19 +187,40 @@ await Promise.all(promises);
     );
     const checkoutSessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: 'payment',
-      success_url: `http://localhost:5173/checkout-success?key=${key}}`,
+      success_url: `http://localhost:5173/checkout-success?key=${key}`,
       cancel_url: `http://localhost:5173/checkout-cancel`,
       line_items: checkoutSessionLineItemParams,
+
       payment_intent_data: {
         transfer_group: 'OK',
+        metadata: {
+          "HEY": 1,
+          "TEST": "NOdejs"
+        }
         // application_fee_amount: applicationFee,
       },
     };
 
-    const s = await this.stripeClient.checkout.sessions.create(checkoutSessionParams);
+    const s = await this.stripeClient.checkout.sessions.create(
+      checkoutSessionParams,
+    );
+    //
+    console.log('S: ', user);
+
+    const checkouts: Checkout[] = [];
+    cart.courses.forEach((course) => {
+      checkouts.push({
+        checkoutSession: s.id,
+        userId: user.id,
+        courseId: course.id,
+      });
+    });
+
+    await this.cartRepository.manager.getRepository(Checkout).save(checkouts);
+    console.log('S: ', user);
     const responseData: ResponseData = {
       message: 'Remove course from cart successfully!',
-      data: s.url
+      data: s.url,
     };
 
     return responseData;

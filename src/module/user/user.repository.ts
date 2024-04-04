@@ -34,7 +34,7 @@ export class UserRepository extends Repository<User> {
       return userCreated;
     } catch (err) {
       this.logger.error(err);
-     
+
       if (err.code === '23505') {
         throw new ConflictException('Email already exists');
       }
@@ -82,6 +82,19 @@ export class UserRepository extends Repository<User> {
 
       throw new InternalServerErrorException('Something error query');
     }
+  }
+
+  async getUserByIDRelation(
+    userID: number,
+    relations: string[],
+  ): Promise<User | null> {
+    const user = await this.findOne({
+      where: {
+        id: userID,
+      },
+      relations,
+    });
+    return user;
   }
 
   async updateData(user: User): Promise<User> {

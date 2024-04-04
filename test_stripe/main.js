@@ -6,7 +6,7 @@ const test = async () => {
   const paymentIntent = await stripe.paymentIntents.create({
     amount: 10000,
     currency: 'gbp',
-    transfer_group: 'ORDER10',
+    transfer_group: 'OK',
   });
 
   console.log('paymentIntent: ', paymentIntent);
@@ -14,10 +14,10 @@ const test = async () => {
 
 const transfer = async () => {
   const transfer = await stripe.transfers.create({
-    amount: 7000,
+    amount: 6000,
     currency: 'gbp',
     destination: 'acct_1P1UKgFSgql4rV8r',
-    transfer_group: 'ORDER10',
+    transfer_group: 'OK',
   });
 
   console.log('transfer: ', transfer);
@@ -38,14 +38,43 @@ const balance_2 = async () => {
 };
 
 const transac = async () => {
-  const transaction = await stripe.treasury.transactions.retrieve(
-    'acct_1P1UKgFSgql4rV8r',
+ 
+const balanceTransactions = await stripe.balanceTransactions.list({
+  limit: 7,
+  // stripeAccount: 'acct_1P1UKgFSgql4rV8r',
+});
+console.log('transaction: ', balanceTransactions);
+};
+
+const retriveTrans = async () => {
+
+const balanceTransaction = await stripe.balanceTransactions.retrieve(
+  'txn_3P1hkBFEsDSfMpHu1vWjtrI2',
+);
+
+console.log(balanceTransaction);
+}
+
+const retrivePAy = async () => {
+  const balanceTransaction = await stripe.paymentIntents.retrieve(
+    'pi_3P1hkBFEsDSfMpHu1GsOM726',
   );
 
-  console.log('transaction: ', transaction);
+  console.log(balanceTransaction);
 };
+// stripe.paymentIntents.retrieve;
 // transfer()
-// balance()
-balance_2();
+// balance_1()
+// balance_2();
 // test()
-// transac();
+retrivePAy();
+// txn_1P1g6NFEsDSfMpHulXptnsan;
+
+//TODO
+// save checkout_session
+
+// In webhook receive "checkout.session.completed" -> get payment_intent "pi_3P1i7qFEsDSfMpHu04QaOHLc" 
+   // Receive "balance_transaction" from charge.succeeded bases on payment_intent
+
+   // section_id
+   // cart_id

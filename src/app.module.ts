@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import {
   Category,
+  Checkout,
   Course,
   IssueType,
   Language,
@@ -32,6 +33,7 @@ import { QuestionModule } from './module/question/question.module';
 import { AnswerModule } from './module/answer/answer.module';
 import { Cart } from './entities/cart.entity';
 import { CartModule } from './module/cart/cart.module';
+import { StripeWebhookModule } from './module/stripe/stripe-webhook.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -78,6 +80,7 @@ import { CartModule } from './module/cart/cart.module';
             Language,
             Course,
             Cart,
+            Checkout
           ],
           timezone: '+07:00',
         };
@@ -98,6 +101,7 @@ import { CartModule } from './module/cart/cart.module';
     QuestionModule,
     AnswerModule,
     CartModule,
+    StripeWebhookModule,
   ],
   providers: [
     {
