@@ -32,6 +32,7 @@ import { QuestionModule } from './module/question/question.module';
 import { AnswerModule } from './module/answer/answer.module';
 import { Cart } from './entities/cart.entity';
 import { CartModule } from './module/cart/cart.module';
+import { StripeWebhookModule } from './module/stripe/stripe.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -98,6 +99,7 @@ import { CartModule } from './module/cart/cart.module';
     QuestionModule,
     AnswerModule,
     CartModule,
+    StripeWebhookModule,
   ],
   providers: [
     {

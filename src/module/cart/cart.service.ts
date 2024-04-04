@@ -156,11 +156,11 @@ export class CartService {
     //     quantity: 1,
     //   })
     // });
-
+    const courseIds = []
     const promises = cart.courses.map(async (course) => {
       console.log('Price: ', course.price);
       totalPrice += course.price.value;
-
+      courseIds.push(course.id)
       const product = await this.stripeClient.products.retrieve(
         course.productIdStripe,
       );
@@ -184,8 +184,15 @@ await Promise.all(promises);
       success_url: `http://localhost:5173/checkout-success?key=${key}}`,
       cancel_url: `http://localhost:5173/checkout-cancel`,
       line_items: checkoutSessionLineItemParams,
+      metadata: {
+        user_buy: userID,
+      },
       payment_intent_data: {
         transfer_group: 'OK',
+        metadata: {
+          user_buy: userID,
+          courses: JSON.stringify(courseIds),
+        },
         // application_fee_amount: applicationFee,
       },
     };

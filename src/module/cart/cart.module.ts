@@ -25,6 +25,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       useFactory: async (configService: ConfigService) => {
         return {
           apiKey: configService.get('STRIPE_KEY'),
+          // webhookConfig: {
+          //   stripeSecrets: {
+          //     account:
+          //       'whsec_cb4db6ed715b11790d10316f918e525c0a5809ed00b4e60ee01080b566d85c04',
+          //   },
+          // },
         };
       },
     }),
