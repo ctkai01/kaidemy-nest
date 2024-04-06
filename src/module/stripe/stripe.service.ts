@@ -7,6 +7,7 @@ import { TransactionDetail } from 'src/entities/transaction-detail.entity';
 import { Transaction } from 'src/entities/transaction.entity';
 import Stripe from 'stripe';
 import { getRepository } from 'typeorm';
+import { CartRepository } from '../cart/cart.repository';
 import { CourseRepository } from '../courses/course.repository';
 import { CourseService } from '../courses/course.service';
 import { TransactionRepository } from './transation.repository';
@@ -19,6 +20,7 @@ export default class StripeService {
     @InjectStripeClient() readonly stripeClient: Stripe,
     private configService: ConfigService,
     private readonly courseService: CourseService,
+    private readonly cartRepository: CartRepository,
 
     private readonly transactionRepository: TransactionRepository,
   ) {
@@ -79,5 +81,9 @@ export default class StripeService {
         this.courseService.registerCourse(Number(userBuy), course.id),
       ),
     );
+    
+    const cart = await this.cartRepository.getCartByUserID(Number(userBuy));
+    // Remove cart
+    await this.cartRepository.remove(cart);
   }
 }

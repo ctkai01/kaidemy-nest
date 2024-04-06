@@ -2,9 +2,10 @@ import { StripeModule } from "@golevelup/nestjs-stripe";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { Course } from "src/entities";
+import { Cart, Course } from "src/entities";
 import { TransactionDetail } from "src/entities/transaction-detail.entity";
 import { Transaction } from "src/entities/transaction.entity";
+import { CartModule } from "../cart/cart.module";
 import { CourseModule } from "../courses/course.module";
 import StripeService from "./stripe.service";
 import StripeWebhookController from "./stripeWebhook.controller";
@@ -13,7 +14,7 @@ import { TransactionRepository } from "./transation.repository";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Course, TransactionDetail, Transaction]),
+    TypeOrmModule.forFeature([Course, TransactionDetail, Transaction, Cart]),
 
     StripeModule.forRootAsync(StripeModule, {
       imports: [ConfigModule],
@@ -25,6 +26,7 @@ import { TransactionRepository } from "./transation.repository";
       },
     }),
     CourseModule,
+    CartModule
   ],
   providers: [StripeService, TransactionRepository],
   controllers: [StripeWebhookController],
