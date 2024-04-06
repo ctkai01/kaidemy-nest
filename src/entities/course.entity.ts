@@ -4,11 +4,14 @@ import {
   JoinColumn,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Cart } from './cart.entity';
 import { Category } from './category.entity';
+import { Learning } from './learning.entity';
 import { Price } from './price.entity';
+import { TransactionDetail } from './transaction-detail.entity';
 
 @Entity({ name: 'courses' })
 export class Course {
@@ -113,6 +116,15 @@ export class Course {
 
   @ManyToMany(() => Cart)
   carts: Cart[];
+
+  @OneToMany(() => Learning, (learning) => learning.course)
+  learnings?: Learning[];
+
+  @OneToMany(
+    () => TransactionDetail,
+    (transactionDetail) => transactionDetail.course,
+  )
+  transactionDetails: TransactionDetail[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;

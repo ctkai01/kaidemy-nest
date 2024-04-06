@@ -14,10 +14,11 @@ import { LanguageModule } from '../language/language.module';
 import { LevelModule } from '../level/level.module';
 import { PriceModule } from '../price/price.module';
 import { UploadModule } from '../upload/upload.module';
+import { Learning } from 'src/entities/learning.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Course, User, Category, Language, Level, Price]),
+    TypeOrmModule.forFeature([Course, User, Category, Language, Level, Price, Learning]),
     UserModule,
     StripeModule.forRootAsync(StripeModule, {
       imports: [ConfigModule],

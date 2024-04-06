@@ -12,8 +12,9 @@ import { Exclude } from 'class-transformer';
 // } from 'src/constants';
 import {
   Column,
-  Entity, PrimaryGeneratedColumn
+  Entity, OneToMany, PrimaryGeneratedColumn
 } from 'typeorm';
+import { Learning } from './learning.entity';
 // import { ChatMember } from './chat-member.entity';
 // import { CommentUser } fr/om './c/omment-user.entity';
 // import { Comment } from './/comme/nt.entity';
@@ -87,6 +88,12 @@ export class User {
 
   @Column({ nullable: true, name: 'key_account_stripe' })
   keyAccountStripe?: string;
+
+  @OneToMany(
+    () => Learning,
+    (learning) => learning.user,
+  )
+  learnings?: Learning[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;

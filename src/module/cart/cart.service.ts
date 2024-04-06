@@ -17,7 +17,8 @@ import { PriceModule } from '../price/price.module';
 import { PriceRepository } from '../price/price.repository';
 import Stripe from 'stripe';
 import { InjectStripeClient } from '@golevelup/nestjs-stripe';
-
+import { v4 as uuidv4 } from 'uuid';
+import { CourseTransaction } from 'src/constants';
 @Injectable()
 export class CartService {
   private logger = new Logger(CartService.name);
@@ -156,11 +157,15 @@ export class CartService {
     //     quantity: 1,
     //   })
     // });
-    const courseIds = []
+    const courseTransactions: CourseTransaction[] = [];
     const promises = cart.courses.map(async (course) => {
       console.log('Price: ', course.price);
       totalPrice += course.price.value;
-      courseIds.push(course.id)
+     
+      courseTransactions.push({
+        id: course.id,
+        price: course.price.value,
+      });
       const product = await this.stripeClient.products.retrieve(
         course.productIdStripe,
       );
@@ -172,34 +177,29 @@ export class CartService {
     });
 
 await Promise.all(promises);
-    const key = "xzxz"
-    const applicationFee = totalPrice * 10 / 100
-
+    const uuid = uuidv4();
     console.log(
       'checkoutSessionLineItemParams: ',
       checkoutSessionLineItemParams,
     );
     const checkoutSessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: 'payment',
-      success_url: `http://localhost:5173/checkout-success?key=${key}}`,
+      success_url: `http://localhost:5173/checkout-success`,
       cancel_url: `http://localhost:5173/checkout-cancel`,
       line_items: checkoutSessionLineItemParams,
-      metadata: {
-        user_buy: userID,
-      },
       payment_intent_data: {
-        transfer_group: 'OK',
+        transfer_group: uuid,
         metadata: {
-          user_buy: userID,
-          courses: JSON.stringify(courseIds),
+          userBuy: userID,
+          courses: JSON.stringify(courseTransactions),
+          group: uuid,
         },
-        // application_fee_amount: applicationFee,
       },
     };
 
     const s = await this.stripeClient.checkout.sessions.create(checkoutSessionParams);
     const responseData: ResponseData = {
-      message: 'Remove course from cart successfully!',
+      message: 'Claims payment successfully!',
       data: s.url
     };
 

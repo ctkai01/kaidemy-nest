@@ -24,3 +24,5 @@ export class CreateCourseDto {
   @IsNumber()
   subCategoryID: number;
 }
+
+

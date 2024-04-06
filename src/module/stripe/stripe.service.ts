@@ -1,17 +1,26 @@
-
 import { InjectStripeClient } from '@golevelup/nestjs-stripe';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { CourseTransaction } from 'src/constants';
+import { FEE_PLATFORM } from 'src/constants/payment';
+import { TransactionDetail } from 'src/entities/transaction-detail.entity';
+import { Transaction } from 'src/entities/transaction.entity';
 import Stripe from 'stripe';
- 
+import { getRepository } from 'typeorm';
+import { CourseRepository } from '../courses/course.repository';
+import { CourseService } from '../courses/course.service';
+import { TransactionRepository } from './transation.repository';
+
 @Injectable()
 export default class StripeService {
   private stripe: Stripe;
 
   constructor(
     @InjectStripeClient() readonly stripeClient: Stripe,
-
     private configService: ConfigService,
+    private readonly courseService: CourseService,
+
+    private readonly transactionRepository: TransactionRepository,
   ) {
     this.stripe = new Stripe(configService.get('STRIPE_KEY'), {
       apiVersion: '2023-10-16',
@@ -25,6 +34,50 @@ export default class StripeService {
       payload,
       signature,
       webhookSecret,
+    );
+  }
+
+  public async chargeSucceededEvent(data: Stripe.Charge) {
+    console.log(data.metadata);
+
+    const courses: CourseTransaction[] = JSON.parse(data.metadata.courses);
+    console.log('courses: ', courses);
+    console.log('userBuy: ', data.metadata.userBuy);
+    console.log('group: ', data.metadata.group);
+
+    const balanceTransactions =
+      await this.stripeClient.balanceTransactions.retrieve(
+        data.balance_transaction.toString(),
+      );
+    console.log(balanceTransactions.amount);
+    console.log(balanceTransactions.fee);
+    const userBuy = data.metadata.userBuy;
+    // Create transaction
+    const transaction: Partial<Transaction> = {
+      actual: balanceTransactions.amount,
+      fee_stripe: balanceTransactions.fee,
+      userId: Number(userBuy),
+    };
+    await this.transactionRepository.save(transaction);
+    const transactionDetails: TransactionDetail[] = [];
+    courses.forEach((course) => {
+      const feeBuy = Math.round((course.price * (100 - FEE_PLATFORM)) / 100);
+      transactionDetails.push({
+        fee_buy: feeBuy,
+        courseId: course.id,
+        transactionId: transaction.id,
+      });
+    });
+
+    // Create transaction detail
+    await this.transactionRepository.manager
+      .getRepository(TransactionDetail)
+      .save(transactionDetails);
+
+    await Promise.all(
+      courses.map((course) =>
+        this.courseService.registerCourse(Number(userBuy), course.id),
+      ),
     );
   }
 }

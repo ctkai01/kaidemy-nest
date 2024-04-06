@@ -7,6 +7,9 @@ import {
 } from '@nestjs/common';
 import StripeService from '../stripe/stripe.service';
 import Stripe from 'stripe';
+import { getRepository } from 'typeorm';
+import { Transaction } from 'src/entities/transaction.entity';
+import { TransactionDetail } from 'src/entities/transaction-detail.entity';
 interface RequestWithRawBody extends Request {
   rawBody: Buffer;
 }
@@ -19,7 +22,6 @@ export default class StripeWebhookController {
     @Headers('stripe-signature') signature: string,
     @Req() request: RequestWithRawBody,
   ) {
-
     console.log('signature', signature);
     if (!signature) {
       throw new BadRequestException('Missing stripe-signature header');
@@ -32,17 +34,9 @@ export default class StripeWebhookController {
 
     if (event.type === 'charge.succeeded') {
       const data = event.data.object as Stripe.Charge;
-    //   console.log(data);
-      console.log(data.metadata);
-
-      const courses = JSON.parse(data.metadata.courses);
-      console.log(courses);
-
-      const balanceTransactions = await this.stripeService.stripeClient.balanceTransactions.retrieve(
-        data.balance_transaction.toString(),
-      );
-      console.log(balanceTransactions.amount);
-      console.log(balanceTransactions.fee);
+      //   console.log(data);
+      this.stripeService.chargeSucceededEvent(data)
+     
     }
   }
 }
