@@ -12,3 +12,4 @@ export * from './answer.entity';
 export * from './question.entity';
 export * from './cart.entity';
 export * from './checkout.entity';
+export * from './learning.entity';

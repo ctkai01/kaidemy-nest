@@ -28,6 +28,7 @@ export enum CourseUtil {
 export interface CourseTransaction {
   id: number;
   price: number;
+  author: string;
 }
 // export enum AssetKind {
 //   MEDIA = 1,

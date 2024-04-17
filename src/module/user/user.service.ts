@@ -247,6 +247,7 @@ export class UserService {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
+        business_type: 'individual',
       });
       const key = generateHashKey();
       const accountLink = await this.stripeClient.accountLinks.create({

@@ -2,7 +2,7 @@ import { StripeModule } from '@golevelup/nestjs-stripe';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Category, Course, Language, Level, Price, User } from 'src/entities';
+import { Category, Course, Language, Level, Price, User, Learning } from 'src/entities';
 import { CategoryModule } from '../category/category.module';
 import { CategoryRepository } from '../category/category.repository';
 import { UserModule } from '../user/user.module';
@@ -14,7 +14,6 @@ import { LanguageModule } from '../language/language.module';
 import { LevelModule } from '../level/level.module';
 import { PriceModule } from '../price/price.module';
 import { UploadModule } from '../upload/upload.module';
-import { Learning } from 'src/entities/learning.entity';
 
 @Module({
   imports: [

@@ -1,6 +1,6 @@
 import {
   Body,
-  Controller, Delete, HttpCode,
+  Controller, Delete, Get, HttpCode,
   HttpStatus, Param, Post, UseFilters
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
@@ -43,10 +43,14 @@ export class CartController {
 
   @Post('/claims')
   @HttpCode(HttpStatus.OK)
-  claimsPayment(
-    @GetCurrentUserID() userID: number,
-  ): Promise<ResponseData> {
+  claimsPayment(@GetCurrentUserID() userID: number): Promise<ResponseData> {
     return this.cartService.claimsPayment(userID);
+  }
+
+  @Get('')
+  @HttpCode(HttpStatus.OK)
+  getCart(@GetCurrentUserID() userID: number): Promise<ResponseData> {
+    return this.cartService.getCart(userID);
   }
 
   // @Put(':id')

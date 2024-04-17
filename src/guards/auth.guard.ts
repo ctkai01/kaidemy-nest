@@ -29,18 +29,10 @@ export class AuthGuard implements CanActivate {
     }
     const request: Request = context.switchToHttp().getRequest();
 
-<<<<<<< HEAD
-    if (request.url === '/api/webhook') {
-      return true;
-    }
-   
-=======
-    const request: Request = context.switchToHttp().getRequest();
 
     if (request.url === '/api/stripe/webhookz') {
       return true;
     }
->>>>>>> 5f9e6fc87e73f5086ec899343fe212165a602d63
     const token = this.extractTokenFromHeader(request);
     if (!token) {
       throw new UnauthorizedException();
