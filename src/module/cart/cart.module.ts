@@ -29,7 +29,10 @@ import { StripeWebhookService } from './stripe-webhook.service';
         return {
           apiKey: configService.get('STRIPE_KEY'),
           // webhookConfig: {
+<<<<<<< HEAD
           //   requestBodyProperty: 'rawBody',
+=======
+>>>>>>> 5f9e6fc87e73f5086ec899343fe212165a602d63
           //   stripeSecrets: {
           //     account:
           //       'whsec_cb4db6ed715b11790d10316f918e525c0a5809ed00b4e60ee01080b566d85c04',

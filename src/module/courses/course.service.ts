@@ -17,7 +17,8 @@ import { LanguageRepository } from '../language/language.repository';
 import { LevelRepository } from '../level/level.repository';
 import { PriceRepository } from '../price/price.repository';
 import { UploadService } from '../upload/upload.service';
-import { CourseStatus, UploadResource } from 'src/constants';
+import { CourseStatus, CourseUtil, UploadResource } from 'src/constants';
+import { Learning } from 'src/entities/learning.entity';
 @Injectable()
 export class CourseService {
   private logger = new Logger(CourseService.name);
@@ -226,18 +227,34 @@ export class CourseService {
       course.image = avatarURL;
     }
 
-    await this.stripeClient.products.update(course.productIdStripe, productParams);
-   
+    await this.stripeClient.products.update(
+      course.productIdStripe,
+      productParams,
+    );
+
     course.reviewStatus = CourseStatus.REVIEW_INIT;
 
     await this.courseRepository.save(course);
-    
+
     const responseData: ResponseData = {
       message: 'Update course successfully!',
       data: course,
     };
 
     return responseData;
+  }
+
+  async registerCourse(
+    userID: number,
+    courseID: number,
+  ): Promise<void> {
+    const learning: Learning = {
+      courseId: courseID,
+      userId: userID,
+      type: CourseUtil.STANDARD_TYPE,
+    }; 
+
+    await this.courseRepository.manager.getRepository(Learning).save(learning);
   }
 
   // async updateCategory(

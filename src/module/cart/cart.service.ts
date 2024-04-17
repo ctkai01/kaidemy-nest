@@ -17,9 +17,14 @@ import { PriceModule } from '../price/price.module';
 import { PriceRepository } from '../price/price.repository';
 import Stripe from 'stripe';
 import { InjectStripeClient } from '@golevelup/nestjs-stripe';
+<<<<<<< HEAD
 import { UserRepository } from '../user/user.repository';
 import { getRepository } from 'typeorm';
 
+=======
+import { v4 as uuidv4 } from 'uuid';
+import { CourseTransaction } from 'src/constants';
+>>>>>>> 5f9e6fc87e73f5086ec899343fe212165a602d63
 @Injectable()
 export class CartService {
   private logger = new Logger(CartService.name);
@@ -162,11 +167,15 @@ export class CartService {
     //     quantity: 1,
     //   })
     // });
-
+    const courseTransactions: CourseTransaction[] = [];
     const promises = cart.courses.map(async (course) => {
       console.log('Price: ', course.price);
       totalPrice += course.price.value;
-
+     
+      courseTransactions.push({
+        id: course.id,
+        price: course.price.value,
+      });
       const product = await this.stripeClient.products.retrieve(
         course.productIdStripe,
       );
@@ -177,27 +186,45 @@ export class CartService {
       });
     });
 
+<<<<<<< HEAD
     await Promise.all(promises);
     const key = 'xzxz';
     const applicationFee = (totalPrice * 10) / 100;
 
+=======
+await Promise.all(promises);
+    const uuid = uuidv4();
+>>>>>>> 5f9e6fc87e73f5086ec899343fe212165a602d63
     console.log(
       'checkoutSessionLineItemParams: ',
       checkoutSessionLineItemParams,
     );
     const checkoutSessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: 'payment',
+<<<<<<< HEAD
       success_url: `http://localhost:5173/checkout-success?key=${key}`,
+=======
+      success_url: `http://localhost:5173/checkout-success`,
+>>>>>>> 5f9e6fc87e73f5086ec899343fe212165a602d63
       cancel_url: `http://localhost:5173/checkout-cancel`,
       line_items: checkoutSessionLineItemParams,
 
       payment_intent_data: {
+<<<<<<< HEAD
         transfer_group: 'OK',
         metadata: {
           "HEY": 1,
           "TEST": "NOdejs"
         }
         // application_fee_amount: applicationFee,
+=======
+        transfer_group: uuid,
+        metadata: {
+          userBuy: userID,
+          courses: JSON.stringify(courseTransactions),
+          group: uuid,
+        },
+>>>>>>> 5f9e6fc87e73f5086ec899343fe212165a602d63
       },
     };
 
@@ -219,8 +246,13 @@ export class CartService {
     await this.cartRepository.manager.getRepository(Checkout).save(checkouts);
     console.log('S: ', user);
     const responseData: ResponseData = {
+<<<<<<< HEAD
       message: 'Remove course from cart successfully!',
       data: s.url,
+=======
+      message: 'Claims payment successfully!',
+      data: s.url
+>>>>>>> 5f9e6fc87e73f5086ec899343fe212165a602d63
     };
 
     return responseData;

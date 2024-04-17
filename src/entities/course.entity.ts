@@ -9,8 +9,13 @@ import {
 } from 'typeorm';
 import { Cart } from './cart.entity';
 import { Category } from './category.entity';
+import { Learning } from './learning.entity';
 import { Price } from './price.entity';
+<<<<<<< HEAD
 import { Checkout } from './checkout.entity';
+=======
+import { TransactionDetail } from './transaction-detail.entity';
+>>>>>>> 5f9e6fc87e73f5086ec899343fe212165a602d63
 
 @Entity({ name: 'courses' })
 export class Course {
@@ -116,8 +121,19 @@ export class Course {
   @ManyToMany(() => Cart)
   carts: Cart[];
 
+<<<<<<< HEAD
   @OneToMany(() => Checkout, (checkout) => checkout.course)
   checkout?: Checkout[];
+=======
+  @OneToMany(() => Learning, (learning) => learning.course)
+  learnings?: Learning[];
+
+  @OneToMany(
+    () => TransactionDetail,
+    (transactionDetail) => transactionDetail.course,
+  )
+  transactionDetails: TransactionDetail[];
+>>>>>>> 5f9e6fc87e73f5086ec899343fe212165a602d63
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;

@@ -1,4 +1,3 @@
-
 export enum LectureType {
   LECTURE = 1,
   QUIZ,
@@ -20,6 +19,16 @@ export enum UploadType {
   REMOVE_ASSET,
 }
 
+export enum CourseUtil {
+  STANDARD_TYPE = 1,
+  WISH_LIST_TYPE = 2,
+  ARCHIE = 3,
+}
+
+export interface CourseTransaction {
+  id: number;
+  price: number;
+}
 // export enum AssetKind {
 //   MEDIA = 1,
 //   RESOURCE

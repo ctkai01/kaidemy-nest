@@ -33,7 +33,11 @@ import { QuestionModule } from './module/question/question.module';
 import { AnswerModule } from './module/answer/answer.module';
 import { Cart } from './entities/cart.entity';
 import { CartModule } from './module/cart/cart.module';
+<<<<<<< HEAD
 import { StripeWebhookModule } from './module/stripe/stripe-webhook.module';
+=======
+import { StripeWebhookModule } from './module/stripe/stripe.module';
+>>>>>>> 5f9e6fc87e73f5086ec899343fe212165a602d63
 @Module({
   imports: [
     ConfigModule.forRoot({

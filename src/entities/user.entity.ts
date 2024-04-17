@@ -14,7 +14,11 @@ import {
   Column,
   Entity, OneToMany, PrimaryGeneratedColumn
 } from 'typeorm';
+<<<<<<< HEAD
 import { Checkout } from './checkout.entity';
+=======
+import { Learning } from './learning.entity';
+>>>>>>> 5f9e6fc87e73f5086ec899343fe212165a602d63
 // import { ChatMember } from './chat-member.entity';
 // import { CommentUser } fr/om './c/omment-user.entity';
 // import { Comment } from './/comme/nt.entity';
@@ -89,8 +93,16 @@ export class User {
   @Column({ nullable: true, name: 'key_account_stripe' })
   keyAccountStripe?: string;
 
+<<<<<<< HEAD
   @OneToMany(() => Checkout, (checkout) => checkout.user)
   checkout?: Checkout[];
+=======
+  @OneToMany(
+    () => Learning,
+    (learning) => learning.user,
+  )
+  learnings?: Learning[];
+>>>>>>> 5f9e6fc87e73f5086ec899343fe212165a602d63
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;
