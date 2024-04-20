@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Cart, Course, Curriculum, Price, User } from 'src/entities';
 import { Lecture } from 'src/entities/lecture.entity';
@@ -17,11 +17,12 @@ import { StripeWebhookService } from './stripe-webhook.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Course, Curriculum, Lecture, Cart, Price, User]),
-    CurriculumModule,
-    CourseModule,
-    LectureModule,
-    PriceModule,
-    UserModule,
+    forwardRef(() => CurriculumModule),
+    forwardRef(() => CourseModule),
+    forwardRef(() => LectureModule),
+    forwardRef(() => PriceModule),
+    forwardRef(() => UserModule),
+    forwardRef(() => LectureModule),
     StripeModule.forRootAsync(StripeModule, {
       imports: [ConfigModule],
       inject: [ConfigService],

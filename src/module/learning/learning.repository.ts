@@ -38,14 +38,14 @@ export class LearningRepository extends Repository<Learning> {
   //   }
   // }
 
-  // async getCartByUserID(userID: number): Promise<Cart | null> {
-  //   const cart = await this.findOne({
-  //     where: {
-  //       userId: userID,
-  //     },
-  //   });
-  //   return cart;
-  // }
+  async getLearningByID(learningID: number): Promise<Learning | null> {
+    const learning = await this.findOne({
+      where: {
+        id: learningID,
+      },
+    });
+    return learning;
+  }
 
   // async getCartByUserIDRelation(
   //   userID: number,

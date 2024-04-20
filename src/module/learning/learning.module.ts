@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Cart, Course, Curriculum, Price, User } from 'src/entities';
+import { Cart, Course, Curriculum, Learning, Price, User } from 'src/entities';
 import { Lecture } from 'src/entities/lecture.entity';
 import { CourseModule } from '../courses/course.module';
 import { CurriculumModule } from '../curriculum/curriculum.module';
@@ -13,15 +13,15 @@ import { LearningService } from './learning.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Course, Curriculum, Lecture, Cart, Price, User]),
-    CurriculumModule,
-    CourseModule,
-    LectureModule,
-    PriceModule,
-    UserModule,
+    TypeOrmModule.forFeature([Course, Curriculum, Lecture, Cart, Price, User, Learning]),
+    forwardRef(() => CurriculumModule),
+    forwardRef(() => CourseModule),
+    forwardRef(() => LectureModule),
+    forwardRef(() => PriceModule),
+    forwardRef(() => UserModule),
   ],
   providers: [LearningService, LearningRepository],
   controllers: [LearningController],
   exports: [LearningService, LearningRepository],
 })
-export class CartModule {}
+export class LearningModule {}

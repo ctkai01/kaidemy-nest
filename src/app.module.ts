@@ -34,6 +34,7 @@ import { AnswerModule } from './module/answer/answer.module';
 import { Cart } from './entities/cart.entity';
 import { CartModule } from './module/cart/cart.module';
 import { StripeWebhookModule } from './module/stripe/stripe.module';
+import { LearningModule } from './module/learning/learning.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -80,7 +81,7 @@ import { StripeWebhookModule } from './module/stripe/stripe.module';
             Language,
             Course,
             Cart,
-            Checkout
+            Checkout,
           ],
           timezone: '+07:00',
         };
@@ -102,6 +103,7 @@ import { StripeWebhookModule } from './module/stripe/stripe.module';
     AnswerModule,
     CartModule,
     StripeWebhookModule,
+    LearningModule,
   ],
   providers: [
     {

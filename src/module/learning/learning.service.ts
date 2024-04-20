@@ -1,7 +1,9 @@
 import {
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
-  Logger
+  Logger,
+  NotFoundException
 } from '@nestjs/common';
 import { Cart } from 'src/entities';
 import { ResponseData } from '../../interface/response.interface';
@@ -26,11 +28,34 @@ export class LearningService {
   ) {}
   async updateLearning(
     userID: number,
+    learningID: number,
     updateLearningDto: UpdateLearningDto,
   ): Promise<ResponseData> {
+    const { comment, process, starCount, type}  = updateLearningDto
+    const learning = await this.learningRepository.getLearningByID(learningID)
+
+
+
+    if (!learning) {
+      throw new NotFoundException("Learning not found")
+    }
+
+    if (userID !== learning.userId) {
+      throw new ForbiddenException("user not permission");
+
+    }
+    
+    learning.process = process;
+    learning.comment = comment
+    learning.starCount = starCount;
+    learning.type = type;
+
+
+    await this.learningRepository.save(learning)
+
     const responseData: ResponseData = {
       message: 'Update learning successfully!',
-      // data: cartCreated,
+      data: learning,
     };
 
     return responseData;

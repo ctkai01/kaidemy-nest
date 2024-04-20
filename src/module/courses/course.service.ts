@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { Course } from 'src/entities';
+import { Cart, Course, Transaction, TransactionDetail } from 'src/entities';
 import Stripe from 'stripe';
 import { ResponseData } from '../../interface/response.interface';
 import { CategoryRepository } from '../category/category.repository';
@@ -17,8 +17,16 @@ import { LanguageRepository } from '../language/language.repository';
 import { LevelRepository } from '../level/level.repository';
 import { PriceRepository } from '../price/price.repository';
 import { UploadService } from '../upload/upload.service';
-import { CourseStatus, CourseUtil, UploadResource } from 'src/constants';
+import {
+  CourseStatus,
+  CourseTransaction,
+  CourseUtil,
+  UploadResource,
+} from 'src/constants';
 import { Learning } from 'src/entities/learning.entity';
+import { TransactionRepository } from './transation.repository';
+import { CartRepository } from '../cart/cart.repository';
+import { FEE_PLATFORM } from 'src/constants/payment';
 @Injectable()
 export class CourseService {
   private logger = new Logger(CourseService.name);
@@ -30,6 +38,8 @@ export class CourseService {
     private readonly levelRepository: LevelRepository,
     private readonly priceRepository: PriceRepository,
     private readonly uploadService: UploadService,
+    private readonly transactionRepository: TransactionRepository,
+    private readonly cartRepository: CartRepository,
   ) {}
   async createCourse(
     createCourseDto: CreateCourseDto,
@@ -244,19 +254,86 @@ export class CourseService {
     return responseData;
   }
 
-  async registerCourse(
-    userID: number,
-    courseID: number,
-  ): Promise<void> {
+  async registerCourse(userID: number, courseID: number): Promise<void> {
     const learning: Learning = {
       courseId: courseID,
       userId: userID,
       type: CourseUtil.STANDARD_TYPE,
-    }; 
+    };
 
     await this.courseRepository.manager.getRepository(Learning).save(learning);
   }
 
+  public async paymentProcess(data: Stripe.Charge) {
+    const queryRunnerTransaction =
+      this.transactionRepository.manager.connection.createQueryRunner();
+    const queryRunnerCart =
+      this.cartRepository.manager.connection.createQueryRunner();
+
+    await queryRunnerTransaction.startTransaction();
+    await queryRunnerCart.startTransaction();
+    try {
+      const courses: CourseTransaction[] = JSON.parse(data.metadata.courses);
+
+      const balanceTransactions =
+        await this.stripeClient.balanceTransactions.retrieve(
+          data.balance_transaction.toString(),
+        );
+
+      const userBuy = data.metadata.userBuy;
+      // Create transaction
+      const transaction: Partial<Transaction> = {
+        actual: balanceTransactions.amount,
+        fee_stripe: balanceTransactions.fee,
+        userId: Number(userBuy),
+      };
+
+      await queryRunnerTransaction.manager.getRepository(Transaction).save(transaction);
+
+      const transactionDetails: TransactionDetail[] = [];
+      const transferPromises = [];
+      courses.forEach(async (course) => {
+        const feeBuy =
+          Math.round((course.price * (100 - FEE_PLATFORM)) / 100) * 100;
+        transactionDetails.push({
+          fee_buy: feeBuy,
+          courseId: course.id,
+          transactionId: transaction.id,
+        });
+        const transferPromise = this.stripeClient.transfers.create({
+          currency: 'usd',
+          amount: feeBuy,
+          destination: course.author,
+          transfer_group: data.metadata.group,
+        });
+        transferPromises.push(transferPromise);
+      });
+      await Promise.all(transferPromises);
+
+      // Create transaction detail
+      await queryRunnerTransaction.manager
+        .getRepository(TransactionDetail)
+        .save(transactionDetails);
+
+      await Promise.all(
+        courses.map((course) =>
+          this.registerCourse(Number(userBuy), course.id),
+        ),
+      );
+
+      const cart = await this.cartRepository.getCartByUserID(Number(userBuy));
+      // Remove cart
+      await queryRunnerCart.manager.getRepository(Cart).remove(cart);
+
+      await queryRunnerTransaction.commitTransaction();
+      await queryRunnerCart.commitTransaction();
+    } catch (err) {
+      console.log("Error: ", err)
+      await queryRunnerTransaction.rollbackTransaction();
+      await queryRunnerCart.rollbackTransaction();
+      throw new Error('Payment processing failed:');
+    }
+  }
   // async updateCategory(
   //   updateCategoryDto: UpdateCategoryDto,
   //   categoryID: number,

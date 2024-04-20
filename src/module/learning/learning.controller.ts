@@ -3,8 +3,10 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
-  UseFilters
+  Put,
+  UseFilters,
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
@@ -20,12 +22,17 @@ import { LearningService } from './learning.service';
 export class LearningController {
   constructor(private learningService: LearningService) {}
 
-  @Post('')
+  @Put(':id')
   @HttpCode(HttpStatus.OK)
-  createCart(
+  updateLearning(
     @GetCurrentUserID() userID: number,
+    @Param('id') learningID: number,
     @Body() updateLearningDto: UpdateLearningDto,
   ): Promise<ResponseData> {
-    return this.learningService.updateLearning(userID, updateLearningDto);
+    return this.learningService.updateLearning(
+      userID,
+      learningID,
+      updateLearningDto,
+    );
   }
 }

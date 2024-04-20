@@ -2,7 +2,7 @@ import { StripeModule } from '@golevelup/nestjs-stripe';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Category, Course, Language, Level, Price, User, Learning } from 'src/entities';
+import { Category, Course, Language, Level, Price, User, Learning, Cart, TransactionDetail, Transaction } from 'src/entities';
 import { CategoryModule } from '../category/category.module';
 import { CategoryRepository } from '../category/category.repository';
 import { UserModule } from '../user/user.module';
@@ -14,10 +14,23 @@ import { LanguageModule } from '../language/language.module';
 import { LevelModule } from '../level/level.module';
 import { PriceModule } from '../price/price.module';
 import { UploadModule } from '../upload/upload.module';
+import { TransactionRepository } from './transation.repository';
+import { CartModule } from '../cart/cart.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Course, User, Category, Language, Level, Price, Learning]),
+    TypeOrmModule.forFeature([
+      Course,
+      User,
+      Category,
+      Language,
+      Level,
+      Price,
+      Learning,
+      TransactionDetail,
+      Transaction,
+      Cart,
+    ]),
     UserModule,
     StripeModule.forRootAsync(StripeModule, {
       imports: [ConfigModule],
@@ -33,8 +46,9 @@ import { UploadModule } from '../upload/upload.module';
     LevelModule,
     PriceModule,
     UploadModule,
+    CartModule
   ],
-  providers: [CourseService, CourseRepository],
+  providers: [CourseService, CourseRepository, TransactionRepository],
   controllers: [CourseController],
   exports: [CourseService, CourseRepository],
 })

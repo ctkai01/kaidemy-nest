@@ -6,7 +6,9 @@ import {
   IsNumberString,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
+  Min,
   MinLength,
 } from 'class-validator';
 import { CourseUtil } from 'src/constants';
@@ -15,19 +17,19 @@ export class UpdateLearningDto {
   @IsOptional()
   @Transform(({ value, key, obj, type }) => +value)
   @IsNumber()
-  @MinLength(1)
-  @MaxLength(100)
+  @Min(1)
+  @Max(100)
   process: number;
 
-  @IsOptional()
+  @Transform(({ value, key, obj, type }) => +value)
   @IsEnum(CourseUtil)
   type: number;
 
   @IsOptional()
   @Transform(({ value, key, obj, type }) => +value)
   @IsNumber()
-  @MinLength(1)
-  @MaxLength(5)
+  @Min(1)
+  @Max(5)
   starCount: number;
 
   @IsOptional()
