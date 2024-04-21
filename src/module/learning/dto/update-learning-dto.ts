@@ -1,6 +1,7 @@
 import { Transform, Type } from 'class-transformer';
 import {
   IsEnum,
+  IsIn,
   IsInt,
   IsNumber,
   IsNumberString,
@@ -22,7 +23,7 @@ export class UpdateLearningDto {
   process: number;
 
   @Transform(({ value, key, obj, type }) => +value)
-  @IsEnum(CourseUtil)
+  @IsIn([CourseUtil.ARCHIE, CourseUtil.STANDARD_TYPE])
   type: number;
 
   @IsOptional()

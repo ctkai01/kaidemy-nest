@@ -14,6 +14,8 @@ import { Price } from './price.entity';
 import { TransactionDetail } from './transaction-detail.entity';
 import { Checkout } from './checkout.entity';
 import { User } from './user.entity';
+import { Level } from './level.entity';
+import { Curriculum } from './curriculum.entity';
 
 @Entity({ name: 'courses' })
 export class Course {
@@ -116,6 +118,10 @@ export class Course {
   @JoinColumn({ name: 'priceId' })
   price: Price;
 
+  @ManyToOne(() => Level, (level) => level.courses)
+  @JoinColumn({ name: 'levelId' })
+  level: Level;
+
   @ManyToOne(() => Category)
   @JoinColumn({ name: 'subCategoryId', referencedColumnName: 'id' })
   subCategory: Category;
@@ -128,6 +134,9 @@ export class Course {
 
   @OneToMany(() => Learning, (learning) => learning.course)
   learnings?: Learning[];
+
+  @OneToMany(() => Curriculum, (curriculum) => curriculum.course)
+  curriculums?: Curriculum[];
 
   @OneToMany(
     () => TransactionDetail,

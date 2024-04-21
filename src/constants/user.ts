@@ -12,3 +12,8 @@ export const ACCOUNT_STRIPE_VERIFY = 2;
 // For type account
 export const ACCOUNT_NORMAL = 1
 export const ACCOUNT_GOOGLE = 2
+
+export interface AuthorLearning {
+    id: number,
+    name: string
+}

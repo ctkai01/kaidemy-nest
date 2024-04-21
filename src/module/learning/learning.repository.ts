@@ -47,6 +47,29 @@ export class LearningRepository extends Repository<Learning> {
     return learning;
   }
 
+  async getLearningByIDRelation(learningID: number, relations: string[]): Promise<Learning | null> {
+    const learning = await this.findOne({
+      where: {
+        id: learningID,
+      },
+      relations
+    });
+    return learning;
+  }
+
+  async getLearningByIDCourseUser(
+    courseID: number,
+    userID: number,
+  ): Promise<Learning | null> {
+    const learning = await this.findOne({
+      where: {
+        userId: userID,
+        courseId: courseID,
+      },
+    });
+    return learning;
+  }
+
   // async getCartByUserIDRelation(
   //   userID: number,
   //   relations: string[],

@@ -66,7 +66,7 @@ export class LevelService {
       throw new NotFoundException('Level not found');
     }
 
-    await this.levelRepository.delete(level);
+    await this.levelRepository.delete(level.id);
 
     const responseData: ResponseData = {
       message: 'Delete level successfully!',

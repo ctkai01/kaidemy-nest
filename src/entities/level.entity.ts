@@ -10,10 +10,8 @@ import { Exclude } from 'class-transformer';
 //   Status,
 //   StoryStatus,
 // } from 'src/constants';
-import {
-  Column,
-  Entity, PrimaryGeneratedColumn
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Course } from './course.entity';
 // import { ChatMember } from './chat-member.entity';
 // import { CommentUser } fr/om './c/omment-user.entity';
 // import { Comment } from './/comme/nt.entity';
@@ -34,6 +32,9 @@ export class Level {
 
   @Column({ unique: true })
   name: string;
+
+  @OneToMany(() => Course, (course) => course.level)
+  courses?: Course[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;
