@@ -7,6 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Course } from './course.entity';
+import { LearningLecture } from './learning_lecture.entity';
 import { Transaction } from './transaction.entity';
 import { User } from './user.entity';
 
@@ -40,6 +41,12 @@ export class Learning {
 
   @Column({ nullable: true })
   comment?: string;
+
+  @OneToMany(
+    () => LearningLecture,
+    (learningLecture) => learningLecture.learning,
+  )
+  learningLectures?: LearningLecture[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt?: Date;

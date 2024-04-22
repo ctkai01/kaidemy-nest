@@ -6,7 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Cart, Learning } from 'src/entities';
+import { Cart, Learning, LearningLecture } from 'src/entities';
 import { ResponseData } from '../../interface/response.interface';
 import { CourseRepository } from '../courses/course.repository';
 import { CurriculumRepository } from '../curriculum/curriculum.repository';
@@ -119,7 +119,7 @@ export class LearningService {
         category: learningData.course.category,
         subCategory: learningData.course.subCategory,
         price: learningData.course.price,
-        status: learningData.course.status,
+        reviewStatus: learningData.course.reviewStatus,
         title: learningData.course.title,
       },
     };
@@ -167,6 +167,11 @@ export class LearningService {
     queryBuilder
       .orderBy('learning.createdAt', getLearningDto.order)
       .leftJoinAndSelect('learning.course', 'course')
+      .leftJoinAndSelect('course.level', 'level')
+      .leftJoinAndSelect('course.category', 'category')
+      .leftJoinAndSelect('course.subCategory', 'subCategory')
+      .leftJoinAndSelect('course.price', 'price')
+      .leftJoinAndSelect('course.user', 'user')
       .leftJoinAndSelect('course.curriculums', 'curriculum')
       .leftJoinAndSelect('course.learnings', 'learnings')
       .leftJoinAndSelect('curriculum.lectures', 'lecture')
@@ -181,11 +186,12 @@ export class LearningService {
     const { entities: learnings } = await queryBuilder.getRawAndEntities();
 
     console.log('learnings: ', learnings);
+    const learningShows: LearningShow[] = [];
 
     learnings.forEach((learning) => {
-      let totalReviewCountStar: number;
-      let totalReviewCount: number;
-      let totalStudent: number;
+      let totalReviewCountStar: number = 0;
+      let totalReviewCount: number = 0;
+      let totalStudent: number = 0;
 
       learning.course.learnings.forEach((learningCourse) => {
         if (learningCourse.starCount) {
@@ -202,18 +208,67 @@ export class LearningService {
         }
       });
 
-      let averageReview: number;
+      let averageReview: number = 0;
 
       if (totalReviewCount) {
         averageReview = totalReviewCountStar / totalReviewCount;
+      console.log('averageReview 1: ', totalReviewCountStar);
+      console.log('averageReview 12: ', totalReviewCount);
+
       }
 
-      let percent: number;
-      let markCount: number;
-      let totalLecture: number;
+      let percent: number = 0;
+      let markCount: number = 0;
+      let totalLecture: number = 0;
 
       learning.course.curriculums.forEach((curriculum) => {
         totalLecture += curriculum.lectures.length;
+
+        curriculum.lectures.forEach((lecture) => {
+          const lectureLearning = this.learningRepository.manager
+            .getRepository(LearningLecture)
+            .findOne({
+              where: {
+                learningId: learning.id,
+                lectureId: lecture.id,
+                isDone: true,
+              },
+            });
+
+          if (lectureLearning) {
+            markCount++;
+          }
+        });
+      });
+
+      if (totalLecture) {
+        percent = (markCount * 100) / totalLecture;
+      }
+      console.log('averageReview: ', averageReview);
+      learningShows.push({
+        id: learning.id,
+        userID: learning.userId,
+        courseID: learning.courseId,
+        process: percent,
+        type: learning.type,
+        startCount: learning.starCount,
+        comment: learning.comment,
+        course: {
+          id: learning.course.id,
+          title: learning.course.title,
+          reviewStatus: learning.course.reviewStatus,
+          image: learning.course.image,
+          level: learning.course.level,
+          price: learning.course.price,
+          author: {
+            id: learning.course.user.id,
+            name: learning.course.user.name,
+          },
+          category: learning.course.category,
+          subCategory: learning.course.subCategory,
+        },
+        averageReview: averageReview,
+        countReview: totalReviewCount,
       });
     });
 
@@ -234,7 +289,8 @@ export class LearningService {
     // await this.learningRepository.delete(learning.id);
 
     const responseData: ResponseData = {
-      message: 'Remove wish course successfully!',
+      message: 'Get learnings successfully!',
+      data: learningShows,
     };
 
     return responseData;

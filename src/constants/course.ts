@@ -37,24 +37,26 @@ export interface CourseTransaction {
 export interface CourseLearning {
   id: number;
   title: string;
-  status: CourseStatus;
+  reviewStatus: CourseStatus;
   image: string;
   price: Price;
   level: Level;
   author: AuthorLearning;
   category: Category;
-  subCategory: Category
+  subCategory: Category;
 }
 
 export interface LearningShow {
-  id: number,
-  userID: number,
-  courseID:  number,
-  process?: number,
-  type: CourseUtil,
-  startCount?: number,
-  comment?: string,
-  course: CourseLearning
+  id: number;
+  userID: number;
+  courseID: number;
+  process?: number;
+  type: CourseUtil;
+  startCount?: number;
+  comment?: string;
+  course: CourseLearning;
+  averageReview?: number;
+  countReview?: number;
 }
 // export enum AssetKind {
 //   MEDIA = 1,

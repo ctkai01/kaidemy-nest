@@ -15,3 +15,4 @@ export * from './checkout.entity';
 export * from './learning.entity';
 export * from './transaction-detail.entity';
 export * from './transaction.entity';
+export * from './learning_lecture.entity';

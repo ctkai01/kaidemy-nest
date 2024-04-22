@@ -1,3 +1,4 @@
+import { LearningLecture } from './learning_lecture.entity';
 import {
   Column,
   Entity,
@@ -29,6 +30,11 @@ export class Lecture {
   })
   assets?: Asset[];
 
+  @OneToMany(
+    () => LearningLecture,
+    (learningLecture) => learningLecture.lecture,
+  )
+  learningLectures?: LearningLecture[]; 
   //   @OneToMany(() => Question, (question) => question.lecture, {
   //     cascade: true,
   //     onDelete: 'CASCADE',

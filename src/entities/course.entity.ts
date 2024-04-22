@@ -85,8 +85,8 @@ export class Course {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column({ default: 0 })
-  status?: number;
+  // @Column({ default: 0 })
+  // status?: number;
 
   @Column({ nullable: true })
   languageId?: number;
