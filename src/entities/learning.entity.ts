@@ -5,9 +5,12 @@ import {
   OneToMany,
   ManyToOne,
   JoinColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { Course } from './course.entity';
 import { LearningLecture } from './learning_lecture.entity';
+import { TopicLearning } from './topic_learning.entity';
 import { Transaction } from './transaction.entity';
 import { User } from './user.entity';
 
@@ -29,6 +32,10 @@ export class Learning {
   @ManyToOne(() => Course, (course) => course.transactionDetails)
   @JoinColumn({ name: 'courseId' })
   course?: Course;
+
+  @ManyToMany(() => TopicLearning)
+  @JoinTable()
+  learningTopics?: TopicLearning[];
 
   @Column({ nullable: true })
   process?: number;

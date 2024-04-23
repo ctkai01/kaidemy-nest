@@ -58,6 +58,14 @@ export interface LearningShow {
   averageReview?: number;
   countReview?: number;
 }
+
+export interface TopicLearningShow {
+  id: number;
+  title: string;
+  description?: string;
+  userID: number;
+  learnings: LearningShow[]
+}
 // export enum AssetKind {
 //   MEDIA = 1,
 //   RESOURCE

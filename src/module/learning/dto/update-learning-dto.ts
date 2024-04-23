@@ -15,13 +15,6 @@ import {
 import { CourseUtil } from 'src/constants';
 
 export class UpdateLearningDto {
-  @IsOptional()
-  @Transform(({ value, key, obj, type }) => +value)
-  @IsNumber()
-  @Min(1)
-  @Max(100)
-  process: number;
-
   @Transform(({ value, key, obj, type }) => +value)
   @IsIn([CourseUtil.ARCHIE, CourseUtil.STANDARD_TYPE])
   type: number;

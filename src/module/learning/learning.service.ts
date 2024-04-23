@@ -34,7 +34,7 @@ export class LearningService {
     learningID: number,
     updateLearningDto: UpdateLearningDto,
   ): Promise<ResponseData> {
-    const { comment, process, starCount, type } = updateLearningDto;
+    const { comment, starCount, type } = updateLearningDto;
     const learning = await this.learningRepository.getLearningByID(learningID);
 
     if (!learning) {
@@ -45,7 +45,6 @@ export class LearningService {
       throw new ForbiddenException('user not permission');
     }
 
-    learning.process = process;
     learning.comment = comment;
     learning.starCount = starCount;
     learning.type = type;

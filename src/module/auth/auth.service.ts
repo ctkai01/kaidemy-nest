@@ -1,5 +1,8 @@
 import {
   BadRequestException,
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -91,7 +94,7 @@ export class AuthService {
         await this.userRepository.save(user);
       } else {
         if (user.isBlock) {
-          throw new InternalServerErrorException('user being blocked');
+          throw new ForbiddenException('user being blocked');
         }
 
         if (user.typeAccount !== ACCOUNT_GOOGLE) {
@@ -113,8 +116,7 @@ export class AuthService {
 
       return responseData;
     } catch (err) {
-    throw new InternalServerErrorException('Login google failed');
-
+      throw new InternalServerErrorException('Login google failed');
     }
   }
 
@@ -125,6 +127,10 @@ export class AuthService {
 
     if (!user) {
       throw new UnauthorizedException();
+    }
+
+    if (user.isBlock) {
+      throw new ForbiddenException('user being blocked');
     }
 
     // Check password whether valid or no ?
