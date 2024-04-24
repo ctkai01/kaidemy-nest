@@ -1,7 +1,7 @@
 import {
   Body,
-  Controller, Delete, HttpCode,
-  HttpStatus, Param, Post, Put, UseFilters
+  Controller, Delete, Get, HttpCode,
+  HttpStatus, Param, Post, Put, Query, UseFilters
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
@@ -11,6 +11,7 @@ import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter'
 import { ResponseData } from '../../interface/response.interface';
 import { CreateTopicLearningDto, RemoveLearningTopicLearningDto, UpdateTopicLearningDto } from './dto';
 import { CreateLearningTopicLearningDto } from './dto/create-learning-topic-learning-dto';
+import { GetTopicLearningDto } from './dto/get-topic-learning-dto';
 import { TopicLearningService } from './topic_learning.service';
 
 @Controller('topic-learnings')
@@ -20,7 +21,7 @@ export class TopicLearningController {
 
   @Post('')
   @HttpCode(HttpStatus.CREATED)
-  createAnswer(
+  createTopicLearning(
     @Body() createTopicLearningDto: CreateTopicLearningDto,
     @GetCurrentUserID() userID: number,
   ): Promise<ResponseData> {
@@ -32,7 +33,7 @@ export class TopicLearningController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
-  updateAnswer(
+  updateTopicLearning(
     @Body() updateTopicLearningDto: UpdateTopicLearningDto,
     @Param('id') topicLearningID: number,
     @GetCurrentUserID() userID: number,
@@ -46,7 +47,7 @@ export class TopicLearningController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  deleteAnswer(
+  deleteTopicLearning(
     @Param('id') topicLearningID: number,
     @GetCurrentUserID() userID: number,
   ): Promise<ResponseData> {
@@ -80,9 +81,21 @@ export class TopicLearningController {
     );
   }
 
+  @Get('')
+  @HttpCode(HttpStatus.OK)
+  getTopicLearnings(
+    @Query() getTopicLearningDto: GetTopicLearningDto,
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.topicLearningService.getTopicLearning(
+      getTopicLearningDto,
+      userID,
+    );
+  }
+
   // @Delete(':id')
   // @HttpCode(HttpStatus.OK)
-  // deleteAnswer(
+  // deleteTopicLearning(
   //   @Param('id') answerID: number,
   //   @GetCurrentUserID() userID: number,
   // ): Promise<ResponseData> {

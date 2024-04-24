@@ -16,6 +16,7 @@ import { Checkout } from './checkout.entity';
 import { User } from './user.entity';
 import { Level } from './level.entity';
 import { Curriculum } from './curriculum.entity';
+import { Report } from './report.entity';
 
 @Entity({ name: 'courses' })
 export class Course {
@@ -128,6 +129,9 @@ export class Course {
 
   @ManyToMany(() => Cart)
   carts: Cart[];
+
+  @OneToMany(() => Report, (report) => report.course)
+  reports?: Report[];
 
   @OneToMany(() => Checkout, (checkout) => checkout.course)
   checkout?: Checkout[];

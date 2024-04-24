@@ -36,6 +36,7 @@ import { CartModule } from './module/cart/cart.module';
 import { StripeWebhookModule } from './module/stripe/stripe.module';
 import { LearningModule } from './module/learning/learning.module';
 import { TopicLearningModule } from './module/topic_learning/topic_learning.module';
+import { ReportModule } from './module/report/report.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -106,6 +107,7 @@ import { TopicLearningModule } from './module/topic_learning/topic_learning.modu
     StripeWebhookModule,
     LearningModule,
     TopicLearningModule,
+    ReportModule,
   ],
   providers: [
     {

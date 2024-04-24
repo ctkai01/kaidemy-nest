@@ -17,3 +17,4 @@ export * from './transaction-detail.entity';
 export * from './transaction.entity';
 export * from './learning_lecture.entity';
 export * from './topic_learning.entity';
+export * from './report.entity';

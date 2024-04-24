@@ -127,11 +127,12 @@ export class CategoryService {
       .orderBy('category.created_at', pageCommonOptionsDto.order)
       .leftJoinAndSelect('category.children', 'children');
 
+    const itemCount = await queryBuilder.getCount();
+
     queryBuilder
       .skip(pageCommonOptionsDto.skip)
       .take(pageCommonOptionsDto.size);
 
-    const itemCount = await queryBuilder.getCount();
     const { entities } = await queryBuilder.getRawAndEntities();
 
     const pageMetaDto = new PageMetaDto({

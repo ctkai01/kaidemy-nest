@@ -5,6 +5,8 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
+import { PageDto } from 'src/common/paginate/paginate.dto';
 import { CourseUtil, LearningShow, TopicLearningShow } from 'src/constants';
 import { TopicLearning } from 'src/entities';
 import { ResponseData } from '../../interface/response.interface';
@@ -20,6 +22,7 @@ import {
   UpdateTopicLearningDto,
 } from './dto';
 import { CreateLearningTopicLearningDto } from './dto/create-learning-topic-learning-dto';
+import { GetTopicLearningDto } from './dto/get-topic-learning-dto';
 import { TopicLearningRepository } from './topic_learning.repository';
 
 @Injectable()
@@ -272,6 +275,88 @@ export class TopicLearningService {
 
     const responseData: ResponseData = {
       message: 'Remove learning to topic learning successfully!',
+    };
+
+    return responseData;
+  }
+
+  async getTopicLearning(
+    getTopicLearningDto: GetTopicLearningDto,
+    userID: number,
+  ): Promise<ResponseData> {
+    const { order } = getTopicLearningDto;
+
+    const queryBuilder =
+      this.topicLearningRepository.createQueryBuilder('topic_learnings');
+    queryBuilder
+      .where('topic_learnings.user_id = :userId', { userId: userID })
+      .orderBy('topic_learnings.created_at', order)
+      .leftJoinAndSelect('topic_learnings.learnings', 'learning')
+      .leftJoinAndSelect('learning.course', 'course')
+      .leftJoinAndSelect('course.price', 'price')
+      .leftJoinAndSelect('course.level', 'level')
+      .leftJoinAndSelect('course.user', 'user')
+      .leftJoinAndSelect('course.category', 'category')
+      .leftJoinAndSelect('course.subCategory', 'subCategory');
+
+    const itemCount = await queryBuilder.getCount();
+
+    queryBuilder
+      .skip(getTopicLearningDto.skip)
+      .take(getTopicLearningDto.size);
+
+    const { entities: topicLearnings } = await queryBuilder.getRawAndEntities();
+    // console.log(topicLearnings);
+
+    const topicLearningShow: TopicLearningShow[] = [];
+
+    topicLearnings.forEach((topicLearning) => {
+      const learningsShow: LearningShow[] = [];
+
+      topicLearning.learnings.forEach((learning) => {
+        learningsShow.push({
+          id: learning.id,
+          courseID: learning.courseId,
+          type: learning.type,
+          userID: learning.userId,
+          startCount: learning.starCount,
+          comment: learning.comment,
+          course: {
+            id: learning.course.id,
+            author: {
+              id: learning.course.user.id,
+              name: learning.course.user.name,
+            },
+            image: learning.course.image,
+            category: learning.course.category,
+            level: learning.course.level,
+            price: learning.course.price,
+            reviewStatus: learning.course.reviewStatus,
+            subCategory: learning.course.subCategory,
+            title: learning.course.title,
+          },
+        });
+      });
+
+      topicLearningShow.push({
+        id: topicLearning.id,
+        title: topicLearning.title,
+        userID: topicLearning.userId,
+        description: topicLearning.description,
+        learnings: learningsShow,
+      });
+    });
+
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: getTopicLearningDto,
+    });
+
+  const data = new PageDto(topicLearningShow, pageMetaDto);
+
+    const responseData: ResponseData = {
+      message: 'Get topic learnings successfully!',
+      data,
     };
 
     return responseData;

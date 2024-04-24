@@ -18,6 +18,8 @@ import { LearningRepository } from './learning.repository';
 import { UpdateLearningDto } from './dto';
 import { CourseUtil, LearningShow } from 'src/constants';
 import { GetLearningDto } from './dto/get-learning-dto';
+import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
+import { PageDto } from 'src/common/paginate/paginate.dto';
 @Injectable()
 export class LearningService {
   private logger = new Logger(LearningService.name);
@@ -175,16 +177,23 @@ export class LearningService {
       .leftJoinAndSelect('course.learnings', 'learnings')
       .leftJoinAndSelect('curriculum.lectures', 'lecture')
       .leftJoinAndSelect('lecture.assets', 'asset');
+      
 
     if (getLearningDto.type) {
       queryBuilder.where('learning.type = :type', {
         type: getLearningDto.type,
       });
     }
+    const itemCount = await queryBuilder.getCount();
+
+    queryBuilder
+      .skip(getLearningDto.skip)
+      .take(getLearningDto.size);
+
 
     const { entities: learnings } = await queryBuilder.getRawAndEntities();
 
-    console.log('learnings: ', learnings);
+    // console.log('learnings: ', learnings);
     const learningShows: LearningShow[] = [];
 
     learnings.forEach((learning) => {
@@ -286,10 +295,20 @@ export class LearningService {
     // }
 
     // await this.learningRepository.delete(learning.id);
+  const pageMetaDto = new PageMetaDto({
+    itemCount,
+    pageOptionsDto: {
+      skip: getLearningDto.skip,
+      order: getLearningDto.order,
+      page: getLearningDto.page,
+      size: getLearningDto.size
+    },
+  });
 
+  const data = new PageDto(learningShows, pageMetaDto);
     const responseData: ResponseData = {
       message: 'Get learnings successfully!',
-      data: learningShows,
+      data,
     };
 
     return responseData;

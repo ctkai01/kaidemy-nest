@@ -66,6 +66,12 @@ export interface TopicLearningShow {
   userID: number;
   learnings: LearningShow[]
 }
+
+export interface CourseReport {
+  id: number;
+  title: string;
+  image?: string
+}
 // export enum AssetKind {
 //   MEDIA = 1,
 //   RESOURCE

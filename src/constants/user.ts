@@ -17,3 +17,9 @@ export interface AuthorLearning {
     id: number,
     name: string
 }
+
+export interface UserReport {
+    id: number,
+    name: string,
+    avatar?: string,
+} 

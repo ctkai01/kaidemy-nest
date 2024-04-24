@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Report } from "./report.entity";
 
 @Entity({ name: 'issue_types' })
 export class IssueType {
@@ -7,6 +8,9 @@ export class IssueType {
 
   @Column({ unique: true })
   name: string;
+
+  @OneToMany(() => Report, (report) => report.issueType)
+  reports?: Report[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;
