@@ -18,3 +18,4 @@ export * from './transaction.entity';
 export * from './learning_lecture.entity';
 export * from './topic_learning.entity';
 export * from './report.entity';
+export * from './question_lecture.entity';

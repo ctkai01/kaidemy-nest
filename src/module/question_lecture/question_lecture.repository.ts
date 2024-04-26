@@ -1,29 +1,38 @@
-import { InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  ConflictException,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Course } from 'src/entities';
+import { Category } from 'src/entities/category.entity';
 import { EntityRepository, Repository } from 'typeorm';
 import _ = require('lodash');
+import { Answer, Curriculum, QuestionLecture, Report, TopicLearning } from 'src/entities';
+import { Lecture } from 'src/entities/lecture.entity';
+import { Question } from 'src/entities/question.entity';
 
-@EntityRepository(Course)
-export class CourseRepository extends Repository<Course> {
-  private logger = new Logger(CourseRepository.name);
+@EntityRepository(QuestionLecture)
+export class QuestionLectureRepository extends Repository<QuestionLecture> {
+  private logger = new Logger(QuestionLecture.name);
 
   constructor(
-    @InjectRepository(Course)
-    private courseRepository: Repository<Course>,
+    @InjectRepository(QuestionLecture)
+    private questionLectureRepository: Repository<QuestionLecture>,
   ) {
     super(
-      courseRepository.target,
-      courseRepository.manager,
-      courseRepository.queryRunner,
+      questionLectureRepository.target,
+      questionLectureRepository.manager,
+      questionLectureRepository.queryRunner,
     );
   }
-  async createCourse(courseData: Partial<Course>): Promise<Course> {
+  async createReport(
+    questionLectureData: Partial<QuestionLecture>,
+  ): Promise<QuestionLecture> {
     try {
-      const course = this.create(courseData);
-      const courseCreated = await this.save(course);
+      const questionLecture = this.create(questionLectureData);
+      const questionLectureCreated = await this.save(questionLecture);
 
-      return courseCreated;
+      return questionLectureCreated;
     } catch (err) {
       this.logger.error(err);
 
@@ -31,24 +40,54 @@ export class CourseRepository extends Repository<Course> {
     }
   }
 
-  async getCourseByID(courseID: number): Promise<Course | null> {
-    const course = await this.findOne({
-      where: {
-        id: courseID,
-      },
-    });
-    return course;
-  }
+  // async getTopicLearningById(
+  //   topicLearningID: number,
+  // ): Promise<TopicLearning | null> {
+  //   const topicLearning = await this.findOne({
+  //     where: {
+  //       id: topicLearningID,
+  //     },
+  //   });
+  //   return topicLearning;
+  // }
 
-  async getCourseByIDWithRelation(courseID: number, relations: string[]): Promise<Course | null> {
-    const course = await this.findOne({
-      where: {
-        id: courseID,
-      },
-      relations,
-    });
-    return course;
-  }
+  // async getTopicLearningByIdWithRelation(
+  //   topicLearningID: number,
+  //   relations: string[],
+  // ): Promise<TopicLearning | null> {
+  //   const topicLearning = await this.findOne({
+  //     where: {
+  //       id: topicLearningID,
+  //     },
+  //     relations,
+  //   });
+  //   return topicLearning;
+  // }
+
+  // async getLectureByIdWithRelation(
+  //   lectureID: number,
+  //   relations: string[],
+  // ): Promise<Lecture | null> {
+  //   const lecture = await this.findOne({
+  //     where: {
+  //       id: lectureID,
+  //     },
+  //     relations: relations,
+  //   });
+  //   return lecture;
+  // }
+
+  // async getCurriculumByIdWithRelation(
+  //   curriculumID: number,
+  // ): Promise<Curriculum | null> {
+  //   const curriculum = await this.findOne({
+  //     where: {
+  //       id: curriculumID,
+  //     },
+  //     relations: ['course'],
+  //   });
+  //   return curriculum;
+  // }
 
   // async getCategoryByIdRelation(categoryID: number): Promise<Category> {
   //   const category = await this.findOne({

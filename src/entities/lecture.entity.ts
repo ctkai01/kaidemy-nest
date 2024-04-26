@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Asset } from './asset.entity';
 import { Curriculum } from './curriculum.entity';
+import { QuestionLecture } from './question_lecture.entity';
 
 @Entity('lectures')
 export class Lecture {
@@ -34,12 +35,15 @@ export class Lecture {
     () => LearningLecture,
     (learningLecture) => learningLecture.lecture,
   )
-  learningLectures?: LearningLecture[]; 
+  learningLectures?: LearningLecture[];
   //   @OneToMany(() => Question, (question) => question.lecture, {
   //     cascade: true,
   //     onDelete: 'CASCADE',
   //   })
   //   questions: Question[];
+
+  @OneToMany(() => QuestionLecture, (questionLecture) => questionLecture.lecture)
+  questionLectures?: QuestionLecture[];
 
   @Column({ type: 'boolean', default: false })
   isPromotional?: boolean;

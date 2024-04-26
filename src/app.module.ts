@@ -37,6 +37,7 @@ import { StripeWebhookModule } from './module/stripe/stripe.module';
 import { LearningModule } from './module/learning/learning.module';
 import { TopicLearningModule } from './module/topic_learning/topic_learning.module';
 import { ReportModule } from './module/report/report.module';
+import { QuestionLectureModule } from './module/question_lecture/question_lecture.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -108,6 +109,7 @@ import { ReportModule } from './module/report/report.module';
     LearningModule,
     TopicLearningModule,
     ReportModule,
+    QuestionLectureModule
   ],
   providers: [
     {

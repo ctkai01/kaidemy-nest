@@ -19,6 +19,7 @@ import { Checkout } from './checkout.entity';
 import { Course } from './course.entity';
 import { TopicLearning } from './topic_learning.entity';
 import { Report } from './report.entity';
+import { QuestionLecture } from './question_lecture.entity';
 // import { ChatMember } from './chat-member.entity';
 // import { CommentUser } fr/om './c/omment-user.entity';
 // import { Comment } from './/comme/nt.entity';
@@ -101,6 +102,9 @@ export class User {
 
   @OneToMany(() => TopicLearning, (topicLearning) => topicLearning.user)
   topicLearnings?: TopicLearning[];
+
+  @OneToMany(() => QuestionLecture, (questionLecture) => questionLecture.user)
+  questionLectures?: QuestionLecture[];
 
   @OneToMany(() => Course, (course) => course.user)
   courses?: Course[];

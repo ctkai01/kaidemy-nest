@@ -1,3 +1,4 @@
+import { QuestionLecture } from './question_lecture.entity';
 import {
   Column,
   Entity,
@@ -141,6 +142,9 @@ export class Course {
 
   @OneToMany(() => Curriculum, (curriculum) => curriculum.course)
   curriculums?: Curriculum[];
+
+   @OneToMany(() => QuestionLecture, (questionLecture) => questionLecture.course)
+  questionLectures?: QuestionLecture[];
 
   @OneToMany(
     () => TransactionDetail,
