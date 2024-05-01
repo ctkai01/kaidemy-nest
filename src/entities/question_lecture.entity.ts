@@ -45,12 +45,12 @@ export class QuestionLecture {
   description?: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  updatedAt?: Date;
+  updatedAt?: string;
 
   @Column({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP',
   })
-  createdAt?: Date;
+  createdAt?: string;
 }

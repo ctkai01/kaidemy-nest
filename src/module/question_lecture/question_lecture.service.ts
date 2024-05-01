@@ -1,18 +1,20 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
-import { PageDto } from 'src/common/paginate/paginate.dto';
-import { ReportShow } from 'src/constants';
-import { Report, TopicLearning } from 'src/entities';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { QuestionLectureShow } from 'src/constants';
+import { QuestionLecture } from 'src/entities';
 import { ResponseData } from '../../interface/response.interface';
 import { CourseRepository } from '../courses/course.repository';
 import { CurriculumRepository } from '../curriculum/curriculum.repository';
-import { IssueTypeRepository } from '../issue_type/issue-type.repository';
 import { LearningRepository } from '../learning/learning.repository';
 // import { CurriculumRepository } from './lecture.repository';
 import { LectureRepository } from '../lecture/lecture.repository';
 import { QuestionRepository } from '../question/question.repository';
-import { CreateQuestionLectureDto,  } from './dto';
-import { GetReportsDto } from './dto/get-reports-dto';
+import { UserRepository } from '../user/user.repository';
+import { CreateQuestionLectureDto } from './dto';
 import { QuestionLectureRepository } from './question_lecture.repository';
 
 @Injectable()
@@ -23,50 +25,84 @@ export class QuestionLectureService {
     private readonly courseRepository: CourseRepository,
     private readonly lectureRepository: LectureRepository,
     private readonly questionRepository: QuestionRepository,
+    private readonly userRepository: UserRepository,
     private readonly learningRepository: LearningRepository,
-    private readonly questionLectureRepository:QuestionLectureRepository,
+    private readonly questionLectureRepository: QuestionLectureRepository,
   ) {}
   async createQuestionLecture(
     createQuestionLectureDto: CreateQuestionLectureDto,
     userID: number,
   ): Promise<ResponseData> {
-    const { courseID, description, lectureID, title  } = createQuestionLectureDto;
+    const { courseID, description, lectureID, title } =
+      createQuestionLectureDto;
 
-    const course =
-      await this.courseRepository.getCourseByIDWithRelation(courseID, ["curriculums"]);
+    const course = await this.courseRepository.getCourseByIDWithRelation(
+      courseID,
+      ['curriculums'],
+    );
 
     if (!course) {
       throw new NotFoundException('Course not found');
     }
 
-      const lecture = await this.lectureRepository.getLectureByIdWithRelation(
-        lectureID,
-        ['curriculum'],
-      );
+    const lecture = await this.lectureRepository.getLectureByIdWithRelation(
+      lectureID,
+      ['curriculum.course'],
+    );
 
-      if (!lecture) {
-        throw new NotFoundException('Lecture not found');
-      }
-    console.log("Course: ", course)
-    console.log("lecture: ", lecture)
-    // const issueType =
-    //   await this.issueTypeRepository.getIssueTypeById(issueTypeID);
+    if (!lecture) {
+      throw new NotFoundException('Lecture not found');
+    }
 
-    // if (!issueType) {
-    //   throw new NotFoundException('Issue type not found');
-    // }
-    // const reportData: Partial<Report> = {
-    //   description,
-    //   courseID,
-    //   issueTypeID,
-    //   userID,
-    // };
+    if (lecture.curriculum.course.id !== course.id) {
+      throw new BadRequestException('Lecture not belong to course');
+    }
+    const learning = await this.learningRepository.getLearningByIDCourseUser(
+      courseID,
+      userID,
+    );
 
-    // const reportCreated = await this.reportRepository.createReport(reportData);
+    if (!learning) {
+      throw new BadRequestException('Course not belong to user');
+    }
+
+    // Create question lecture
+
+    console.log('Course: ', course);
+    console.log('lecture: ', lecture);
+
+    const user = await this.userRepository.getByID(userID);
+
+    const dataQuestionLecture: Partial<QuestionLecture> = {
+      courseId: courseID,
+      description: description,
+      lectureId: lectureID,
+      title,
+      userId: userID,
+    };
+
+    const questionLectureCreated =
+      await this.questionLectureRepository.createQuestionLecture(dataQuestionLecture);
+
+    const questionLectureCreatedShow: QuestionLectureShow = {
+      id: questionLectureCreated.id,
+      courseID: questionLectureCreated.courseId,
+      lectureID: questionLectureCreated.lectureId,
+      createdAt: questionLectureCreated.createdAt,
+      updatedAt: questionLectureCreated.updatedAt,
+      description: questionLectureCreated.description,
+      title: questionLectureCreated.title,
+      user: {
+        id: user.id,
+        name: user.name,
+        avatar: user.avatar
+      },
+      totalAnswer: 0
+    };
 
     const responseData: ResponseData = {
       message: 'Create question lecture successfully!',
-      // data: reportCreated,
+      data: questionLectureCreatedShow,
     };
 
     return responseData;

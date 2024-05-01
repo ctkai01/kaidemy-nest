@@ -1,5 +1,5 @@
 import { Category, Level, Price } from "src/entities";
-import { AuthorLearning } from "./user";
+import { AuthorLearning, UserQuestionLecture } from "./user";
 
 export enum LectureType {
   LECTURE = 1,
@@ -71,6 +71,18 @@ export interface CourseReport {
   id: number;
   title: string;
   image?: string
+}
+
+export interface QuestionLectureShow {
+  id: number;
+  user: UserQuestionLecture;
+  totalAnswer: number;
+  courseID: number;
+  lectureID: number;
+  title: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
 }
 // export enum AssetKind {
 //   MEDIA = 1,

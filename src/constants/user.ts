@@ -23,3 +23,9 @@ export interface UserReport {
     name: string,
     avatar?: string,
 } 
+
+export interface UserQuestionLecture {
+  id: number;
+  name: string;
+  avatar?: string;
+} 

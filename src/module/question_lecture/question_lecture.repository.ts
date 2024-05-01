@@ -25,7 +25,7 @@ export class QuestionLectureRepository extends Repository<QuestionLecture> {
       questionLectureRepository.queryRunner,
     );
   }
-  async createReport(
+  async createQuestionLecture(
     questionLectureData: Partial<QuestionLecture>,
   ): Promise<QuestionLecture> {
     try {
