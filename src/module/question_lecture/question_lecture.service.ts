@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -15,6 +16,7 @@ import { LectureRepository } from '../lecture/lecture.repository';
 import { QuestionRepository } from '../question/question.repository';
 import { UserRepository } from '../user/user.repository';
 import { CreateQuestionLectureDto } from './dto';
+import { UpdateQuestionLectureDto } from './dto/update-question-lecture-dto';
 import { QuestionLectureRepository } from './question_lecture.repository';
 
 @Injectable()
@@ -82,7 +84,9 @@ export class QuestionLectureService {
     };
 
     const questionLectureCreated =
-      await this.questionLectureRepository.createQuestionLecture(dataQuestionLecture);
+      await this.questionLectureRepository.createQuestionLecture(
+        dataQuestionLecture,
+      );
 
     const questionLectureCreatedShow: QuestionLectureShow = {
       id: questionLectureCreated.id,
@@ -95,14 +99,89 @@ export class QuestionLectureService {
       user: {
         id: user.id,
         name: user.name,
-        avatar: user.avatar
+        avatar: user.avatar,
       },
-      totalAnswer: 0
+      totalAnswer: 0,
     };
 
     const responseData: ResponseData = {
       message: 'Create question lecture successfully!',
       data: questionLectureCreatedShow,
+    };
+
+    return responseData;
+  }
+
+  async updateQuestionLecture(
+    updateQuestionLectureDto: UpdateQuestionLectureDto,
+    userID: number,
+    questionLectureID: number,
+  ): Promise<ResponseData> {
+    const { title, description } = updateQuestionLectureDto;
+
+    const questionLecture =
+      await this.questionLectureRepository.getQuestionLectureByIdWithRelation(
+        questionLectureID,
+        ['user'],
+      );
+
+    if (!questionLecture) {
+      throw new NotFoundException('Question lecture not found');
+    }
+
+    if (questionLecture.userId !== userID) {
+      throw new ForbiddenException('');
+    }
+    questionLecture.title = title;
+    questionLecture.description = description;
+
+    await this.questionLectureRepository.save(questionLecture);
+
+    const questionLectureShow: QuestionLectureShow = {
+      id: questionLecture.id,
+      courseID: questionLecture.courseId,
+      lectureID: questionLecture.lectureId,
+      createdAt: questionLecture.createdAt,
+      updatedAt: questionLecture.updatedAt,
+      description: questionLecture.description,
+      title: questionLecture.title,
+      user: {
+        id: questionLecture.user.id,
+        name: questionLecture.user.name,
+        avatar: questionLecture.user.avatar,
+      },
+      totalAnswer: 0,
+    };
+    const responseData: ResponseData = {
+      message: 'Update question lecture successfully!',
+      data: questionLectureShow,
+    };
+
+    return responseData;
+  }
+
+  async deleteQuestionLecture(
+    userID: number,
+    questionLectureID: number,
+  ): Promise<ResponseData> {
+
+    const questionLecture =
+      await this.questionLectureRepository.getQuestionLectureById(
+        questionLectureID,
+      );
+
+    if (!questionLecture) {
+      throw new NotFoundException('Question lecture not found');
+    }
+
+    if (questionLecture.userId !== userID) {
+      throw new ForbiddenException('');
+    }
+    
+    this.questionLectureRepository.delete(questionLectureID);
+    
+    const responseData: ResponseData = {
+      message: 'Delete question lecture successfully!',
     };
 
     return responseData;

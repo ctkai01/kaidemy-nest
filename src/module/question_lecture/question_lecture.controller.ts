@@ -1,8 +1,9 @@
 import {
   Body,
-  Controller, HttpCode,
+  Controller, Delete, HttpCode,
   HttpStatus,
-  Post, UseFilters
+  Param,
+  Post, Put, UseFilters
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
@@ -11,6 +12,7 @@ import { GetCurrentUserID } from 'src/decorators';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
 import { CreateQuestionLectureDto } from './dto';
+import { UpdateQuestionLectureDto } from './dto/update-question-lecture-dto';
 import { QuestionLectureService } from './question_lecture.service';
 
 @Controller('question-lectures')
@@ -27,6 +29,32 @@ export class QuestionLectureController {
     return this.questionLectureService.createQuestionLecture(
       createQuestionLectureDto,
       userID,
+    );
+  }
+
+  @Put(':id')
+  @HttpCode(HttpStatus.OK)
+  updateQuestionLecture(
+    @Body() updateQuestionLectureDto: UpdateQuestionLectureDto,
+    @Param('id') questionLectureID: number,
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.questionLectureService.updateQuestionLecture(
+      updateQuestionLectureDto,
+      userID,
+      questionLectureID,
+    );
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  deleteQuestionLecture(
+    @Param('id') questionLectureID: number,
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.questionLectureService.deleteQuestionLecture(
+      userID,
+      questionLectureID,
     );
   }
 

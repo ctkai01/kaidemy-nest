@@ -40,6 +40,29 @@ export class QuestionLectureRepository extends Repository<QuestionLecture> {
     }
   }
 
+  async getQuestionLectureByIdWithRelation(
+    questionLectureID: number,
+    relations: string[],
+  ): Promise<QuestionLecture | null> {
+    const questionLecture = await this.findOne({
+      where: {
+        id: questionLectureID,
+      },
+      relations,
+    });
+    return questionLecture;
+  }
+
+  async getQuestionLectureById(
+    questionLectureID: number,
+  ): Promise<QuestionLecture | null> {
+    const questionLecture = await this.findOne({
+      where: {
+        id: questionLectureID,
+      },
+    });
+    return questionLecture;
+  }
   // async getTopicLearningById(
   //   topicLearningID: number,
   // ): Promise<TopicLearning | null> {
@@ -47,19 +70,6 @@ export class QuestionLectureRepository extends Repository<QuestionLecture> {
   //     where: {
   //       id: topicLearningID,
   //     },
-  //   });
-  //   return topicLearning;
-  // }
-
-  // async getTopicLearningByIdWithRelation(
-  //   topicLearningID: number,
-  //   relations: string[],
-  // ): Promise<TopicLearning | null> {
-  //   const topicLearning = await this.findOne({
-  //     where: {
-  //       id: topicLearningID,
-  //     },
-  //     relations,
   //   });
   //   return topicLearning;
   // }
