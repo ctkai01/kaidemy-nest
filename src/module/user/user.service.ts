@@ -1,13 +1,10 @@
 import {
-  BadRequestException,
-  HttpException,
-  Inject,
+  BadRequestException, forwardRef, Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  UnauthorizedException,
-  forwardRef,
+  UnauthorizedException
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -16,31 +13,30 @@ import { catchError, map } from 'rxjs/operators';
 import { User } from 'src/entities/user.entity';
 import { JWTPayload } from 'src/interface/jwt.payload';
 // import { UserLoginResource } from 'src/resource/user/user-login.resource';
-import { getRepository } from 'typeorm';
-import { ResponseData } from '../../interface/response.interface';
-import { ChangePasswordDto } from './dto/create-user-dto';
-import { UserRepository } from './user.repository';
+import { InjectStripeClient } from '@golevelup/nestjs-stripe';
 import * as bcrypt from 'bcryptjs';
-import { generateHashKey, hashData } from 'src/utils';
-import { UpdateProfileDto } from './dto/update-user-dto';
-import { UploadService } from '../upload/upload.service';
-import { url } from 'inspector';
+import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
+import { PageDto } from 'src/common/paginate/paginate.dto';
 import {
   ACCOUNT_STRIPE_PENDING,
   ACCOUNT_STRIPE_VERIFY,
   NORMAL_USER,
   TEACHER,
-  UploadResource,
+  UploadResource
 } from 'src/constants';
-import { BlockUserDto } from './dto/block-user-dto';
-import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
-import { PageDto } from 'src/common/paginate/paginate.dto';
-import { PageUserOptionsDto } from 'src/common/paginate/users/page-option.dto';
-import { InjectStripeClient } from '@golevelup/nestjs-stripe';
+import { UserLogin } from 'src/response';
+import { generateHashKey, hashData } from 'src/utils';
 import Stripe from 'stripe';
-import { VerifyTeacherDto } from './dto/verify-teacher-dto';
+import { getRepository } from 'typeorm';
+import { ResponseData } from '../../interface/response.interface';
 import { AuthService } from '../auth/auth.service';
-import { UserLogin, UserRegister } from 'src/response';
+import { UploadService } from '../upload/upload.service';
+import { BlockUserDto } from './dto/block-user-dto';
+import { ChangePasswordDto } from './dto/create-user-dto';
+import { GetUserDto } from './dto/get-user-dto';
+import { UpdateProfileDto } from './dto/update-user-dto';
+import { VerifyTeacherDto } from './dto/verify-teacher-dto';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
@@ -119,26 +115,24 @@ export class UserService {
     return responseData;
   }
 
-  async getUsers(
-    pageUserOptionsDto: PageUserOptionsDto,
-  ): Promise<ResponseData> {
+  async getUsers(getUserDto: GetUserDto): Promise<ResponseData> {
     const queryBuilder = this.userRepository.createQueryBuilder('user');
 
-    queryBuilder.orderBy('user.created_at', pageUserOptionsDto.order);
+    queryBuilder.orderBy('user.created_at', getUserDto.order);
 
-    if (pageUserOptionsDto.search) {
+    if (getUserDto.search) {
       queryBuilder.andWhere('user.name LIKE :searchQuery', {
-        searchQuery: `%${pageUserOptionsDto.search}%`,
+        searchQuery: `%${getUserDto.search}%`,
       });
     }
-    queryBuilder.skip(pageUserOptionsDto.skip).take(pageUserOptionsDto.size);
+    queryBuilder.skip(getUserDto.skip).take(getUserDto.size);
 
     const itemCount = await queryBuilder.getCount();
     const { entities } = await queryBuilder.getRawAndEntities();
 
     const pageMetaDto = new PageMetaDto({
       itemCount,
-      pageOptionsDto: pageUserOptionsDto,
+      pageOptionsDto: getUserDto,
     });
     const data = new PageDto(entities, pageMetaDto);
 
@@ -282,7 +276,7 @@ export class UserService {
     userID: number,
     verifyTeacherDto: VerifyTeacherDto,
   ): Promise<ResponseData> {
-    const { key } = verifyTeacherDto
+    const { key } = verifyTeacherDto;
     const user = await this.userRepository.findOne({
       where: [{ id: userID }],
     });
@@ -299,9 +293,9 @@ export class UserService {
       throw new BadRequestException('Already teacher');
     }
 
-     if (user.keyAccountStripe !== key) {
-       throw new BadRequestException('Key verify incorrect');
-     }
+    if (user.keyAccountStripe !== key) {
+      throw new BadRequestException('Key verify incorrect');
+    }
 
     user.keyAccountStripe = '';
     user.role = TEACHER;

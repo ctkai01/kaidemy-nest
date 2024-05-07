@@ -20,6 +20,13 @@ export class PageCommonOptionsDto {
   @IsOptional()
   readonly size?: number = 10;
 
+  @Type(() => String)
+  @IsString()
+  @MinLength(1)
+  @MaxLength(50)
+  @IsOptional()
+  readonly search?: string;
+
   get skip(): number {
     return (this.page - 1) * this.size;
   }

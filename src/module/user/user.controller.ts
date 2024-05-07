@@ -8,7 +8,6 @@ import {
   Post, Put, Query, UploadedFile, UseFilters, UseGuards, UseInterceptors
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { PageUserOptionsDto } from 'src/common/paginate/users/page-option.dto';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
@@ -18,10 +17,11 @@ import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter'
 import { ResponseData } from '../../interface/response.interface';
 import { BlockUserDto } from './dto/block-user-dto';
 import { ChangePasswordDto } from './dto/create-user-dto';
+import { GetUserDto } from './dto/get-user-dto';
 import { UpdateProfileDto } from './dto/update-user-dto';
-import { multerImageOptions, multerVideoOptions } from './multer.config';
-import { UserService } from './user.service';
 import { VerifyTeacherDto } from './dto/verify-teacher-dto';
+import { multerImageOptions } from './multer.config';
+import { UserService } from './user.service';
 
 @Controller('users')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -68,9 +68,9 @@ export class UserController {
   @UseGuards(AdminRoleGuard)
   @HttpCode(HttpStatus.OK)
   getUsers(
-    @Query() pageUserOptionsDto: PageUserOptionsDto,
+    @Query() getUserDto: GetUserDto,
   ): Promise<ResponseData> {
-    return this.userService.getUsers(pageUserOptionsDto);
+    return this.userService.getUsers(getUserDto);
   }
 
   @Get(':id')

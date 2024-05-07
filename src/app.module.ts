@@ -38,6 +38,8 @@ import { LearningModule } from './module/learning/learning.module';
 import { TopicLearningModule } from './module/topic_learning/topic_learning.module';
 import { ReportModule } from './module/report/report.module';
 import { QuestionLectureModule } from './module/question_lecture/question_lecture.module';
+import { AnswerLecture } from './entities/answer_lecture.entity';
+import { AnswerLectureModule } from './module/answer_lecture/answer_lecture.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -85,6 +87,7 @@ import { QuestionLectureModule } from './module/question_lecture/question_lectur
             Course,
             Cart,
             Checkout,
+            AnswerLecture,
           ],
           timezone: '+07:00',
         };
@@ -109,7 +112,8 @@ import { QuestionLectureModule } from './module/question_lecture/question_lectur
     LearningModule,
     TopicLearningModule,
     ReportModule,
-    QuestionLectureModule
+    QuestionLectureModule,
+    AnswerLectureModule,
   ],
   providers: [
     {

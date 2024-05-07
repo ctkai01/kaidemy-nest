@@ -20,6 +20,7 @@ import { Course } from './course.entity';
 import { TopicLearning } from './topic_learning.entity';
 import { Report } from './report.entity';
 import { QuestionLecture } from './question_lecture.entity';
+import { AnswerLecture } from './answer_lecture.entity';
 // import { ChatMember } from './chat-member.entity';
 // import { CommentUser } fr/om './c/omment-user.entity';
 // import { Comment } from './/comme/nt.entity';
@@ -111,6 +112,12 @@ export class User {
 
   @OneToMany(() => Report, (report) => report.user)
   reports?: Report[];
+
+  @OneToMany(
+    () => AnswerLecture,
+    (answerLecture) => answerLecture.user,
+  )
+  answerLectures?: AnswerLecture[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;

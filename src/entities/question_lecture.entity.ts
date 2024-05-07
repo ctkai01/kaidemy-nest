@@ -6,6 +6,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
+import { AnswerLecture } from './answer_lecture.entity';
 import { Course } from './course.entity';
 import { Learning } from './learning.entity';
 import { Lecture } from './lecture.entity';
@@ -43,6 +44,12 @@ export class QuestionLecture {
 
   @Column({ nullable: true })
   description?: string;
+
+  @OneToMany(
+    () => AnswerLecture,
+    (answerLecture) => answerLecture.questionLecture,
+  )
+  answerLectures: AnswerLecture[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt?: string;

@@ -1,17 +1,20 @@
 import {
   Body,
-  Controller, Delete, HttpCode,
+  Controller, Delete, Get, HttpCode,
   HttpStatus,
   Param,
-  Post, Put, UseFilters
+  Post, Put, Query, UseFilters, UseGuards
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
+import { AdminRoleGuard } from 'src/guards/admin-role.guard';
+import { InstructorRoleGuard } from 'src/guards/author-role.guard';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
 import { CreateQuestionLectureDto } from './dto';
+import { GetQuestionLectureDto } from './dto/get-question-lecture-dto';
 import { UpdateQuestionLectureDto } from './dto/update-question-lecture-dto';
 import { QuestionLectureService } from './question_lecture.service';
 
@@ -55,6 +58,31 @@ export class QuestionLectureController {
     return this.questionLectureService.deleteQuestionLecture(
       userID,
       questionLectureID,
+    );
+  }
+
+  @Get('')
+  @HttpCode(HttpStatus.OK)
+  getQuestionLectures(
+    @Query() getQuestionLectureDto: GetQuestionLectureDto,
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.questionLectureService.getQuestionLectures(
+      getQuestionLectureDto,
+      userID,
+    );
+  }
+
+  @UseGuards(InstructorRoleGuard)
+  @Get('author')
+  @HttpCode(HttpStatus.OK)
+  getQuestionLecturesAuthor(
+    @Query() getQuestionLectureDto: GetQuestionLectureDto,
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.questionLectureService.getQuestionLecturesAuthor(
+      getQuestionLectureDto,
+      userID,
     );
   }
 

@@ -10,18 +10,16 @@ import {
   Put,
   Query,
   UseFilters,
-  UseGuards,
+  UseGuards
 } from '@nestjs/common';
-import { PageLevelOptionsDto } from 'src/common/paginate/levels/page-option.dto';
-import { PageUserOptionsDto } from 'src/common/paginate/users/page-option.dto';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
-import { GetCurrentUserID } from 'src/decorators';
 import { AdminRoleGuard } from 'src/guards/admin-role.guard';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
-import {  CreateLevelDto, UpdateLevelDto } from './dto';
+import { CreateLevelDto, UpdateLevelDto } from './dto';
+import { GetLevelDto } from './dto/get-level-dto';
 import { LevelService } from './level.service';
 
 
@@ -57,9 +55,9 @@ export class LevelController {
   @Get()
   @HttpCode(HttpStatus.OK)
   getLevels(
-    @Query() pageLevelOptionsDto: PageLevelOptionsDto,
+    @Query() getLevelDto: GetLevelDto,
   ): Promise<ResponseData> {
-    return this.levelService.getLevels(pageLevelOptionsDto);
+    return this.levelService.getLevels(getLevelDto);
   }
 
   // @Public()

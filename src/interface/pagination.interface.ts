@@ -1,4 +1,4 @@
-import { PageUserOptionsDto } from 'src/common/paginate/users/page-option.dto';
+import { PageCommonOptionsDto } from 'src/common/paginate/page-option.dto';
 
 export interface Pagination {
   take: number;
@@ -8,6 +8,6 @@ export interface Pagination {
 
 
 export interface PageMetaDtoParameters {
-  pageOptionsDto: PageUserOptionsDto;
+  pageOptionsDto: PageCommonOptionsDto;
   itemCount: number;
 }

@@ -73,6 +73,12 @@ export interface CourseReport {
   image?: string
 }
 
+export interface CourseQuestionLecture {
+  id: number;
+  title: string;
+  image?: string
+}
+
 export interface QuestionLectureShow {
   id: number;
   user: UserQuestionLecture;
@@ -81,6 +87,27 @@ export interface QuestionLectureShow {
   lectureID: number;
   title: string;
   description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QuestionLectureAuthorShow {
+  id: number;
+  user: UserQuestionLecture;
+  totalAnswer: number;
+  lectureID: number;
+  title: string;
+  course: CourseQuestionLecture;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AnswerLectureShow {
+  id: number;
+  user: UserQuestionLecture;
+  questionLectureID: number;
+  answer: string;
   createdAt: string;
   updatedAt: string;
 }
