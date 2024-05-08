@@ -4,6 +4,8 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
+import { PageDto } from 'src/common/paginate/paginate.dto';
 import { AnswerLectureShow } from 'src/constants';
 import { AnswerLecture } from 'src/entities';
 import { ResponseData } from '../../interface/response.interface';
@@ -17,6 +19,7 @@ import { QuestionLectureRepository } from '../question_lecture/question_lecture.
 import { UserRepository } from '../user/user.repository';
 import { AnswerLectureRepository } from './answer_lecture.repository';
 import { CreateAnswerLectureDto } from './dto';
+import { GetAnswerLectureDto } from './dto/get-answer-lecture-dto';
 import { UpdateAnswerLectureDto } from './dto/update-answer-lecture-dto';
 
 @Injectable()
@@ -122,103 +125,104 @@ export class AnswerLectureService {
     return responseData;
   }
 
-  // async deleteQuestionLecture(
-  //   userID: number,
-  //   questionLectureID: number,
-  // ): Promise<ResponseData> {
-  //   const questionLecture =
-  //     await this.questionLectureRepository.getQuestionLectureById(
-  //       questionLectureID,
-  //     );
+  async deleteAnswerLecture(
+    userID: number,
+    answerLectureID: number,
+  ): Promise<ResponseData> {
+    const answerLecture =
+      await this.answerLectureRepository.getAnswerLectureById(answerLectureID);
 
-  //   if (!questionLecture) {
-  //     throw new NotFoundException('Question lecture not found');
-  //   }
+    if (!answerLecture) {
+      throw new NotFoundException('Answer lecture not found');
+    }
 
-  //   if (questionLecture.userId !== userID) {
-  //     throw new ForbiddenException('');
-  //   }
+    if (answerLecture.userId !== userID) {
+      throw new ForbiddenException('');
+    }
 
-  //   this.questionLectureRepository.delete(questionLectureID);
+    this.answerLectureRepository.delete(answerLectureID);
 
-  //   const responseData: ResponseData = {
-  //     message: 'Delete question lecture successfully!',
-  //   };
+    const responseData: ResponseData = {
+      message: 'Delete answer lecture successfully!',
+    };
 
-  //   return responseData;
-  // }
+    return responseData;
+  }
 
-  // async getQuestionLectures(
-  //   getQuestionLectureDto: GetQuestionLectureDto,
-  //   userID: number,
-  // ): Promise<ResponseData> {
-  //   const { order, skip, size, page, courseID, search } = getQuestionLectureDto;
-  //   const queryBuilder =
-  //     this.questionLectureRepository.createQueryBuilder('question_lectures');
-  //   queryBuilder
-  //     .orderBy('question_lectures.createdAt', order)
-  //     .leftJoinAndSelect('question_lectures.user', 'user');
+  async getAnswerLectures(
+    getAnswerLectureDto: GetAnswerLectureDto,
+    userID: number,
+  ): Promise<ResponseData> {
+    const { order, skip, size, page, questionLectureID, search } =
+      getAnswerLectureDto;
+    const questionLecture =
+      this.questionLectureRepository.getQuestionLectureById(questionLectureID);
 
-  //   if (search) {
-  //     queryBuilder.andWhere(function () {
-  //       this.where('question_lectures.title LIKE :searchQuery', {
-  //         searchQuery: `%${search}%`,
-  //       }).orWhere('question_lectures.description LIKE :searchQuery', {
-  //         searchQuery: `%${search}%`,
-  //       });
-  //     });
-  //   }
+    if (!questionLecture) {
+      throw new NotFoundException('Question lecture not found');
+    }
 
-  //   if (courseID) {
-  //     queryBuilder.where('question_lectures.courseId = :courseId', {
-  //       courseId: courseID,
-  //     });
-  //   }
-  //   const itemCount = await queryBuilder.getCount();
+    const queryBuilder =
+      this.answerLectureRepository.createQueryBuilder('answer_lectures');
+    queryBuilder
+      .orderBy('answer_lectures.createdAt', order)
+      .leftJoinAndSelect('answer_lectures.user', 'user');
 
-  //   queryBuilder.skip(skip).take(skip);
-  //   const { entities: questionLectures } =
-  //     await queryBuilder.getRawAndEntities();
+    if (questionLectureID) {
+      queryBuilder.where(
+        'answer_lectures.questionLectureId = :questionLectureId',
+        {
+          questionLectureId: questionLectureID,
+        },
+      );
+    }
+    if (search) {
+      queryBuilder.andWhere('answer_lectures.answer LIKE :searchQuery', {
+        searchQuery: `%${search}%`,
+      });
+    }
 
-  //   const questionLecturesShow: QuestionLectureShow[] = [];
+    const itemCount = await queryBuilder.getCount();
 
-  //   questionLectures.forEach((questionLecture) => {
-  //     questionLecturesShow.push({
-  //       courseID: questionLecture.courseId,
-  //       lectureID: questionLecture.lectureId,
-  //       createdAt: questionLecture.createdAt,
-  //       updatedAt: questionLecture.updatedAt,
-  //       description: questionLecture.description,
-  //       title: questionLecture.title,
-  //       id: questionLecture.id,
-  //       user: {
-  //         id: questionLecture.user.id,
-  //         name: questionLecture.user.name,
-  //         avatar: questionLecture.user.avatar,
-  //       },
-  //       totalAnswer: 0,
-  //     });
-  //   });
+    queryBuilder.skip(skip).take(skip);
+    const { entities: answerLectures } = await queryBuilder.getRawAndEntities();
 
-  //   const pageMetaDto = new PageMetaDto({
-  //     itemCount,
-  //     pageOptionsDto: {
-  //       skip,
-  //       order,
-  //       page,
-  //       size,
-  //     },
-  //   });
+    const answerLecturesShow: AnswerLectureShow[] = [];
 
-  //   const data = new PageDto(questionLecturesShow, pageMetaDto);
+    answerLectures.forEach((answerLecture) => {
+      answerLecturesShow.push({
+        answer: answerLecture.answer,
+        createdAt: answerLecture.createdAt,
+        updatedAt: answerLecture.updatedAt,
+        id: answerLecture.id,
+        questionLectureID: answerLecture.questionLectureId,
+        user: {
+          id: answerLecture.user.id,
+          name: answerLecture.user.name,
+          avatar: answerLecture.user.avatar,
+        },
+      });
+    });
 
-  //   const responseData: ResponseData = {
-  //     message: 'Get question lecture successfully!',
-  //     data,
-  //   };
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: {
+        skip,
+        order,
+        page,
+        size,
+      },
+    });
 
-  //   return responseData;
-  // }
+    const data = new PageDto(answerLecturesShow, pageMetaDto);
+
+    const responseData: ResponseData = {
+      message: 'Get answer lecture successfully!',
+      data,
+    };
+
+    return responseData;
+  }
 
   // async getQuestionLecturesAuthor(
   //   getQuestionLectureDto: GetQuestionLectureDto,

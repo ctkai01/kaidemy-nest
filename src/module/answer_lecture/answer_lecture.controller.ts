@@ -1,7 +1,7 @@
 import {
   Body,
-  Controller, HttpCode,
-  HttpStatus, Param, Post, Put, UseFilters
+  Controller, Delete, Get, HttpCode,
+  HttpStatus, Param, Post, Put, Query, UseFilters
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
@@ -11,6 +11,7 @@ import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter'
 import { ResponseData } from '../../interface/response.interface';
 import { AnswerLectureService } from './answer_lecture.service';
 import { CreateAnswerLectureDto } from './dto';
+import { GetAnswerLectureDto } from './dto/get-answer-lecture-dto';
 import { UpdateAnswerLectureDto } from './dto/update-answer-lecture-dto';
 
 @Controller('answer-lectures')
@@ -44,29 +45,29 @@ export class AnswerLectureController {
     );
   }
 
-  // @Delete(':id')
-  // @HttpCode(HttpStatus.OK)
-  // deleteQuestionLecture(
-  //   @Param('id') questionLectureID: number,
-  //   @GetCurrentUserID() userID: number,
-  // ): Promise<ResponseData> {
-  //   return this.questionLectureService.deleteQuestionLecture(
-  //     userID,
-  //     questionLectureID,
-  //   );
-  // }
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  deleteAnswerLecture(
+    @Param('id') answerLectureID: number,
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.answerLectureService.deleteAnswerLecture(
+      userID,
+      answerLectureID,
+    );
+  }
 
-  // @Get('')
-  // @HttpCode(HttpStatus.OK)
-  // getQuestionLectures(
-  //   @Query() getQuestionLectureDto: GetQuestionLectureDto,
-  //   @GetCurrentUserID() userID: number,
-  // ): Promise<ResponseData> {
-  //   return this.questionLectureService.getQuestionLectures(
-  //     getQuestionLectureDto,
-  //     userID,
-  //   );
-  // }
+  @Get('')
+  @HttpCode(HttpStatus.OK)
+  getAnswerLectures(
+    @Query() getQuestionLectureDto: GetAnswerLectureDto,
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.answerLectureService.getAnswerLectures(
+      getQuestionLectureDto,
+      userID,
+    );
+  }
 
   // @UseGuards(InstructorRoleGuard)
   // @Get('author')

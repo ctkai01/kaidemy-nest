@@ -15,9 +15,9 @@ import {
 import { PageCommonOptionsDto } from 'src/common/paginate/page-option.dto';
 import { CourseUtil } from 'src/constants';
 
-export class GetQuestionLectureDto extends PageCommonOptionsDto {
+export class GetAnswerLectureDto extends PageCommonOptionsDto {
   @IsOptional()
   @Transform(({ value, key, obj, type }) => +value)
-  courseID?: number;
+  questionLectureID?: number;
 
 }

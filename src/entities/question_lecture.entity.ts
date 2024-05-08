@@ -48,6 +48,10 @@ export class QuestionLecture {
   @OneToMany(
     () => AnswerLecture,
     (answerLecture) => answerLecture.questionLecture,
+    {
+      cascade: true,
+      onDelete: 'CASCADE',
+    },
   )
   answerLectures: AnswerLecture[];
 

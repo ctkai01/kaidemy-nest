@@ -27,13 +27,13 @@ export class AnswerLecture {
   @ManyToOne(
     () => QuestionLecture,
     (questionLecture) => questionLecture.answerLectures,
+    {
+      onDelete: 'CASCADE',
+    },
   )
   questionLecture: QuestionLecture;
 
-  @ManyToOne(
-    () => User,
-    (user) => user.answerLectures,
-  )
+  @ManyToOne(() => User, (user) => user.answerLectures)
   user: User;
 
   @Column({ nullable: false })

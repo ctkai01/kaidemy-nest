@@ -125,7 +125,7 @@ export class QuestionLectureService {
     const questionLecture =
       await this.questionLectureRepository.getQuestionLectureByIdWithRelation(
         questionLectureID,
-        ['user'],
+        ['user', 'answerLectures'],
       );
 
     if (!questionLecture) {
@@ -153,7 +153,7 @@ export class QuestionLectureService {
         name: questionLecture.user.name,
         avatar: questionLecture.user.avatar,
       },
-      totalAnswer: 0,
+      totalAnswer: questionLecture.answerLectures.length,
     };
     const responseData: ResponseData = {
       message: 'Update question lecture successfully!',
@@ -198,7 +198,8 @@ export class QuestionLectureService {
       this.questionLectureRepository.createQueryBuilder('question_lectures');
     queryBuilder
       .orderBy('question_lectures.createdAt', order)
-      .leftJoinAndSelect('question_lectures.user', 'user');
+      .leftJoinAndSelect('question_lectures.user', 'user')
+      .leftJoinAndSelect('question_lectures.answerLectures', 'answerLectures');
 
     if (search) {
       queryBuilder.andWhere(function () {
@@ -237,7 +238,7 @@ export class QuestionLectureService {
           name: questionLecture.user.name,
           avatar: questionLecture.user.avatar,
         },
-        totalAnswer: 0,
+        totalAnswer: questionLecture.answerLectures.length,
       });
     });
 
@@ -273,7 +274,9 @@ export class QuestionLectureService {
       .orderBy('question_lectures.createdAt', order)
 
       .leftJoinAndSelect('question_lectures.user', 'user')
+      .leftJoinAndSelect('question_lectures.answerLectures', 'answerLectures')
       .leftJoinAndSelect('question_lectures.course', 'course');
+
 
     if (search) {
       queryBuilder.andWhere(function () {
@@ -337,7 +340,7 @@ export class QuestionLectureService {
           name: questionLecture.user.name,
           avatar: questionLecture.user.avatar,
         },
-        totalAnswer: 0,
+        totalAnswer: questionLecture.answerLectures.length,
       });
     });
 
