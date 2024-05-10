@@ -10,7 +10,7 @@ import {
   QuestionLecture,
   Report,
   TopicLearning,
-  User,
+  User
 } from 'src/entities';
 import { Lecture } from 'src/entities/lecture.entity';
 import { CourseModule } from '../courses/course.module';
@@ -20,9 +20,8 @@ import { LearningModule } from '../learning/learning.module';
 import { LectureModule } from '../lecture/lecture.module';
 import { QuestionModule } from '../question/question.module';
 import { UserModule } from '../user/user.module';
-import { QuestionLectureController } from './question_lecture.controller';
-import { QuestionLectureRepository } from './question_lecture.repository';
-import { QuestionLectureService } from './question_lecture.service';
+import { AdminController } from './admin.controller';
+import { AdminService } from './admin.service';
 
 @Module({
   imports: [
@@ -47,8 +46,8 @@ import { QuestionLectureService } from './question_lecture.service';
     IssueTypeModule,
     UserModule,
   ],
-  providers: [QuestionLectureService, QuestionLectureRepository],
-  controllers: [QuestionLectureController],
-  exports: [QuestionLectureService, QuestionLectureRepository],
+  providers: [AdminService],
+  controllers: [AdminController],
+  exports: [AdminService],
 })
-export class QuestionLectureModule {}
+export class AdminModule {}

@@ -26,7 +26,7 @@ export class UserRepository extends Repository<User> {
       userRepository.queryRunner,
     );
   }
-  async createUser(data: User): Promise<User> {
+  async createUser(data: Partial<User>): Promise<User> {
     try {
       const user = this.create(data);
       const userCreated = await this.save(user);

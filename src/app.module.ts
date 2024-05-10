@@ -40,6 +40,7 @@ import { ReportModule } from './module/report/report.module';
 import { QuestionLectureModule } from './module/question_lecture/question_lecture.module';
 import { AnswerLecture } from './entities/answer_lecture.entity';
 import { AnswerLectureModule } from './module/answer_lecture/answer_lecture.module';
+import { AdminModule } from './module/admin/admin.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -114,6 +115,7 @@ import { AnswerLectureModule } from './module/answer_lecture/answer_lecture.modu
     ReportModule,
     QuestionLectureModule,
     AnswerLectureModule,
+    AdminModule,
   ],
   providers: [
     {

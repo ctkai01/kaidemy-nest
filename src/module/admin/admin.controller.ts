@@ -1,97 +1,84 @@
 import {
   Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-  Put,
-  Query,
-  UseFilters,
-  UseGuards,
+  Controller, HttpCode,
+  HttpStatus, Post, UseFilters,
+  UseGuards
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
-import { AdminRoleGuard } from 'src/guards/admin-role.guard';
-import { InstructorRoleGuard } from 'src/guards/author-role.guard';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
+import { SupperAdminRoleGuard } from 'src/guards/supper-admin-role.guard';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
-import { CreateQuestionLectureDto } from './dto';
-import { GetQuestionLectureDto } from './dto/get-question-lecture-dto';
-import { UpdateQuestionLectureDto } from './dto/update-question-lecture-dto';
-import { QuestionLectureService } from './question_lecture.service';
+import { CreateUserDto } from '../auth/dto';
+import { AdminService } from './admin.service';
 
-@Controller('question-lectures')
+@Controller('admins')
 @UseFilters(new HttpExceptionValidateFilter())
-export class QuestionLectureController {
-  constructor(private questionLectureService: QuestionLectureService) {}
+export class AdminController {
+  constructor(private adminService: AdminService) {}
 
+  @UseGuards(SupperAdminRoleGuard)
   @Post('')
   @HttpCode(HttpStatus.CREATED)
-  createQuestionLecture(
-    @Body() createQuestionLectureDto: CreateQuestionLectureDto,
+  createAdmin(
+    @Body() createUserDto: CreateUserDto,
     @GetCurrentUserID() userID: number,
   ): Promise<ResponseData> {
-    return this.questionLectureService.createQuestionLecture(
-      createQuestionLectureDto,
-      userID,
-    );
+    return this.adminService.createAdmin(createUserDto, userID);
   }
 
-  @Put(':id')
-  @HttpCode(HttpStatus.OK)
-  updateQuestionLecture(
-    @Body() updateQuestionLectureDto: UpdateQuestionLectureDto,
-    @Param('id') questionLectureID: number,
-    @GetCurrentUserID() userID: number,
-  ): Promise<ResponseData> {
-    return this.questionLectureService.updateQuestionLecture(
-      updateQuestionLectureDto,
-      userID,
-      questionLectureID,
-    );
-  }
+  // @Put(':id')
+  // @HttpCode(HttpStatus.OK)
+  // updateQuestionLecture(
+  //   @Body() updateQuestionLectureDto: UpdateQuestionLectureDto,
+  //   @Param('id') questionLectureID: number,
+  //   @GetCurrentUserID() userID: number,
+  // ): Promise<ResponseData> {
+  //   return this.questionLectureService.updateQuestionLecture(
+  //     updateQuestionLectureDto,
+  //     userID,
+  //     questionLectureID,
+  //   );
+  // }
 
-  @Delete(':id')
-  @HttpCode(HttpStatus.OK)
-  deleteQuestionLecture(
-    @Param('id') questionLectureID: number,
-    @GetCurrentUserID() userID: number,
-  ): Promise<ResponseData> {
-    return this.questionLectureService.deleteQuestionLecture(
-      userID,
-      questionLectureID,
-    );
-  }
+  // @Delete(':id')
+  // @HttpCode(HttpStatus.OK)
+  // deleteQuestionLecture(
+  //   @Param('id') questionLectureID: number,
+  //   @GetCurrentUserID() userID: number,
+  // ): Promise<ResponseData> {
+  //   return this.questionLectureService.deleteQuestionLecture(
+  //     userID,
+  //     questionLectureID,
+  //   );
+  // }
 
-  @Get('')
-  @HttpCode(HttpStatus.OK)
-  getQuestionLectures(
-    @Query() getQuestionLectureDto: GetQuestionLectureDto,
-    @GetCurrentUserID() userID: number,
-  ): Promise<ResponseData> {
-    return this.questionLectureService.getQuestionLectures(
-      getQuestionLectureDto,
-      userID,
-    );
-  }
+  // @Get('')
+  // @HttpCode(HttpStatus.OK)
+  // getQuestionLectures(
+  //   @Query() getQuestionLectureDto: GetQuestionLectureDto,
+  //   @GetCurrentUserID() userID: number,
+  // ): Promise<ResponseData> {
+  //   return this.questionLectureService.getQuestionLectures(
+  //     getQuestionLectureDto,
+  //     userID,
+  //   );
+  // }
 
-  @UseGuards(InstructorRoleGuard)
-  @Get('author')
-  @HttpCode(HttpStatus.OK)
-  getQuestionLecturesAuthor(
-    @Query() getQuestionLectureDto: GetQuestionLectureDto,
-    @GetCurrentUserID() userID: number,
-  ): Promise<ResponseData> {
-    return this.questionLectureService.getQuestionLecturesAuthor(
-      getQuestionLectureDto,
-      userID,
-    );
-  }
+  // @UseGuards(InstructorRoleGuard)
+  // @Get('author')
+  // @HttpCode(HttpStatus.OK)
+  // getQuestionLecturesAuthor(
+  //   @Query() getQuestionLectureDto: GetQuestionLectureDto,
+  //   @GetCurrentUserID() userID: number,
+  // ): Promise<ResponseData> {
+  //   return this.questionLectureService.getQuestionLecturesAuthor(
+  //     getQuestionLectureDto,
+  //     userID,
+  //   );
+  // }
 
   // @Get('')
   // @HttpCode(HttpStatus.OK)
