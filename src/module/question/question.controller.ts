@@ -7,9 +7,11 @@ import {
   Param,
   Post,
   Put,
-  UseFilters
+  UseFilters,
+  UseInterceptors
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
+import { TransformInterceptor } from 'src/response/custom';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
@@ -20,6 +22,7 @@ import { QuestionService } from './question.service';
 
 @Controller('questions')
 @UseFilters(new HttpExceptionValidateFilter())
+@UseInterceptors(TransformInterceptor)
 export class QuestionController {
   constructor(private questionService: QuestionService) {}
 

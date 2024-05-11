@@ -8,8 +8,10 @@ import {
   Post,
   Put,
   UseFilters,
+  UseInterceptors,
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
+import { TransformInterceptor } from 'src/response/custom';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
@@ -20,6 +22,7 @@ import { CreateCurriculumDto, UpdateCurriculumDto } from './dto';
 
 @Controller('curriculums')
 @UseFilters(new HttpExceptionValidateFilter())
+@UseInterceptors(TransformInterceptor)
 export class CurriculumController {
   constructor(private curriculumService: CurriculumService) {}
 
@@ -54,5 +57,4 @@ export class CurriculumController {
   ): Promise<ResponseData> {
     return this.curriculumService.deleteCurriculum(curriculumID, userID);
   }
-
 }

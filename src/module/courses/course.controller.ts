@@ -7,24 +7,23 @@ import {
   Post,
   Put,
   UploadedFile,
-  UseFilters,
-  UseGuards,
-  UseInterceptors,
+  UseFilters, UseInterceptors
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
-import { AdminRoleGuard } from 'src/guards/admin-role.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { TransformInterceptor } from 'src/response/custom';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
 import { CourseService } from './course.service';
 import { CreateCourseDto, UpdateCourseDto } from './dto';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { multerImageOptions } from './multer.config';
 
 @Controller('courses')
 @UseFilters(new HttpExceptionValidateFilter())
+@UseInterceptors(TransformInterceptor)
 export class CourseController {
   constructor(private courseService: CourseService) {}
 

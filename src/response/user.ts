@@ -12,13 +12,3 @@ export interface UserLogin {
 }
 
 
-// export const User = async (datas: User[]): Promise<User[]> => {
-//   const userCollection = await Promise.all(
-//     datas.map(async (user: User): Promise<User> => {
-//       const userResource = await UserAdminResource(user);
-//       return userResource;
-//     }),
-//   );
-
-//   return userCollection;
-// };

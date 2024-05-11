@@ -8,6 +8,7 @@ import {
   Post,
   Put,
   UseFilters,
+  UseInterceptors,
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
@@ -17,9 +18,11 @@ import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter'
 import { ResponseData } from '../../interface/response.interface';
 import { CreateAnswerDto, UpdateAnswerDto } from './dto';
 import { AnswerService } from './answer.service';
+import { TransformInterceptor } from 'src/response/custom';
 
 @Controller('answers')
 @UseFilters(new HttpExceptionValidateFilter())
+@UseInterceptors(TransformInterceptor)
 export class AnswerController {
   constructor(private answerService: AnswerService) {}
 

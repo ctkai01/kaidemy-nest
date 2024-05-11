@@ -1,12 +1,10 @@
 import {
-  ForbiddenException,
+  BadRequestException,
   Injectable,
   Logger,
   NotFoundException
 } from '@nestjs/common';
-import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
-import { PageDto } from 'src/common/paginate/paginate.dto';
-import { ACCOUNT_NORMAL, ADMIN, QuestionLectureAuthorShow, QuestionLectureShow } from 'src/constants';
+import { ACCOUNT_NORMAL, ADMIN } from 'src/constants';
 import { User } from 'src/entities';
 import { hashData } from 'src/utils';
 import { ResponseData } from '../../interface/response.interface';
@@ -18,8 +16,11 @@ import { LearningRepository } from '../learning/learning.repository';
 import { LectureRepository } from '../lecture/lecture.repository';
 import { QuestionRepository } from '../question/question.repository';
 import { UserRepository } from '../user/user.repository';
-import { GetQuestionLectureDto } from './dto/get-question-lecture-dto';
-import { UpdateQuestionLectureDto } from './dto/update-question-lecture-dto';
+import { UpdateAdminDto } from './dto/update-admin-dto';
+import * as bcrypt from 'bcryptjs';
+import { GetAdminDto } from './dto';
+import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
+import { PageDto } from 'src/common/paginate/paginate.dto';
 
 @Injectable()
 export class AdminService {
@@ -32,13 +33,10 @@ export class AdminService {
     private readonly userRepository: UserRepository,
     private readonly learningRepository: LearningRepository,
   ) {}
-  async createAdmin(
-    createUserDto: CreateUserDto,
-    userID: number,
-  ): Promise<ResponseData> {
+  async createAdmin(createUserDto: CreateUserDto): Promise<ResponseData> {
     const { email, name, password } = createUserDto;
 
-    const passwordHash = await hashData(password)
+    const passwordHash = await hashData(password);
     const adminCreate: Partial<User> = {
       email,
       name,
@@ -46,7 +44,7 @@ export class AdminService {
       typeAccount: ACCOUNT_NORMAL,
       password: passwordHash,
     };
-    
+
     const adminCreated = await this.userRepository.createUser(adminCreate);
 
     const responseData: ResponseData = {
@@ -57,253 +55,105 @@ export class AdminService {
     return responseData;
   }
 
-  // async updateQuestionLecture(
-  //   updateQuestionLectureDto: UpdateQuestionLectureDto,
-  //   userID: number,
-  //   questionLectureID: number,
-  // ): Promise<ResponseData> {
-  //   const { title, description } = updateQuestionLectureDto;
+  async updateAdmin(
+    updateAdminDto: UpdateAdminDto,
+    adminID: number,
+  ): Promise<ResponseData> {
+    const { name, password } = updateAdminDto;
 
-  //   const questionLecture =
-  //     await this.questionLectureRepository.getQuestionLectureByIdWithRelation(
-  //       questionLectureID,
-  //       ['user', 'answerLectures'],
-  //     );
+    const admin = await this.userRepository.findOne({
+      where: {
+        id: adminID,
+        role: ADMIN,
+      },
+    });
 
-  //   if (!questionLecture) {
-  //     throw new NotFoundException('Question lecture not found');
-  //   }
+    if (!admin) {
+      throw new NotFoundException('Admin not found');
+    }
 
-  //   if (questionLecture.userId !== userID) {
-  //     throw new ForbiddenException('');
-  //   }
-  //   questionLecture.title = title;
-  //   questionLecture.description = description;
+    if (password) {
+      const isValidPassword = bcrypt.compareSync(password, admin.password);
 
-  //   await this.questionLectureRepository.save(questionLecture);
+      if (!isValidPassword) {
+        throw new BadRequestException('Password incorrect');
+      }
+    }
 
-  //   const questionLectureShow: QuestionLectureShow = {
-  //     id: questionLecture.id,
-  //     courseID: questionLecture.courseId,
-  //     lectureID: questionLecture.lectureId,
-  //     createdAt: questionLecture.createdAt,
-  //     updatedAt: questionLecture.updatedAt,
-  //     description: questionLecture.description,
-  //     title: questionLecture.title,
-  //     user: {
-  //       id: questionLecture.user.id,
-  //       name: questionLecture.user.name,
-  //       avatar: questionLecture.user.avatar,
-  //     },
-  //     totalAnswer: questionLecture.answerLectures.length,
-  //   };
-  //   const responseData: ResponseData = {
-  //     message: 'Update question lecture successfully!',
-  //     data: questionLectureShow,
-  //   };
+    admin.name = name;
 
-  //   return responseData;
-  // }
+    await this.userRepository.save(admin);
 
-  // async deleteQuestionLecture(
-  //   userID: number,
-  //   questionLectureID: number,
-  // ): Promise<ResponseData> {
-  //   const questionLecture =
-  //     await this.questionLectureRepository.getQuestionLectureById(
-  //       questionLectureID,
-  //     );
+    const responseData: ResponseData = {
+      message: 'Update admin successfully!',
+      data: admin,
+    };
 
-  //   if (!questionLecture) {
-  //     throw new NotFoundException('Question lecture not found');
-  //   }
+    return responseData;
+  }
 
-  //   if (questionLecture.userId !== userID) {
-  //     throw new ForbiddenException('');
-  //   }
+  async deleteAdmin(adminID: number): Promise<ResponseData> {
+    const admin = await this.userRepository.findOne({
+      where: {
+        id: adminID,
+        role: ADMIN,
+      },
+    });
 
-  //   this.questionLectureRepository.delete(questionLectureID);
+    if (!admin) {
+      throw new NotFoundException('Admin not found');
+    }
 
-  //   const responseData: ResponseData = {
-  //     message: 'Delete question lecture successfully!',
-  //   };
+    await this.userRepository.delete(adminID);
 
-  //   return responseData;
-  // }
+    const responseData: ResponseData = {
+      message: 'Delete admin successfully!',
+    };
 
-  // async getQuestionLectures(
-  //   getQuestionLectureDto: GetQuestionLectureDto,
-  //   userID: number,
-  // ): Promise<ResponseData> {
-  //   const { order, skip, size, page, courseID, search } = getQuestionLectureDto;
-  //   const queryBuilder =
-  //     this.questionLectureRepository.createQueryBuilder('question_lectures');
-  //   queryBuilder
-  //     .orderBy('question_lectures.createdAt', order)
-  //     .leftJoinAndSelect('question_lectures.user', 'user')
-  //     .leftJoinAndSelect('question_lectures.answerLectures', 'answerLectures');
+    return responseData;
+  }
 
-  //   if (search) {
-  //     queryBuilder.andWhere(function () {
-  //       this.where('question_lectures.title LIKE :searchQuery', {
-  //         searchQuery: `%${search}%`,
-  //       }).orWhere('question_lectures.description LIKE :searchQuery', {
-  //         searchQuery: `%${search}%`,
-  //       });
-  //     });
-  //   }
+  async getAdmins(
+    getAdminDto: GetAdminDto,
+  ): Promise<ResponseData> {
+    const { order, skip, size, page, search } = getAdminDto;
+    const queryBuilder =
+      this.userRepository.createQueryBuilder('users');
+    queryBuilder
+      .orderBy('users.createdAt', order)
+      .where('users.role LIKE :role', {
+        role: ADMIN,
+      });
 
-  //   if (courseID) {
-  //     queryBuilder.where('question_lectures.courseId = :courseId', {
-  //       courseId: courseID,
-  //     });
-  //   }
-  //   const itemCount = await queryBuilder.getCount();
+    if (search) {
+       queryBuilder.where('users.name LIKE :searchQuery', {
+         searchQuery: `%${search}%`,
+       });
+    }
 
-  //   queryBuilder.skip(skip).take(skip);
-  //   const { entities: questionLectures } =
-  //     await queryBuilder.getRawAndEntities();
+    const itemCount = await queryBuilder.getCount();
 
-  //   const questionLecturesShow: QuestionLectureShow[] = [];
+    queryBuilder.skip(skip).take(skip);
+    const { entities: admins } =
+      await queryBuilder.getRawAndEntities();
 
-  //   questionLectures.forEach((questionLecture) => {
-  //     questionLecturesShow.push({
-  //       courseID: questionLecture.courseId,
-  //       lectureID: questionLecture.lectureId,
-  //       createdAt: questionLecture.createdAt,
-  //       updatedAt: questionLecture.updatedAt,
-  //       description: questionLecture.description,
-  //       title: questionLecture.title,
-  //       id: questionLecture.id,
-  //       user: {
-  //         id: questionLecture.user.id,
-  //         name: questionLecture.user.name,
-  //         avatar: questionLecture.user.avatar,
-  //       },
-  //       totalAnswer: questionLecture.answerLectures.length,
-  //     });
-  //   });
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: {
+        skip,
+        order,
+        page,
+        size,
+      },
+    });
 
-  //   const pageMetaDto = new PageMetaDto({
-  //     itemCount,
-  //     pageOptionsDto: {
-  //       skip,
-  //       order,
-  //       page,
-  //       size,
-  //     },
-  //   });
+    const data = new PageDto(admins, pageMetaDto);
 
-  //   const data = new PageDto(questionLecturesShow, pageMetaDto);
+    const responseData: ResponseData = {
+      message: 'Get admins successfully!',
+      data,
+    };
 
-  //   const responseData: ResponseData = {
-  //     message: 'Get question lecture successfully!',
-  //     data,
-  //   };
-
-  //   return responseData;
-  // }
-
-  // async getQuestionLecturesAuthor(
-  //   getQuestionLectureDto: GetQuestionLectureDto,
-  //   userID: number,
-  // ): Promise<ResponseData> {
-  //   const { order, skip, size, page, courseID, search } = getQuestionLectureDto;
-
-  //   const queryBuilder =
-  //     this.questionLectureRepository.createQueryBuilder('question_lectures');
-  //   queryBuilder
-  //     .orderBy('question_lectures.createdAt', order)
-
-  //     .leftJoinAndSelect('question_lectures.user', 'user')
-  //     .leftJoinAndSelect('question_lectures.answerLectures', 'answerLectures')
-  //     .leftJoinAndSelect('question_lectures.course', 'course');
-
-
-  //   if (search) {
-  //     queryBuilder.andWhere(function () {
-  //       this.where('question_lectures.title LIKE :searchQuery', {
-  //         searchQuery: `%${search}%`,
-  //       }).orWhere('question_lectures.description LIKE :searchQuery', {
-  //         searchQuery: `%${search}%`,
-  //       });
-  //     });
-  //   }
-  //     console.log('UUU', courseID);
-
-  //   if (courseID) {
-  //     // Check course belong to user
-  //     const course = await this.courseRepository.getCourseByID(courseID);
-
-  //     if (!course) {
-  //       throw new NotFoundException('Course not found');
-  //     }
-
-  //     if (course.userID != userID) {
-  //       throw new ForbiddenException();
-  //     }
-  //     queryBuilder.where('question_lectures.courseId = :courseId', {
-  //       courseId: courseID,
-  //     });
-  //   } else {
-  //     const courses = await this.courseRepository.find({
-  //       where: { userID },
-  //       select: ['id'],
-  //     });
-
-  //     const courseIdsByAuthor = courses.map((course) => course.id);
-  //     queryBuilder.where('question_lectures.courseId IN (:...courseIds)', {
-  //       courseIdsByAuthor,
-  //     });
-  //   }
-  //   const itemCount = await queryBuilder.getCount();
-
-  //   queryBuilder.skip(skip).take(skip);
-  //   const { entities: questionLectures } =
-  //     await queryBuilder.getRawAndEntities();
-
-  //   const questionLecturesAuthorShow: QuestionLectureAuthorShow[] = [];
-
-  //   questionLectures.forEach((questionLecture) => {
-  //     questionLecturesAuthorShow.push({
-  //       course: {
-  //         id: questionLecture.course.id,
-  //         title: questionLecture.course.title,
-  //         image: questionLecture.course.image,
-  //       },
-  //       lectureID: questionLecture.lectureId,
-  //       createdAt: questionLecture.createdAt,
-  //       updatedAt: questionLecture.updatedAt,
-  //       description: questionLecture.description,
-  //       title: questionLecture.title,
-  //       id: questionLecture.id,
-  //       user: {
-  //         id: questionLecture.user.id,
-  //         name: questionLecture.user.name,
-  //         avatar: questionLecture.user.avatar,
-  //       },
-  //       totalAnswer: questionLecture.answerLectures.length,
-  //     });
-  //   });
-
-  //   const pageMetaDto = new PageMetaDto({
-  //     itemCount,
-  //     pageOptionsDto: {
-  //       skip,
-  //       order,
-  //       page,
-  //       size,
-  //       search
-  //     },
-  //   });
-
-  //   const data = new PageDto(questionLecturesAuthorShow, pageMetaDto);
-
-  //   const responseData: ResponseData = {
-  //     message: 'Get question lecture author successfully!',
-  //     data,
-  //   };
-
-  //   return responseData;
-  // }
+    return responseData;
+  }
 }

@@ -1,9 +1,10 @@
 import {
   Body,
   Controller, Get, HttpCode,
-  HttpStatus, Post, Query, UseFilters
+  HttpStatus, Post, Query, UseFilters, UseInterceptors
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
+import { TransformInterceptor } from 'src/response/custom';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
@@ -17,6 +18,7 @@ import { ReportService } from './report.service';
 
 @Controller('reports')
 @UseFilters(new HttpExceptionValidateFilter())
+@UseInterceptors(TransformInterceptor)
 export class ReportController {
   constructor(private reportService: ReportService) {}
 

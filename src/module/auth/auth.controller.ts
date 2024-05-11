@@ -3,31 +3,27 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
-  Post,
-  Request,
-  UseFilters,
-  UseGuards,
-  UseInterceptors,
+  Post, UseFilters, UseInterceptors
 } from '@nestjs/common';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
-import { AuthService } from './auth.service';
+import { Public } from 'src/decorators';
+import { TransformInterceptor } from 'src/response/custom';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
-import { Tokens } from './interface/token.interface';
-import { Public } from 'src/decorators';
+import { AuthService } from './auth.service';
 import {
   CreateUserDto,
   ForgotPasswordDto,
   LoginUserDto,
-  ResetPasswordDto,
+  ResetPasswordDto
 } from './dto';
 import { LoginGoogleDto } from './dto/login-google-dto';
 
 @Controller('auth')
 @UseFilters(new HttpExceptionValidateFilter())
-// @UseInterceptors(TransformInterceptor)
+@UseInterceptors(TransformInterceptor)
 export class AuthController {
   constructor(private authService: AuthService) {}
 

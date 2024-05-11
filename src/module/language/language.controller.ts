@@ -11,12 +11,14 @@ import {
   Query,
   UseFilters,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { PageCommonOptionsDto } from 'src/common/paginate/page-option.dto';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
 import { AdminRoleGuard } from 'src/guards/admin-role.guard';
+import { TransformInterceptor } from 'src/response/custom';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
 import { CreateLanguageDto, UpdateLanguageDto } from './dto';
@@ -24,6 +26,7 @@ import { LanguageService } from './language.service';
 
 @Controller('languages')
 @UseFilters(new HttpExceptionValidateFilter())
+@UseInterceptors(TransformInterceptor)
 export class LanguageController {
   constructor(private languageService: LanguageService) {}
 

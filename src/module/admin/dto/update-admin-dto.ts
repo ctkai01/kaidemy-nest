@@ -10,15 +10,16 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class UpdateQuestionLectureDto {
+export class UpdateAdminDto {
   @IsOptional()
   @IsString()
-  @MinLength(1)
-  @MaxLength(200)
-  description: string;
+  @MinLength(8)
+  @MaxLength(32)
+  name: string;
 
+  @IsOptional()
   @IsString()
-  @MinLength(1)
-  @MaxLength(100)
-  title: string;
+  @MinLength(8)
+  @MaxLength(32)
+  password: string;
 }

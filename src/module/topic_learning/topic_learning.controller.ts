@@ -1,9 +1,10 @@
 import {
   Body,
   Controller, Delete, Get, HttpCode,
-  HttpStatus, Param, Post, Put, Query, UseFilters
+  HttpStatus, Param, Post, Put, Query, UseFilters, UseInterceptors
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
+import { TransformInterceptor } from 'src/response/custom';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
@@ -16,6 +17,7 @@ import { TopicLearningService } from './topic_learning.service';
 
 @Controller('topic-learnings')
 @UseFilters(new HttpExceptionValidateFilter())
+@UseInterceptors(TransformInterceptor)
 export class TopicLearningController {
   constructor(private topicLearningService: TopicLearningService) {}
 

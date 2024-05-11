@@ -10,12 +10,14 @@ import {
   Put,
   Query,
   UseFilters,
-  UseGuards
+  UseGuards,
+  UseInterceptors
 } from '@nestjs/common';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
 import { AdminRoleGuard } from 'src/guards/admin-role.guard';
+import { TransformInterceptor } from 'src/response/custom';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
 import { CreateLevelDto, UpdateLevelDto } from './dto';
@@ -25,6 +27,7 @@ import { LevelService } from './level.service';
 
 @Controller('levels')
 @UseFilters(new HttpExceptionValidateFilter())
+@UseInterceptors(TransformInterceptor)
 export class LevelController {
   constructor(private levelService: LevelService) {}
 
@@ -54,9 +57,7 @@ export class LevelController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  getLevels(
-    @Query() getLevelDto: GetLevelDto,
-  ): Promise<ResponseData> {
+  getLevels(@Query() getLevelDto: GetLevelDto): Promise<ResponseData> {
     return this.levelService.getLevels(getLevelDto);
   }
 

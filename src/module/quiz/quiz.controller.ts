@@ -8,6 +8,7 @@ import {
   Post,
   Put,
   UseFilters,
+  UseInterceptors,
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
@@ -18,9 +19,11 @@ import { ResponseData } from '../../interface/response.interface';
 import { CreateQuizDto } from './dto';
 import { QuizService } from './quiz.service';
 import { UpdateQuizDto } from './dto/update-quiz-dto';
+import { TransformInterceptor } from 'src/response/custom';
 
 @Controller('quizs')
 @UseFilters(new HttpExceptionValidateFilter())
+@UseInterceptors(TransformInterceptor)
 export class QuizController {
   constructor(private quizService: QuizService) {}
 

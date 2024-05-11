@@ -1,9 +1,10 @@
 import {
   Body,
   Controller, Delete, Get, HttpCode,
-  HttpStatus, Param, Post, UseFilters
+  HttpStatus, Param, Post, UseFilters, UseInterceptors
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
+import { TransformInterceptor } from 'src/response/custom';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
@@ -14,6 +15,7 @@ import { CreateQuestionDto } from './dto';
 
 @Controller('carts')
 @UseFilters(new HttpExceptionValidateFilter())
+@UseInterceptors(TransformInterceptor)
 export class CartController {
   constructor(private cartService: CartService) {}
 

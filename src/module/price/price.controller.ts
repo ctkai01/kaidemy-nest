@@ -10,13 +10,15 @@ import {
   Put,
   Query,
   UseFilters,
-  UseGuards
+  UseGuards,
+  UseInterceptors
 } from '@nestjs/common';
 import { PageCommonOptionsDto } from 'src/common/paginate/page-option.dto';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
 import { AdminRoleGuard } from 'src/guards/admin-role.guard';
+import { TransformInterceptor } from 'src/response/custom';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
 import { CreatePriceDto, UpdatePriceDto } from './dto';
@@ -24,6 +26,7 @@ import { PriceService } from './price.service';
 
 @Controller('prices')
 @UseFilters(new HttpExceptionValidateFilter())
+@UseInterceptors(TransformInterceptor)
 export class PriceController {
   constructor(private priceService: PriceService) {}
 

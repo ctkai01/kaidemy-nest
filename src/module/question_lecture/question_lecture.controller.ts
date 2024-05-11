@@ -11,10 +11,12 @@ import {
   Query,
   UseFilters,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
 import { AdminRoleGuard } from 'src/guards/admin-role.guard';
 import { InstructorRoleGuard } from 'src/guards/author-role.guard';
+import { TransformInterceptor } from 'src/response/custom';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
 // import { AtGuard, RtGuard } from 'src/guards';
 // import { TransformInterceptor } from '../../custom-response/core.response';
@@ -27,6 +29,7 @@ import { QuestionLectureService } from './question_lecture.service';
 
 @Controller('question-lectures')
 @UseFilters(new HttpExceptionValidateFilter())
+@UseInterceptors(TransformInterceptor)
 export class QuestionLectureController {
   constructor(private questionLectureService: QuestionLectureService) {}
 

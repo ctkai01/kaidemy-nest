@@ -23,9 +23,11 @@ import { CreateLectureDto, UpdateLectureDto } from './dto';
 import { LectureService } from './lecture.service';
 import { multerImageOptions, multerResourceOptions, multerVideoOptions } from './multer.config';
 import { MarkLectureDto } from './dto/mark-lecture-dto';
+import { TransformInterceptor } from 'src/response/custom';
 
 @Controller('lectures')
 @UseFilters(new HttpExceptionValidateFilter())
+@UseInterceptors(TransformInterceptor)
 export class LectureController {
   constructor(private lectureService: LectureService) {}
 

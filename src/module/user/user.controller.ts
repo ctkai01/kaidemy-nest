@@ -13,6 +13,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 // import { TransformInterceptor } from '../../custom-response/core.response';
 import { GetCurrentUserID, Public } from 'src/decorators';
 import { AdminRoleGuard } from 'src/guards/admin-role.guard';
+import { TransformInterceptor } from 'src/response/custom';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
 import { BlockUserDto } from './dto/block-user-dto';
@@ -25,6 +26,7 @@ import { UserService } from './user.service';
 
 @Controller('users')
 @UseFilters(new HttpExceptionValidateFilter())
+@UseInterceptors(TransformInterceptor)
 export class UserController {
   constructor(private userService: UserService) {}
 
@@ -67,9 +69,7 @@ export class UserController {
   @Get()
   @UseGuards(AdminRoleGuard)
   @HttpCode(HttpStatus.OK)
-  getUsers(
-    @Query() getUserDto: GetUserDto,
-  ): Promise<ResponseData> {
+  getUsers(@Query() getUserDto: GetUserDto): Promise<ResponseData> {
     return this.userService.getUsers(getUserDto);
   }
 
