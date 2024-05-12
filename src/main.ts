@@ -7,6 +7,7 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { getManager } from 'typeorm';
 import { AppModule } from './app.module';
 import rawBodyMiddleware from './middleware/rawBody.middleware';
+import * as cors from 'cors';
 
 const PORT = 3000;
 async function bootstrap() {
@@ -16,6 +17,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true});
   app.enableCors();
   // app.use(rawBodyMiddleware());
+  //  app.use(
+  //    cors({
+  //      origin: 'http://localhost:5173',
+  //      credentials: true, // If your client sends credentials (cookies, authorization headers), set this to true
+  //    }),
+  //  );
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   // app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.setGlobalPrefix('/api');

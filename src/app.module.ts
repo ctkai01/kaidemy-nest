@@ -41,6 +41,8 @@ import { QuestionLectureModule } from './module/question_lecture/question_lectur
 import { AnswerLecture } from './entities/answer_lecture.entity';
 import { AnswerLectureModule } from './module/answer_lecture/answer_lecture.module';
 import { AdminModule } from './module/admin/admin.module';
+import { Chat } from './entities/chat.entity';
+import { ChatModule } from './module/chat/chat.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -89,6 +91,7 @@ import { AdminModule } from './module/admin/admin.module';
             Cart,
             Checkout,
             AnswerLecture,
+            Chat
           ],
           timezone: '+07:00',
         };
@@ -116,6 +119,7 @@ import { AdminModule } from './module/admin/admin.module';
     QuestionLectureModule,
     AnswerLectureModule,
     AdminModule,
+    ChatModule
   ],
   providers: [
     {

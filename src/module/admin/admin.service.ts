@@ -21,6 +21,7 @@ import * as bcrypt from 'bcryptjs';
 import { GetAdminDto } from './dto';
 import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
 import { PageDto } from 'src/common/paginate/paginate.dto';
+import { arrayMinSize } from 'class-validator';
 
 @Injectable()
 export class AdminService {
@@ -73,11 +74,9 @@ export class AdminService {
     }
 
     if (password) {
-      const isValidPassword = bcrypt.compareSync(password, admin.password);
+      const passwordHash = await hashData(password);
 
-      if (!isValidPassword) {
-        throw new BadRequestException('Password incorrect');
-      }
+      admin.password = passwordHash;
     }
 
     admin.name = name;
@@ -120,8 +119,8 @@ export class AdminService {
     const queryBuilder =
       this.userRepository.createQueryBuilder('users');
     queryBuilder
-      .orderBy('users.createdAt', order)
-      .where('users.role LIKE :role', {
+      .orderBy('users.created_at', order)
+      .where('users.role = :role', {
         role: ADMIN,
       });
 
