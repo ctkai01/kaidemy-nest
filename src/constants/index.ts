@@ -4,3 +4,4 @@ export * from "./paginate"
 export * from "./course"
 export * from "./payment"
 export * from "./report"
+export * from './chat';

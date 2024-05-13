@@ -20,3 +20,5 @@ export * from './topic_learning.entity';
 export * from './report.entity';
 export * from './question_lecture.entity';
 export * from './answer_lecture.entity';
+export * from './chat.entity';
+export * from './socket.entity';

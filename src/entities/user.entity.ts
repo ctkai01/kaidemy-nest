@@ -22,6 +22,7 @@ import { Report } from './report.entity';
 import { QuestionLecture } from './question_lecture.entity';
 import { AnswerLecture } from './answer_lecture.entity';
 import { Chat } from './chat.entity';
+import {  Socket } from './socket.entity';
 // import { ChatMember } from './chat-member.entity';
 // import { CommentUser } fr/om './c/omment-user.entity';
 // import { Comment } from './/comme/nt.entity';
@@ -101,6 +102,9 @@ export class User {
 
   @OneToMany(() => Learning, (learning) => learning.user)
   learnings?: Learning[];
+
+  @OneToMany(() => Socket, (socket) => socket.user)
+  sockets?: Socket[];
 
   @OneToMany(() => TopicLearning, (topicLearning) => topicLearning.user)
   topicLearnings?: TopicLearning[];
