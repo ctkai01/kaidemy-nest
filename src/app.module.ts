@@ -12,6 +12,8 @@ import {
   IssueType,
   Language,
   Level,
+  Notification,
+  NotificationToken,
   Price
 } from './entities';
 import { User } from './entities/user.entity';
@@ -43,6 +45,7 @@ import { AnswerLectureModule } from './module/answer_lecture/answer_lecture.modu
 import { AdminModule } from './module/admin/admin.module';
 import { Chat } from './entities/chat.entity';
 import { ChatModule } from './module/chat/chat.module';
+import { NotificationModule } from './module/notification/notification.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -91,7 +94,9 @@ import { ChatModule } from './module/chat/chat.module';
             Cart,
             Checkout,
             AnswerLecture,
-            Chat
+            Chat,
+            // Notification,
+            NotificationToken
           ],
           timezone: '+07:00',
         };
@@ -119,7 +124,8 @@ import { ChatModule } from './module/chat/chat.module';
     QuestionLectureModule,
     AnswerLectureModule,
     AdminModule,
-    ChatModule
+    ChatModule,
+    NotificationModule
   ],
   providers: [
     {

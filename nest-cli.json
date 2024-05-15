@@ -4,6 +4,15 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "assets": ["module/email/templates/**/*"]
+    "assets": [
+      {
+        "include": "module/email/templates/**/*",
+        "watchAssets": true
+      },
+      {
+        "include": "config/**/*",
+        "watchAssets": true
+      }
+    ]
   }
 }
