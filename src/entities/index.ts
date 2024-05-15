@@ -22,3 +22,5 @@ export * from './question_lecture.entity';
 export * from './answer_lecture.entity';
 export * from './chat.entity';
 export * from './socket.entity';
+export * from './notification.entity';
+export * from './notification_token.entity';
