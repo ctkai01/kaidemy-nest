@@ -184,7 +184,7 @@ export class AnswerLectureService {
 
     const itemCount = await queryBuilder.getCount();
 
-    queryBuilder.skip(skip).take(skip);
+    queryBuilder.skip(skip).take(size);
     const { entities: answerLectures } = await queryBuilder.getRawAndEntities();
 
     const answerLecturesShow: AnswerLectureShow[] = [];
@@ -276,7 +276,7 @@ export class AnswerLectureService {
   //   }
   //   const itemCount = await queryBuilder.getCount();
 
-  //   queryBuilder.skip(skip).take(skip);
+  //   queryBuilder.skip(skip).take(size);
   //   const { entities: questionLectures } =
   //     await queryBuilder.getRawAndEntities();
 

@@ -2,7 +2,7 @@ import {
   BadRequestException,
   Injectable,
   Logger,
-  NotFoundException
+  NotFoundException,
 } from '@nestjs/common';
 import { ACCOUNT_NORMAL, ADMIN } from 'src/constants';
 import { User } from 'src/entities';
@@ -112,12 +112,9 @@ export class AdminService {
     return responseData;
   }
 
-  async getAdmins(
-    getAdminDto: GetAdminDto,
-  ): Promise<ResponseData> {
+  async getAdmins(getAdminDto: GetAdminDto): Promise<ResponseData> {
     const { order, skip, size, page, search } = getAdminDto;
-    const queryBuilder =
-      this.userRepository.createQueryBuilder('users');
+    const queryBuilder = this.userRepository.createQueryBuilder('users');
     queryBuilder
       .orderBy('users.created_at', order)
       .where('users.role = :role', {
@@ -125,16 +122,15 @@ export class AdminService {
       });
 
     if (search) {
-       queryBuilder.where('users.name LIKE :searchQuery', {
-         searchQuery: `%${search}%`,
-       });
+      queryBuilder.where('users.name LIKE :searchQuery', {
+        searchQuery: `%${search}%`,
+      });
     }
 
     const itemCount = await queryBuilder.getCount();
 
-    queryBuilder.skip(skip).take(skip);
-    const { entities: admins } =
-      await queryBuilder.getRawAndEntities();
+    queryBuilder.skip(skip).take(size);
+    const { entities: admins } = await queryBuilder.getRawAndEntities();
 
     const pageMetaDto = new PageMetaDto({
       itemCount,

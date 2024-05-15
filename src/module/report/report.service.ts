@@ -76,7 +76,7 @@ export class ReportService {
 
     const itemCount = await queryBuilder.getCount();
 
-    queryBuilder.skip(skip).take(skip);
+    queryBuilder.skip(skip).take(size);
     const { entities: reports } = await queryBuilder.getRawAndEntities();
 
     const reportsShow: ReportShow[] = [];

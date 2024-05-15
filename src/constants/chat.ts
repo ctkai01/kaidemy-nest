@@ -15,3 +15,16 @@ export interface ChatUserShow {
   name: string;
   avatar?: string;
 }
+
+
+export interface ChatChannelShow {
+  id: number;
+  user: ChatUserShow;
+  latestMessage: LatestMessageShow;
+}
+
+interface LatestMessageShow {
+  user: ChatUserShow;
+  text: string;
+  createdAt: string;
+}

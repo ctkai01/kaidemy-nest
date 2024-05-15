@@ -218,7 +218,7 @@ export class QuestionLectureService {
     }
     const itemCount = await queryBuilder.getCount();
 
-    queryBuilder.skip(skip).take(skip);
+    queryBuilder.skip(skip).take(size);
     const { entities: questionLectures } =
       await queryBuilder.getRawAndEntities();
 
@@ -277,7 +277,6 @@ export class QuestionLectureService {
       .leftJoinAndSelect('question_lectures.answerLectures', 'answerLectures')
       .leftJoinAndSelect('question_lectures.course', 'course');
 
-
     if (search) {
       queryBuilder.andWhere(function () {
         this.where('question_lectures.title LIKE :searchQuery', {
@@ -287,7 +286,7 @@ export class QuestionLectureService {
         });
       });
     }
-      console.log('UUU', courseID);
+    console.log('UUU', courseID);
 
     if (courseID) {
       // Check course belong to user
@@ -316,7 +315,7 @@ export class QuestionLectureService {
     }
     const itemCount = await queryBuilder.getCount();
 
-    queryBuilder.skip(skip).take(skip);
+    queryBuilder.skip(skip).take(size);
     const { entities: questionLectures } =
       await queryBuilder.getRawAndEntities();
 
@@ -351,7 +350,7 @@ export class QuestionLectureService {
         order,
         page,
         size,
-        search
+        search,
       },
     });
 
