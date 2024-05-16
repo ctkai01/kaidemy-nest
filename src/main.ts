@@ -15,7 +15,14 @@ async function bootstrap() {
   // await getManager().query(`SET GLOBAL time_zone = 'Asia/Ho_Chi_Minh';`);
   // await getManager().query(`SET time_zone = 'Asia/Ho_Chi_Minh';`);
   const app = await NestFactory.create(AppModule, { rawBody: true});
-  app.enableCors();
+  app.enableCors(
+  //   {
+  //    origin: 'http://localhost:5173', // Your frontend application URL
+  //   methods: 'GET,POST,PUT,DELETE',
+  //   allowedHeaders: 'Content-Type,Authorization',
+  //   credentials: true,
+  // }
+  );
   // app.use(rawBodyMiddleware());
   //  app.use(
   //    cors({

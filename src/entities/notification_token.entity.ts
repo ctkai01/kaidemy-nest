@@ -31,7 +31,7 @@ export class NotificationToken {
   @JoinColumn({ name: 'userId' })
   user?: User;
 
-  @Column({ name: "fcm_token", type: 'varchar', nullable: false })
+  @Column({ name: "fcm_token", type: 'varchar', nullable: false, unique: true })
   fcmToken: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

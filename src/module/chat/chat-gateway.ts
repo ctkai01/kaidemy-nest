@@ -11,6 +11,9 @@ import {
 import { Server } from 'socket.io';
 import { ChatRepository } from './chat.repository';
 import { SocketRepository } from './socket.repository';
+import { NotificationService } from '../notification/notification.service';
+import { ProducerService } from '../queues/producer.service';
+import { NotificationPayload, TITLE_RECEIVE_MESSAGE } from 'src/constants';
 
 @WebSocketGateway({ cors: true })
 export class ChatGateway
@@ -23,6 +26,8 @@ export class ChatGateway
   constructor(
     private readonly socketRepository: SocketRepository,
     private readonly chatRepository: ChatRepository,
+    private readonly producerService: ProducerService,
+
   ) {}
 
   afterInit() {
@@ -38,16 +43,16 @@ export class ChatGateway
 
   async handleDisconnect(client: any) {
     this.logger.log(`Cliend id:${client.id} disconnected`);
-     await this.socketRepository.delete({
-       socketId: client.id,
-     });
+    await this.socketRepository.delete({
+      socketId: client.id,
+    });
   }
 
   @SubscribeMessage('join')
   handleJoinChat(client: any, data: any) {
     this.socketRepository.save({
       socketId: client.id,
-      userId: data.userID
+      userId: data.userID,
     });
   }
   @SubscribeMessage('chat')
@@ -60,7 +65,7 @@ export class ChatGateway
       },
     });
 
-    receiverSocketIDs.forEach(receiverSocketID => {
+    receiverSocketIDs.forEach((receiverSocketID) => {
       this.io.sockets.to(receiverSocketID.socketId).emit('receive', {
         text: data.text,
         from: data.from,
@@ -68,12 +73,24 @@ export class ChatGateway
       });
     });
 
-    await this.chatRepository.save({
+    const chat = await this.chatRepository.save({
       fromUser: data.from,
       toUser: data.to,
-      text: data.text
+      text: data.text,
     });
-    
+
+    this.producerService.addToNotificationQueue({
+      toID: [data.to],
+      fromID: data.from,
+      data: {
+        chatID: `${chat.id}`,
+        text: chat.text,
+        toID: `${data.to}`,
+        fromID: `${data.from}`,
+        type: NotificationPayload.NOTIFICATION_CHAT,
+      },
+      type: NotificationPayload.NOTIFICATION_CHAT,
+    });
     // return {
     //   event: 'pong',
     //   data: 'Wrong data that will make the test fail',

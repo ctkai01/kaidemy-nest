@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Post,
   UseFilters,
   UseInterceptors
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import { TransformInterceptor } from 'src/response/custom';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
 import { NotificationService } from './notification.service';
+import { AcceptNotificationDto } from './dto';
 
 @Controller('notifications')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -22,12 +24,15 @@ import { NotificationService } from './notification.service';
 export class NotificationController {
   constructor(private notificationService: NotificationService) {}
 
-  @Get('')
+  @Post('fcm')
   @HttpCode(HttpStatus.CREATED)
-  test(
-    // @Body() createLectureDto: CreateLectureDto,
+  acceptPushNotification(
+    @Body() acceptNotificationDto: AcceptNotificationDto,
     @GetCurrentUserID() userID: number,
   ): Promise<ResponseData> {
-    return this.notificationService.pushNotification();
+    return this.notificationService.acceptPushNotification(
+      userID,
+      acceptNotificationDto,
+    );
   }
 }

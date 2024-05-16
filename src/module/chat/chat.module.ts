@@ -7,9 +7,15 @@ import { Chat, Socket, User } from 'src/entities';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
 import { UserModule } from '../user/user.module';
+import { NotificationModule } from '../notification/notification.module';
+import { QueueModule } from '../queues/queue.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Chat, Socket, User]), UserModule],
+  imports: [
+    TypeOrmModule.forFeature([Chat, Socket, User]),
+    UserModule,
+    QueueModule,
+  ],
   controllers: [ChatController],
   providers: [ChatGateway, ChatRepository, SocketRepository, ChatService],
 })

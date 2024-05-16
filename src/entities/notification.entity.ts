@@ -24,10 +24,18 @@ export class Notification {
   @PrimaryGeneratedColumn()
   id?: number;
 
+  @Column()
+  public fromUserId: number;
+
+  @Column()
+  public toUserId: number;
+
   @ManyToOne(() => User, (user) => user.sentNotifications)
+  @JoinColumn({ name: 'fromUserId' })
   fromUser: User;
 
   @ManyToOne(() => User, (user) => user.receivedNotifications)
+  @JoinColumn({ name: 'toUserId' })
   toUser: User;
 
   @Column({ type: 'varchar', nullable: false })
@@ -44,7 +52,7 @@ export class Notification {
 
   @Column({ nullable: false })
   resourceID: number;
-  
+
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: string;
 
