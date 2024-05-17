@@ -35,4 +35,16 @@ export class NotificationController {
       acceptNotificationDto,
     );
   }
+
+  @Get('')
+  @HttpCode(HttpStatus.OK)
+  getNotification(
+    @Body() acceptNotificationDto: AcceptNotificationDto,
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.notificationService.acceptPushNotification(
+      userID,
+      acceptNotificationDto,
+    );
+  }
 }
