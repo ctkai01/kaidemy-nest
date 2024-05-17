@@ -21,12 +21,14 @@ import {
   CourseStatus,
   CourseTransaction,
   CourseUtil,
+  NotificationPayload,
   UploadResource,
 } from 'src/constants';
 import { Learning } from 'src/entities/learning.entity';
 import { TransactionRepository } from './transation.repository';
 import { CartRepository } from '../cart/cart.repository';
 import { FEE_PLATFORM } from 'src/constants/payment';
+import { ProducerService } from '../queues/producer.service';
 @Injectable()
 export class CourseService {
   private logger = new Logger(CourseService.name);
@@ -40,6 +42,7 @@ export class CourseService {
     private readonly uploadService: UploadService,
     private readonly transactionRepository: TransactionRepository,
     private readonly cartRepository: CartRepository,
+    private readonly producerService: ProducerService,
   ) {}
   async createCourse(
     createCourseDto: CreateCourseDto,
@@ -288,7 +291,9 @@ export class CourseService {
         userId: Number(userBuy),
       };
 
-      await queryRunnerTransaction.manager.getRepository(Transaction).save(transaction);
+      await queryRunnerTransaction.manager
+        .getRepository(Transaction)
+        .save(transaction);
 
       const transactionDetails: TransactionDetail[] = [];
       const transferPromises = [];
@@ -303,7 +308,7 @@ export class CourseService {
         const transferPromise = this.stripeClient.transfers.create({
           currency: 'usd',
           amount: feeBuy,
-          destination: course.author,
+          destination: course.author.stripe,
           transfer_group: data.metadata.group,
         });
         transferPromises.push(transferPromise);
@@ -325,10 +330,38 @@ export class CourseService {
       // Remove cart
       await queryRunnerCart.manager.getRepository(Cart).remove(cart);
 
+      courses.forEach(async (course) => {
+        // Notification to student
+        this.producerService.addToNotificationQueue({
+          toID: [Number(userBuy)],
+          fromID: course.author.id,
+          data: {
+            courseID: `${course.id}`,
+            toID: `${Number(userBuy)}`,
+            fromID: `${course.author.id}`,
+            type: NotificationPayload.NOTIFICATION_PURCHASE_COURSE_STUDENT,
+          },
+          type: NotificationPayload.NOTIFICATION_PURCHASE_COURSE_STUDENT,
+        });
+
+        // Notification to author
+        this.producerService.addToNotificationQueue({
+          toID: [course.author.id],
+          fromID: Number(userBuy),
+          data: {
+            courseID: `${course.id}`,
+            toID: `${course.author.id}`,
+            fromID: `${Number(userBuy)}`,
+            type: NotificationPayload.NOTIFICATION_PURCHASE_COURSE_INSTRUCTOR,
+          },
+          type: NotificationPayload.NOTIFICATION_PURCHASE_COURSE_INSTRUCTOR,
+        });
+      });
+
       await queryRunnerTransaction.commitTransaction();
       await queryRunnerCart.commitTransaction();
     } catch (err) {
-      console.log("Error: ", err)
+      console.log('Error: ', err);
       await queryRunnerTransaction.rollbackTransaction();
       await queryRunnerCart.rollbackTransaction();
       throw new Error('Payment processing failed:');

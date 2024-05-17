@@ -16,6 +16,7 @@ import { PriceModule } from '../price/price.module';
 import { UploadModule } from '../upload/upload.module';
 import { TransactionRepository } from './transation.repository';
 import { CartModule } from '../cart/cart.module';
+import { QueueModule } from '../queues/queue.module';
 
 @Module({
   imports: [
@@ -46,7 +47,8 @@ import { CartModule } from '../cart/cart.module';
     LevelModule,
     PriceModule,
     UploadModule,
-    CartModule
+    CartModule,
+    QueueModule,
   ],
   providers: [CourseService, CourseRepository, TransactionRepository],
   controllers: [CourseController],

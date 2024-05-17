@@ -202,7 +202,10 @@ export class CartService {
       courseTransactions.push({
         id: course.id,
         price: course.price.value,
-        author: course.user.accountStripeID,
+        author: {
+          id: course.user.id,
+          stripe: course.user.accountStripeID,
+        },
       });
       const product = await this.stripeClient.products.retrieve(
         course.productIdStripe,

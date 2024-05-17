@@ -31,7 +31,10 @@ export enum CourseUtil {
 export interface CourseTransaction {
   id: number;
   price: number;
-  author: string;
+  author: {
+    stripe: string,
+    id: number
+  };
 }
 
 export interface CourseLearning {
