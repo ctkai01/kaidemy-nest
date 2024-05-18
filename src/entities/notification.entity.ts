@@ -16,7 +16,7 @@ import {
 } from 'typeorm';
 import { Lecture } from './lecture.entity';
 import { User } from './user.entity';
-import { NotificationResource } from 'src/constants';
+import { NotificationResource, NotificationType } from 'src/constants';
 
 
 @Entity({ name: 'notifications' })
@@ -48,7 +48,10 @@ export class Notification {
   isRead: boolean;
 
   @Column({ type: 'enum', enum: NotificationResource })
-  type: NotificationResource;
+  entityType: NotificationResource;
+
+  @Column({ type: 'enum', enum: NotificationType })
+  type: NotificationType;
 
   @Column({ nullable: false })
   resourceID: number;

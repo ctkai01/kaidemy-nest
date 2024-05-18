@@ -5,6 +5,8 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Put,
+  Query,
   UseFilters,
   UseInterceptors
 } from '@nestjs/common';
@@ -17,6 +19,7 @@ import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter'
 import { ResponseData } from '../../interface/response.interface';
 import { NotificationService } from './notification.service';
 import { AcceptNotificationDto } from './dto';
+import { GetNotificationDto } from './dto/get-notifications-dto';
 
 @Controller('notifications')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -39,12 +42,28 @@ export class NotificationController {
   @Get('')
   @HttpCode(HttpStatus.OK)
   getNotification(
-    @Body() acceptNotificationDto: AcceptNotificationDto,
+    @Query() getNotificationDto: GetNotificationDto,
     @GetCurrentUserID() userID: number,
   ): Promise<ResponseData> {
-    return this.notificationService.acceptPushNotification(
+    return this.notificationService.getNotifications(
       userID,
-      acceptNotificationDto,
+      getNotificationDto,
     );
+  }
+
+  @Put('read-all')
+  @HttpCode(HttpStatus.OK)
+  readAllNotification(
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.notificationService.readAllNotifications(userID);
+  }
+
+  @Get('no-read')
+  @HttpCode(HttpStatus.OK)
+  countNoReadNotification(
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.notificationService.countNoReadNotifications(userID);
   }
 }

@@ -5,6 +5,11 @@ export enum NotificationResource {
   Course = "course"
 }
 
+export enum NotificationType {
+  INSTRUCTOR = 'INSTRUCTOR',
+  STUDENT = 'STUDENT',
+}
+
 export enum NotificationPayload {
   NOTIFICATION_PURCHASE_COURSE_STUDENT = 'NOTIFICATION_PURCHASE_COURSE_STUDENT',
   NOTIFICATION_PURCHASE_COURSE_INSTRUCTOR = 'NOTIFICATION_PURCHASE_COURSE_INSTRUCTOR',

@@ -1,5 +1,5 @@
 import { StripeModule } from '@golevelup/nestjs-stripe';
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Category, Course, Language, Level, Price, User, Learning, Cart, TransactionDetail, Transaction } from 'src/entities';
@@ -48,7 +48,7 @@ import { QueueModule } from '../queues/queue.module';
     PriceModule,
     UploadModule,
     CartModule,
-    QueueModule,
+    forwardRef(() => QueueModule),
   ],
   providers: [CourseService, CourseRepository, TransactionRepository],
   controllers: [CourseController],

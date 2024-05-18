@@ -15,7 +15,13 @@ import {
   bodyPurchaseCourseInstructor,
   bodyPurchaseCourseStudent,
   bodyReceiveMessage,
+  Order,
+  NotificationType,
+  TEACHER,
 } from 'src/constants';
+import { GetNotificationDto } from './dto/get-notifications-dto';
+import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
+import { PageDto } from 'src/common/paginate/paginate.dto';
 
 firebase.initializeApp({
   credential: firebase.credential.cert(
@@ -58,6 +64,78 @@ export class NotificationService {
     return responseData;
   }
 
+  async getNotifications(
+    userID: number,
+    getNotificationDto: GetNotificationDto,
+  ): Promise<ResponseData> {
+    const { skip, order, page, size } = getNotificationDto;
+    console.log('size: ', size);
+
+    const queryBuilder = this.notificationsRepo
+      .createQueryBuilder('notifications')
+      .orderBy('notifications.created_at', Order.DESC)
+      .where('notifications.toUserId = :toUserId', {
+        toUserId: userID,
+      });
+
+    const itemCount = await queryBuilder.getCount();
+    queryBuilder.skip(skip).take(size);
+
+    const { entities: notifications } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: {
+        skip,
+        order: Order.DESC,
+        page,
+        size,
+      },
+    });
+
+    const data = new PageDto(notifications, pageMetaDto);
+
+    const responseData: ResponseData = {
+      message: 'Get notification successfully!',
+      data,
+    };
+    return responseData;
+  }
+
+  async readAllNotifications(userID: number): Promise<ResponseData> {
+    this.notificationsRepo
+      .createQueryBuilder('notifications')
+      .update(Notification)
+      .set({
+        isRead: true,
+      })
+      .where('"toUserId" = :toUserId', {
+        toUserId: userID,
+      })
+      .execute();
+    const responseData: ResponseData = {
+      message: 'Read all notification successfully!',
+    };
+    return responseData;
+  }
+
+  async countNoReadNotifications(userID: number): Promise<ResponseData> {
+    const noReadNotification = await this.notificationsRepo.find({
+      where: {
+        toUserId: userID,
+        isRead: false
+      }
+    })
+   
+    const responseData: ResponseData = {
+      message: 'Get count no read notification successfully!',
+      data: {
+        count: noReadNotification.length,
+      },
+    };
+    return responseData;
+  }
+
   async pushNotification(pushNotification: PushNotification) {
     const { data, type, fromID, toID } = pushNotification;
     try {
@@ -66,11 +144,18 @@ export class NotificationService {
           id: fromID,
         },
       });
+
       switch (type) {
         case NotificationPayload.NOTIFICATION_CHAT: {
           const userFcmToken = await this.notificationTokenRepo.find({
             where: {
               userId: toID[0],
+            },
+          });
+
+          const userReceiver = await this.userRepo.findOne({
+            where: {
+              id: toID[0],
             },
           });
           await Promise.all(
@@ -94,7 +179,11 @@ export class NotificationService {
             toUserId: toID[0],
             title: TITLE_RECEIVE_MESSAGE,
             body: bodyReceiveMessage(userSender.name),
-            type: NotificationResource.Message,
+            entityType: NotificationResource.Message,
+            type:
+              userReceiver.role === TEACHER
+                ? NotificationType.INSTRUCTOR
+                : NotificationType.STUDENT,
             resourceID: data.chatID,
           };
           await this.notificationsRepo.save(notificationSave);
@@ -125,6 +214,18 @@ export class NotificationService {
               });
             }),
           );
+
+          // Save notification
+          const notificationSave: Partial<Notification> = {
+            fromUserId: fromID,
+            toUserId: toID[0],
+            title: TITLE_PURCHASE_COURSE_STUDENT,
+            body: bodyPurchaseCourseStudent(course.title),
+            entityType: NotificationResource.Course,
+            type: NotificationType.STUDENT,
+            resourceID: course.id,
+          };
+          await this.notificationsRepo.save(notificationSave);
         }
         case NotificationPayload.NOTIFICATION_PURCHASE_COURSE_INSTRUCTOR: {
           const userFcmToken = await this.notificationTokenRepo.find({
@@ -142,7 +243,10 @@ export class NotificationService {
               return await firebase.messaging().send({
                 notification: {
                   title: TITLE_PURCHASE_COURSE_INSTRUCTOR,
-                  body: bodyPurchaseCourseInstructor(userSender.name, course.title),
+                  body: bodyPurchaseCourseInstructor(
+                    userSender.name,
+                    course.title,
+                  ),
                 },
                 data: {
                   ...data,
@@ -151,24 +255,22 @@ export class NotificationService {
               });
             }),
           );
+
+          // Save notification
+          const notificationSave: Partial<Notification> = {
+            fromUserId: fromID,
+            toUserId: toID[0],
+            title: TITLE_PURCHASE_COURSE_INSTRUCTOR,
+            body: bodyPurchaseCourseInstructor(userSender.name, course.title),
+            entityType: NotificationResource.Course,
+            type: NotificationType.INSTRUCTOR,
+            resourceID: course.id,
+          };
+          await this.notificationsRepo.save(notificationSave);
         }
       }
     } catch (err) {
       throw new Error(`Notification processing failed: ${err}`);
     }
-    // await firebase.messaging().send({
-    //   notification: { title, body },
-    //   data: {
-    //     ...data,
-    //   },
-    //   token,
-    //   // 'f5hrOStfYsG0BFjF6KNjx-:APA91bHIqQejTwR32p2zxR6f48DWnKHyQSL00tmoh5wMmuANHK52ltTE47SAfQUd_ep6t31duToyNJK2ClsVR30kbP4HGuZBLdSeHK5-rcFSWzM2PHtpYA3c821umV1sKie4hsx8YmvP',
-    // });
-
-    // const responseData: ResponseData = {
-    //   message: 'Push notification successfully!',
-    // };
-
-    // return responseData;
   }
 }
