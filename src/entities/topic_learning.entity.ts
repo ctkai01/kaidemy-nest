@@ -20,8 +20,20 @@ export class TopicLearning {
   @ManyToOne(() => User, (user) => user.topicLearnings)
   user?: User;
 
-  @ManyToMany(() => Learning,  { onDelete: 'CASCADE' })
-  @JoinTable()
+  @ManyToMany(() => Learning, (learning) => learning.learningTopics, {
+    onDelete: 'CASCADE',
+  })
+  @JoinTable({
+    name: 'topic_learning_learnings', // Explicit join table name
+    joinColumn: {
+      name: 'topic_learning_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'learning_id',
+      referencedColumnName: 'id',
+    },
+  })
   learnings: Learning[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

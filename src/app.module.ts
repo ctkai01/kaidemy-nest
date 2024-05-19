@@ -14,9 +14,26 @@ import {
   Level,
   Notification,
   NotificationToken,
-  Price
+  Price,
+  Answer,
+  AnswerLecture,
+  Cart,
+  User,
+  Chat,
+  Asset,
+  Curriculum,
+  LearningLecture,
+  Learning,
+  Lecture,
+  QuestionLecture,
+  Question,
+  Report,
+  Socket,
+  TopicLearning,
+  TransactionDetail,
+  Transaction,
+
 } from './entities';
-import { User } from './entities/user.entity';
 import { AuthGuard } from './guards/auth.guard';
 import { AuthModule } from './module/auth/auth.module';
 import { CategoryModule } from './module/category/category.module';
@@ -33,17 +50,14 @@ import { UploadService } from './module/upload/upload.service';
 import { QuizModule } from './module/quiz/quiz.module';
 import { QuestionModule } from './module/question/question.module';
 import { AnswerModule } from './module/answer/answer.module';
-import { Cart } from './entities/cart.entity';
 import { CartModule } from './module/cart/cart.module';
 import { StripeWebhookModule } from './module/stripe/stripe.module';
 import { LearningModule } from './module/learning/learning.module';
 import { TopicLearningModule } from './module/topic_learning/topic_learning.module';
 import { ReportModule } from './module/report/report.module';
 import { QuestionLectureModule } from './module/question_lecture/question_lecture.module';
-import { AnswerLecture } from './entities/answer_lecture.entity';
 import { AnswerLectureModule } from './module/answer_lecture/answer_lecture.module';
 import { AdminModule } from './module/admin/admin.module';
-import { Chat } from './entities/chat.entity';
 import { ChatModule } from './module/chat/chat.module';
 import { NotificationModule } from './module/notification/notification.module';
 @Module({
@@ -95,8 +109,21 @@ import { NotificationModule } from './module/notification/notification.module';
             Checkout,
             AnswerLecture,
             Chat,
-            // Notification,
-            NotificationToken
+            Notification,
+            NotificationToken,
+            Answer,
+            Asset,
+            Curriculum,
+            LearningLecture,
+            Learning,
+            Lecture,
+            QuestionLecture,
+            Question,
+            Report,
+            Socket,
+            TopicLearning,
+            TransactionDetail,
+            Transaction,
           ],
           timezone: '+07:00',
         };

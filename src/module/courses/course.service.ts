@@ -21,7 +21,10 @@ import {
   CourseStatus,
   CourseTransaction,
   CourseUtil,
+  EnrollmentStats,
   NotificationPayload,
+  OverviewCourseAuthor,
+  RatingStats,
   UploadResource,
 } from 'src/constants';
 import { Learning } from 'src/entities/learning.entity';
@@ -31,7 +34,7 @@ import { FEE_PLATFORM } from 'src/constants/payment';
 import { ProducerService } from '../queues/producer.service';
 import { GetCoursesOverviewAuthorDto } from './dto/get-courses-overview-author-dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 @Injectable()
 export class CourseService {
   private logger = new Logger(CourseService.name);
@@ -48,6 +51,8 @@ export class CourseService {
     private readonly producerService: ProducerService,
     @InjectRepository(Learning)
     private readonly learningRepository: Repository<Learning>,
+    @InjectRepository(TransactionDetail)
+    private readonly transactionDetailRepository: Repository<TransactionDetail>,
   ) {}
   async createCourse(
     createCourseDto: CreateCourseDto,
@@ -82,6 +87,8 @@ export class CourseService {
       };
 
       const courseCreate = await this.courseRepository.createCourse(courseData);
+
+      await this.registerCourse(userID, courseCreate.id);
 
       const responseData: ResponseData = {
         message: 'Create course successfully!',
@@ -212,7 +219,7 @@ export class CourseService {
       course.priceId = priceID;
 
       const priceParams: Stripe.PriceCreateParams = {
-        currency: 'gbp',
+        currency: 'usd',
         unit_amount: price.value * 100,
         product: course.productIdStripe,
       };
@@ -390,19 +397,30 @@ export class CourseService {
       .createQueryBuilder('learnings')
       .where('learnings.courseId IN (:...courseIDs)', { courseIDs })
       .andWhere(
-        'learnings.type = :standardType OR learnings.type = :archieType',
-        {
-          standardType: CourseUtil.STANDARD_TYPE,
-          archieType: CourseUtil.ARCHIE,
-        },
+        new Brackets((qb) => {
+          qb.where('learnings.type = :standardType', {
+            standardType: CourseUtil.STANDARD_TYPE,
+          }).orWhere('learnings.type = :archieType', {
+            archieType: CourseUtil.ARCHIE,
+          });
+        }),
       )
       .andWhere('EXTRACT(YEAR FROM learnings.createdAt) = :currentYear', {
         currentYear,
       })
       .andWhere('learnings.userId != :idUser', { idUser: userID })
       .getMany();
-    console.log('courseIDs: ', courseIDs);
-    console.log('learnings: ', learnings);
+
+    const transactionDetails = await this.transactionDetailRepository
+      .createQueryBuilder('transaction_details')
+      .where('transaction_details.courseId IN (:...courseIDs)', { courseIDs })
+      .andWhere(
+        'EXTRACT(YEAR FROM transaction_details.createdAt) = :currentYear',
+        {
+          currentYear,
+        },
+      )
+      .getMany();
 
     const monthlyEnrollmentCount = new Array(12).fill(0);
     const monthlyRatingCount = new Array(12).fill(0);
@@ -411,7 +429,11 @@ export class CourseService {
     let totalStarRatings = 0;
     let totalRatingsThisMonth = 0;
     let totalEnrollmentThisMonth = 0;
+    let revenue = 0;
 
+    transactionDetails.forEach((transactionDetail) => {
+      revenue += transactionDetail.fee_buy;
+    });
     const currentMonth = new Date().getMonth() + 1; // JavaScript months are 0-based, adding 1 to match 1-based month
 
     learnings.forEach((learning) => {
@@ -423,8 +445,8 @@ export class CourseService {
         monthlyEnrollmentCount[month - 1]++; // Adjusting month index to start from 0
       }
 
-      if (learning.starCount && learning.updatedAt) {
-        const month = new Date(learning.updatedAt).getMonth() + 1; // Convert to Date object and get month
+      if (learning.starCount && learning.updatedStarCount) {
+        const month = new Date(learning.updatedStarCount).getMonth() + 1; // Convert to Date object and get month
         if (month === currentMonth) {
           totalRatingsThisMonth++;
         }
@@ -433,9 +455,33 @@ export class CourseService {
         totalStarRatings += learning.starCount;
       }
     });
+
+    let averageRating = 0;
+    if (totalRatings !== 0) {
+      averageRating = totalStarRatings / totalRatings;
+    }
+    averageRating = parseFloat(averageRating.toFixed(2));
+
+    const ratings: RatingStats = {
+      total: averageRating,
+      totalThisMonth: totalRatingsThisMonth,
+      detailStats: monthlyRatingCount,
+    };
+
+    const enrollments: EnrollmentStats = {
+      total: learnings.length,
+      totalThisMonth: totalEnrollmentThisMonth,
+      detailStats: monthlyEnrollmentCount,
+    };
+
+    const data: OverviewCourseAuthor = {
+      enrollments,
+      ratings,
+      revenues: revenue / 100,
+    };
     const responseData: ResponseData = {
       message: 'Get courses overview author!',
-      // data: course,
+      data,
     };
 
     return responseData;

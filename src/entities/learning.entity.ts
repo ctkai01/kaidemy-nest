@@ -33,8 +33,7 @@ export class Learning {
   @JoinColumn({ name: 'courseId' })
   course?: Course;
 
-  @ManyToMany(() => TopicLearning)
-  @JoinTable()
+  @ManyToMany(() => TopicLearning, (topicLearning) => topicLearning.learnings)
   learningTopics?: TopicLearning[];
 
   @Column({ nullable: true })

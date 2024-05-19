@@ -48,10 +48,11 @@ export class LearningService {
     }
 
     learning.comment = comment;
-    learning.starCount = starCount;
-
+  
     if (starCount !== learning.starCount) {
       learning.updatedStarCount = new Date();
+      learning.starCount = starCount;
+
     }
     learning.type = type;
 

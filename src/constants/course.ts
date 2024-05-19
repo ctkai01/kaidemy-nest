@@ -115,6 +115,27 @@ export interface AnswerLectureShow {
   updatedAt: string;
 }
 
+
+export interface RatingStats {
+  total: number; 
+  totalThisMonth: number;
+  detailStats: number[];
+}
+
+export interface EnrollmentStats {
+  total: number;
+  totalThisMonth: number;
+  detailStats: number[];
+}
+
+export interface OverviewCourseAuthor {
+  enrollments: EnrollmentStats;
+  ratings: RatingStats;
+  revenues: number;
+}
+
+
+
 // export enum AssetKind {
 //   MEDIA = 1,
 //   RESOURCE

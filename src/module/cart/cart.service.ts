@@ -237,6 +237,7 @@ export class CartService {
           group: uuid,
         },
       },
+      // currency: "USD"
     };
 
     const s = await this.stripeClient.checkout.sessions.create(
