@@ -58,6 +58,9 @@ export class Learning {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt?: Date;
 
+   @Column({ type: 'timestamp', nullable: true })
+  updatedStarCount?: Date;
+
   @Column({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',

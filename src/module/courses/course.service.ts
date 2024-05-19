@@ -29,6 +29,9 @@ import { TransactionRepository } from './transation.repository';
 import { CartRepository } from '../cart/cart.repository';
 import { FEE_PLATFORM } from 'src/constants/payment';
 import { ProducerService } from '../queues/producer.service';
+import { GetCoursesOverviewAuthorDto } from './dto/get-courses-overview-author-dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 @Injectable()
 export class CourseService {
   private logger = new Logger(CourseService.name);
@@ -43,6 +46,8 @@ export class CourseService {
     private readonly transactionRepository: TransactionRepository,
     private readonly cartRepository: CartRepository,
     private readonly producerService: ProducerService,
+    @InjectRepository(Learning)
+    private readonly learningRepository: Repository<Learning>,
   ) {}
   async createCourse(
     createCourseDto: CreateCourseDto,
@@ -366,5 +371,73 @@ export class CourseService {
       await queryRunnerCart.rollbackTransaction();
       throw new Error('Payment processing failed:');
     }
+  }
+
+  public async getCoursesOverviewAuthor(
+    userID: number,
+    getCoursesOverviewAuthorDto: GetCoursesOverviewAuthorDto,
+  ): Promise<ResponseData> {
+    const courseByAuthor = await this.courseRepository.find({
+      where: {
+        userID,
+      },
+      select: ['id'],
+    });
+
+    const courseIDs = courseByAuthor.map((course) => course.id);
+    const currentYear = new Date().getFullYear();
+    const learnings = await this.learningRepository
+      .createQueryBuilder('learnings')
+      .where('learnings.courseId IN (:...courseIDs)', { courseIDs })
+      .andWhere(
+        'learnings.type = :standardType OR learnings.type = :archieType',
+        {
+          standardType: CourseUtil.STANDARD_TYPE,
+          archieType: CourseUtil.ARCHIE,
+        },
+      )
+      .andWhere('EXTRACT(YEAR FROM learnings.createdAt) = :currentYear', {
+        currentYear,
+      })
+      .andWhere('learnings.userId != :idUser', { idUser: userID })
+      .getMany();
+    console.log('courseIDs: ', courseIDs);
+    console.log('learnings: ', learnings);
+
+    const monthlyEnrollmentCount = new Array(12).fill(0);
+    const monthlyRatingCount = new Array(12).fill(0);
+
+    let totalRatings = 0;
+    let totalStarRatings = 0;
+    let totalRatingsThisMonth = 0;
+    let totalEnrollmentThisMonth = 0;
+
+    const currentMonth = new Date().getMonth() + 1; // JavaScript months are 0-based, adding 1 to match 1-based month
+
+    learnings.forEach((learning) => {
+      if (learning.createdAt) {
+        const month = new Date(learning.createdAt).getMonth() + 1; // Convert to Date object and get month
+        if (month === currentMonth) {
+          totalEnrollmentThisMonth++;
+        }
+        monthlyEnrollmentCount[month - 1]++; // Adjusting month index to start from 0
+      }
+
+      if (learning.starCount && learning.updatedAt) {
+        const month = new Date(learning.updatedAt).getMonth() + 1; // Convert to Date object and get month
+        if (month === currentMonth) {
+          totalRatingsThisMonth++;
+        }
+        monthlyRatingCount[month - 1]++; // Adjusting month index to start from 0
+        totalRatings++;
+        totalStarRatings += learning.starCount;
+      }
+    });
+    const responseData: ResponseData = {
+      message: 'Get courses overview author!',
+      // data: course,
+    };
+
+    return responseData;
   }
 }

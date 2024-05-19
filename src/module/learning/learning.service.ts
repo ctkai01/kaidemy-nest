@@ -49,6 +49,10 @@ export class LearningService {
 
     learning.comment = comment;
     learning.starCount = starCount;
+
+    if (starCount !== learning.starCount) {
+      learning.updatedStarCount = new Date();
+    }
     learning.type = type;
 
     await this.learningRepository.save(learning);

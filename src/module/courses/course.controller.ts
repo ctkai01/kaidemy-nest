@@ -1,13 +1,17 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
   Post,
   Put,
   UploadedFile,
-  UseFilters, UseInterceptors
+  UseFilters,
+  UseInterceptors,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
 // import { GetCurrentUser, GetCurrentUserId, Public } from 'src/decorators';
@@ -20,6 +24,9 @@ import { ResponseData } from '../../interface/response.interface';
 import { CourseService } from './course.service';
 import { CreateCourseDto, UpdateCourseDto } from './dto';
 import { multerImageOptions } from './multer.config';
+import { GetCoursesOverviewAuthorDto } from './dto/get-courses-overview-author-dto';
+import { GuardsConsumer } from '@nestjs/core/guards';
+import { InstructorRoleGuard } from 'src/guards/author-role.guard';
 
 @Controller('courses')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -50,6 +57,19 @@ export class CourseController {
       userID,
       courseID,
       image,
+    );
+  }
+
+  @UseGuards(InstructorRoleGuard)
+  @Get('overview/author')
+  @HttpCode(HttpStatus.OK)
+  getCourseOverviewAuthor(
+    @GetCurrentUserID() userID: number,
+    @Query() getCoursesOverviewAuthorDto: GetCoursesOverviewAuthorDto,
+  ): Promise<ResponseData> {
+    return this.courseService.getCoursesOverviewAuthor(
+      userID,
+      getCoursesOverviewAuthorDto,
     );
   }
 }
