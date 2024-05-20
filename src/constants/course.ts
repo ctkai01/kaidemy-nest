@@ -170,6 +170,38 @@ export interface CourseCurriculum {
   createdAt: Date;
 }
 
+export interface CurriculumPublic {
+  id?: number;
+  title: string;
+  description: string;
+  courseId: number;
+  lectures?: LecturePublic[];
+  updatedAt?: Date;
+  createdAt?: Date;
+}
+
+export interface LecturePublic {
+  id?: number;
+  title: string;
+  article?: string;
+  description?: string;
+  assets?: AssetPublic[];
+  isPromotional?: boolean;
+  curriculumID: number;
+  type: number;
+  updatedAt?: Date;
+  createdAt?: Date;
+}
+
+export interface AssetPublic {
+  id?: number;
+  lectureId: number;
+  type: number;
+  duration?: number;
+  size: number;
+  created_at?: string;
+  updated_at?: string;
+}
 // export enum AssetKind {
 //   MEDIA = 1,
 //   RESOURCE
