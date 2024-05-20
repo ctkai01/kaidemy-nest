@@ -8,4 +8,12 @@ export class GetCourseDto extends PageCommonOptionsDto {
   @Transform(({ value, key, obj, type }) => +value)
   @IsEnum(FilterOrderCourse)
   filterOrder: FilterOrderCourse;
+
+  @IsOptional()
+  @Transform(({ value, key, obj, type }) => +value)
+  userID: number;
+
+  @IsOptional()
+  @Transform(({ value, key, obj, type }) => +value)
+  subCategoryID: number;
 }

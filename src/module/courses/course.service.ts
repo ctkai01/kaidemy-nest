@@ -38,9 +38,7 @@ import { ProducerService } from '../queues/producer.service';
 import { GetCoursesOverviewAuthorDto } from './dto/get-courses-overview-author-dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
-import {
-  GetCourseDto,
-} from './dto/get-curriculum-by-course-id-dto';
+import { GetCourseDto } from './dto/get-curriculum-by-course-id-dto';
 import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
 import { PageDto } from 'src/common/paginate/paginate.dto';
 @Injectable()
@@ -738,11 +736,8 @@ export class CourseService {
     return responseData;
   }
 
-  public async getCoursesByUserID(
-    userID: number,
-    getCourseDto: GetCourseDto,
-  ): Promise<ResponseData> {
-    const { skip, filterOrder, search, page, size } = getCourseDto;
+  public async getCourses(getCourseDto: GetCourseDto): Promise<ResponseData> {
+    const { skip, filterOrder, search, page, size, userID, subCategoryID } = getCourseDto;
     const queryBuilder = this.courseRepository
       .createQueryBuilder('courses')
       .leftJoinAndSelect('courses.price', 'price')
@@ -753,10 +748,19 @@ export class CourseService {
       .leftJoinAndSelect('courses.curriculums', 'curriculum')
       .leftJoinAndSelect('curriculum.lectures', 'lecture')
       .leftJoinAndSelect('lecture.assets', 'asset')
-      .leftJoinAndSelect('courses.user', 'user')
-      .where('courses.userID = :userID', {
+      .leftJoinAndSelect('courses.user', 'user');
+
+    if (subCategoryID) {
+      queryBuilder.where('courses.subCategoryId = :subCategoryID', {
+        subCategoryID,
+      });
+    }
+
+    if (userID) {
+      queryBuilder.where('courses.userID = :userID', {
         userID,
       });
+    }
     if (filterOrder) {
       switch (filterOrder) {
         case FilterOrderCourse.NEWEST_FILTER: {
@@ -838,10 +842,9 @@ export class CourseService {
     return responseData;
   }
 
-  public async getCoursesTop(
-    // userID: number,
-    // getCourseDto: GetCourseDto,
-  ): Promise<ResponseData> {
+  public async getCoursesTop() // userID: number,
+  // getCourseDto: GetCourseDto,
+  : Promise<ResponseData> {
     // const { skip, filterOrder, search, page, size } = getCourseDto;
     // const queryBuilder = this.courseRepository
     //   .createQueryBuilder('courses')

@@ -1,10 +1,12 @@
 import {
-  BadRequestException, forwardRef, Inject,
+  BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  UnauthorizedException
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -20,14 +22,17 @@ import { PageDto } from 'src/common/paginate/paginate.dto';
 import {
   ACCOUNT_STRIPE_PENDING,
   ACCOUNT_STRIPE_VERIFY,
+  AuthorStatistic,
+  CourseStatus,
+  CourseUtil,
   NORMAL_USER,
   TEACHER,
-  UploadResource
+  UploadResource,
 } from 'src/constants';
 import { UserLogin } from 'src/response';
 import { generateHashKey, hashData } from 'src/utils';
 import Stripe from 'stripe';
-import { getRepository } from 'typeorm';
+import { getRepository, Repository } from 'typeorm';
 import { ResponseData } from '../../interface/response.interface';
 import { AuthService } from '../auth/auth.service';
 import { UploadService } from '../upload/upload.service';
@@ -37,6 +42,8 @@ import { GetUserDto } from './dto/get-user-dto';
 import { UpdateProfileDto } from './dto/update-user-dto';
 import { VerifyTeacherDto } from './dto/verify-teacher-dto';
 import { UserRepository } from './user.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Course, Learning } from 'src/entities';
 
 @Injectable()
 export class UserService {
@@ -49,6 +56,10 @@ export class UserService {
     private readonly uploadService: UploadService,
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
+    @InjectRepository(Learning)
+    private readonly learningRepository: Repository<Learning>,
+    @InjectRepository(Course)
+    private readonly courseRepository: Repository<Course>,
   ) {}
   async changePassword(
     changePasswordDto: ChangePasswordDto,
@@ -311,6 +322,77 @@ export class UserService {
     const responseData: ResponseData = {
       message: 'Verify register teacher successfully!',
       data: useLoginData,
+    };
+    return responseData;
+  }
+
+  async getInstructorStat(userID: number): Promise<ResponseData> {
+    const user = await this.userRepository.findOne({
+      where: [{ id: userID }],
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.role !== TEACHER) {
+      throw new BadRequestException('User is not a teacher');
+    }
+
+    let courses = await this.courseRepository
+      .createQueryBuilder('courses')
+      .select('courses.id')
+      .where('courses.userID = :userID', {
+        userID,
+      })
+      .andWhere('courses.reviewStatus = :reviewStatus', {
+        reviewStatus: CourseStatus.REVIEW_VERIFY,
+      })
+      .leftJoinAndSelect(
+        'courses.learnings',
+        'learnings',
+        'learnings.type IN (:...types)',
+      )
+      .setParameter('types', [CourseUtil.STANDARD_TYPE, CourseUtil.ARCHIE])
+      .getMany();
+
+    const courseIDs = courses.map((course) => course.id);
+
+    let totalReviewCountStar: number = 0;
+    let totalReviewCount: number = 0;
+    let totalStudent: number = 0;
+
+    courses.forEach((course) => {
+      course.learnings.forEach((learning) => {
+        if (learning.starCount) {
+          totalReviewCountStar += learning.starCount;
+          totalReviewCount++;
+        }
+        totalStudent++;
+      });
+    });
+
+    let averageReview: number;
+    if (totalReviewCount) {
+      averageReview = totalReviewCountStar / totalReviewCount;
+      averageReview = parseFloat(averageReview.toFixed(2));
+    }
+
+    const data: AuthorStatistic = {
+      user: {
+        id: user.id,
+        name: user.name,
+        avatar: user.avatar,
+        biography: user.biography,
+      },
+      averageReview,
+      countReview: totalReviewCount,
+      countStudent: totalStudent,
+      totalCourse: courses.length,
+    };
+    const responseData: ResponseData = {
+      message: 'Get instructor stat successfully!',
+      data,
     };
     return responseData;
   }

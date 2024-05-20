@@ -95,6 +95,13 @@ export class UserController {
     return this.userService.verifyTeacher(userID, verifyTeacherDto);
   }
 
+  @Get(':id/instructor/stat')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  getStatInstructor(@Param('id') userID: number): Promise<ResponseData> {
+    return this.userService.getInstructorStat(userID);
+  }
+
   // @Public()
   // @Post('change-password')
   // @HttpCode(HttpStatus.OK)

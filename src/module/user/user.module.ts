@@ -10,10 +10,11 @@ import { UserService } from './user.service';
 import { StripeModule } from '@golevelup/nestjs-stripe';
 import { AuthModule } from '../auth/auth.module';
 import { AuthService } from '../auth/auth.service';
+import { Course, Learning } from 'src/entities';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Learning, Course]),
     ConfigModule,
     JwtModule.register({}),
     UploadModule,

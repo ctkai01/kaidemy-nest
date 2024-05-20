@@ -111,12 +111,12 @@ export class CourseController {
   }
 
   @Get('')
+  @Public()
   @HttpCode(HttpStatus.OK)
   getCourses(
-    @GetCurrentUserID() userID: number,
     @Query() getCourseDto: GetCourseDto,
   ): Promise<ResponseData> {
-    return this.courseService.getCoursesByUserID(userID, getCourseDto);
+    return this.courseService.getCourses(getCourseDto);
   }
 
   @Get('top')
