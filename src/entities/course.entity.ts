@@ -18,6 +18,7 @@ import { User } from './user.entity';
 import { Level } from './level.entity';
 import { Curriculum } from './curriculum.entity';
 import { Report } from './report.entity';
+import { Language } from './language.entity';
 
 @Entity({ name: 'courses' })
 export class Course {
@@ -124,6 +125,10 @@ export class Course {
   @JoinColumn({ name: 'levelId' })
   level: Level;
 
+  @ManyToOne(() => Language, (language) => language.courses)
+  @JoinColumn({ name: 'languageId' })
+  language: Language;
+
   @ManyToOne(() => Category)
   @JoinColumn({ name: 'subCategoryId', referencedColumnName: 'id' })
   subCategory: Category;
@@ -143,7 +148,7 @@ export class Course {
   @OneToMany(() => Curriculum, (curriculum) => curriculum.course)
   curriculums?: Curriculum[];
 
-   @OneToMany(() => QuestionLecture, (questionLecture) => questionLecture.course)
+  @OneToMany(() => QuestionLecture, (questionLecture) => questionLecture.course)
   questionLectures?: QuestionLecture[];
 
   @OneToMany(

@@ -69,7 +69,6 @@ export class NotificationService {
     getNotificationDto: GetNotificationDto,
   ): Promise<ResponseData> {
     const { skip, order, page, size } = getNotificationDto;
-    console.log('size: ', size);
 
     const queryBuilder = this.notificationsRepo
       .createQueryBuilder('notifications')

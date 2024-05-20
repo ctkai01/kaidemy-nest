@@ -1,9 +1,16 @@
-import { Category, Level, Price } from "src/entities";
-import { AuthorLearning, UserQuestionLecture } from "./user";
+import { Category, Curriculum, Level, Price } from 'src/entities';
+import { AuthorLearning, UserQuestionLecture } from './user';
 
 export enum LectureType {
   LECTURE = 1,
   QUIZ,
+}
+
+export enum FilterOrderCourse {
+  NEWEST_FILTER = 1,
+  OLDEST_FILTER,
+  AZ_FILTER,
+  ZA_FILTER
 }
 
 export enum CourseStatus {
@@ -32,8 +39,8 @@ export interface CourseTransaction {
   id: number;
   price: number;
   author: {
-    stripe: string,
-    id: number
+    stripe: string;
+    id: number;
   };
 }
 
@@ -67,19 +74,19 @@ export interface TopicLearningShow {
   title: string;
   description?: string;
   userID: number;
-  learnings: LearningShow[]
+  learnings: LearningShow[];
 }
 
 export interface CourseReport {
   id: number;
   title: string;
-  image?: string
+  image?: string;
 }
 
 export interface CourseQuestionLecture {
   id: number;
   title: string;
-  image?: string
+  image?: string;
 }
 
 export interface QuestionLectureShow {
@@ -115,9 +122,8 @@ export interface AnswerLectureShow {
   updatedAt: string;
 }
 
-
 export interface RatingStats {
-  total: number; 
+  total: number;
   totalThisMonth: number;
   detailStats: number[];
 }
@@ -134,7 +140,35 @@ export interface OverviewCourseAuthor {
   revenues: number;
 }
 
-
+export interface CourseCurriculum {
+  id: number;
+  outComes: string[];
+  intendedFor: string[];
+  requirements: string[];
+  productIdStripe: string;
+  level: Level;
+  category: Category;
+  subCategory: Category;
+  title: string;
+  welcomeMessage?: string;
+  congratulationsMessage?: string;
+  subtitle?: string;
+  primarilyTeach?: string;
+  description?: string;
+  reviewStatus?: number;
+  user: {
+    id: number;
+    name: string;
+  };
+  promotionalVideo?: string;
+  image?: string;
+  curriculums?: Curriculum[];
+  averageReview?: number;
+  countReview?: number;
+  countStudent?: number;
+  updatedAt: Date;
+  createdAt: Date;
+}
 
 // export enum AssetKind {
 //   MEDIA = 1,

@@ -266,12 +266,14 @@ export class LectureService {
     }
 
     //Upload resource
+    const queryRunnerAsset = this.assetRepository.manager.connection.createQueryRunner();
     try {
       const url = await this.uploadService.uploadResource(
         asset,
         UploadResource.Resource,
       );
-      this.assetRepository.queryRunner.startTransaction();
+      // this.assetRepository.queryRunner.startTransaction();
+      await queryRunnerAsset.startTransaction();
 
       const assetCreate: Asset = {
         url,
@@ -282,9 +284,9 @@ export class LectureService {
       };
       await this.assetRepository.save(assetCreate);
 
-      this.assetRepository.queryRunner.commitTransaction();
+      await queryRunnerAsset.commitTransaction();
     } catch (err) {
-      this.assetRepository.queryRunner.rollbackTransaction();
+      await queryRunnerAsset.rollbackTransaction();
       throw new InternalServerErrorException('Uploaded resource failed');
     }
 
@@ -432,12 +434,14 @@ export class LectureService {
     }
 
     //Upload resource
+    const queryRunnerAsset =
+      this.assetRepository.manager.connection.createQueryRunner();
     try {
       const videoBunny = await this.uploadService.uploadVideo(
         asset,
         lecture.title,
       );
-      this.assetRepository.queryRunner.startTransaction();
+      await queryRunnerAsset.startTransaction();
 
       const assetCreate: Asset = {
         url: videoBunny.url,
@@ -450,9 +454,9 @@ export class LectureService {
       };
       await this.assetRepository.save(assetCreate);
 
-      this.assetRepository.queryRunner.commitTransaction();
+      await queryRunnerAsset.commitTransaction();
     } catch (err) {
-      this.assetRepository.queryRunner.rollbackTransaction();
+      await queryRunnerAsset.rollbackTransaction();
       throw new InternalServerErrorException('Uploaded video failed');
     }
 

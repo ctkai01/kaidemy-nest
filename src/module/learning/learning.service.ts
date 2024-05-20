@@ -184,9 +184,9 @@ export class LearningService {
       .leftJoinAndSelect('lecture.assets', 'asset');
       
 
-    if (getLearningDto.type) {
-      queryBuilder.where('learning.type = :type', {
-        type: getLearningDto.type,
+    if (getLearningDto.types) {
+      queryBuilder.where('learning.type IN (:...types)', {
+        types: getLearningDto.types,
       });
     }
     const itemCount = await queryBuilder.getCount();
@@ -198,7 +198,6 @@ export class LearningService {
 
     const { entities: learnings } = await queryBuilder.getRawAndEntities();
 
-    // console.log('learnings: ', learnings);
     const learningShows: LearningShow[] = [];
 
     learnings.forEach((learning) => {

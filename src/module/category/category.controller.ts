@@ -23,6 +23,7 @@ import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter'
 import { ResponseData } from '../../interface/response.interface';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto';
+import { Public } from 'src/decorators';
 
 @Controller('categories')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -56,13 +57,22 @@ export class CategoryController {
     return this.categoryService.deleteCategory(categoryID);
   }
 
+  @Get('top')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  getTop5Categories(): Promise<ResponseData> {
+    return this.categoryService.getTop5Categories();
+  }
+
   @Get(':id')
+  @Public()
   @HttpCode(HttpStatus.OK)
   getCategoryByID(@Param('id') categoryID: number): Promise<ResponseData> {
     return this.categoryService.getCategoryByID(categoryID);
   }
 
-  @Get()
+  @Get('')
+  @Public()
   @HttpCode(HttpStatus.OK)
   getCategories(
     @Query() pageCommonOptionsDto: PageCommonOptionsDto,

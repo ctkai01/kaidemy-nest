@@ -18,11 +18,14 @@ import { LevelRepository } from '../level/level.repository';
 import { PriceRepository } from '../price/price.repository';
 import { UploadService } from '../upload/upload.service';
 import {
+  CourseCurriculum,
   CourseStatus,
   CourseTransaction,
   CourseUtil,
   EnrollmentStats,
+  FilterOrderCourse,
   NotificationPayload,
+  Order,
   OverviewCourseAuthor,
   RatingStats,
   UploadResource,
@@ -35,6 +38,11 @@ import { ProducerService } from '../queues/producer.service';
 import { GetCoursesOverviewAuthorDto } from './dto/get-courses-overview-author-dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
+import {
+  GetCourseDto,
+} from './dto/get-curriculum-by-course-id-dto';
+import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
+import { PageDto } from 'src/common/paginate/paginate.dto';
 @Injectable()
 export class CourseService {
   private logger = new Logger(CourseService.name);
@@ -484,6 +492,449 @@ export class CourseService {
       data,
     };
 
+    return responseData;
+  }
+
+  public async getCurriculumByCourseID(
+    courseID: number,
+  ): Promise<ResponseData> {
+    const course = await this.courseRepository
+      .createQueryBuilder('courses')
+      .leftJoinAndSelect('courses.price', 'price')
+      .leftJoinAndSelect('courses.level', 'level')
+      .leftJoinAndSelect('courses.category', 'category')
+      .leftJoinAndSelect('courses.subCategory', 'subCategory')
+      .leftJoinAndSelect('courses.language', 'language')
+      .leftJoinAndSelect('courses.curriculums', 'curriculum')
+      .leftJoinAndSelect('curriculum.lectures', 'lecture')
+      .leftJoinAndSelect('lecture.questionLectures', 'questionLecture')
+      .leftJoinAndSelect('lecture.assets', 'asset')
+      .leftJoinAndSelect('questionLecture.answerLectures', 'answerLecture')
+      .leftJoinAndSelect('courses.user', 'user')
+      .leftJoinAndSelect(
+        'courses.learnings',
+        'learnings',
+        'learnings.type IN (:...types)',
+      )
+      .where('courses.id = :courseID', { courseID })
+      .setParameter('types', [CourseUtil.STANDARD_TYPE, CourseUtil.ARCHIE])
+      .getOne();
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+    let totalReviewCountStar: number = 0;
+    let totalReviewCount: number = 0;
+    let totalStudent: number = 0;
+
+    course.learnings.forEach((learning) => {
+      if (learning.starCount) {
+        totalReviewCountStar += learning.starCount;
+        totalReviewCount++;
+      }
+      totalStudent++;
+    });
+    let averageReview: number;
+
+    if (totalReviewCount) {
+      averageReview = totalReviewCountStar / totalReviewCount;
+      averageReview = parseFloat(averageReview.toFixed(2));
+    }
+
+    const data: CourseCurriculum = {
+      id: course.id,
+      outComes: course.outComes,
+      intendedFor: course.intendedFor,
+      requirements: course.requirements,
+      productIdStripe: course.productIdStripe,
+      level: course.level,
+      category: course.category,
+      subCategory: course.subCategory,
+      title: course.title,
+      welcomeMessage: course.welcomeMessage,
+      congratulationsMessage: course.congratulationsMessage,
+      subtitle: course.subtitle,
+      primarilyTeach: course.primarilyTeach,
+      description: course.description,
+      reviewStatus: course.reviewStatus,
+      user: {
+        id: course.user.id,
+        name: course.user.name,
+      },
+      averageReview,
+      countReview: totalReviewCount,
+      countStudent: totalStudent,
+      promotionalVideo: course.promotionalVideo,
+      image: course.image,
+      curriculums: course.curriculums,
+      createdAt: course.createdAt,
+      updatedAt: course.updatedAt,
+    };
+    const responseData: ResponseData = {
+      message: 'Get curriculums by course successfully!',
+      data,
+    };
+
+    return responseData;
+  }
+
+  public async getCurriculumByCourseIDAuth(
+    courseID: number,
+    userID: number,
+  ): Promise<ResponseData> {
+    const learningUser = await this.learningRepository
+      .createQueryBuilder('learnings')
+      .where('learnings.userId = :userID', {
+        userID,
+      })
+      .andWhere('learnings.userId = :userID', {
+        userID,
+      })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('learnings.type = :standardType', {
+            standardType: CourseUtil.STANDARD_TYPE,
+          }).orWhere('learnings.type = :archieType', {
+            archieType: CourseUtil.ARCHIE,
+          });
+        }),
+      )
+      .getOne();
+
+    if (!learningUser) {
+      throw new ForbiddenException();
+    }
+    const course = await this.courseRepository
+      .createQueryBuilder('courses')
+      .leftJoinAndSelect('courses.price', 'price')
+      .leftJoinAndSelect('courses.level', 'level')
+      .leftJoinAndSelect('courses.category', 'category')
+      .leftJoinAndSelect('courses.subCategory', 'subCategory')
+      .leftJoinAndSelect('courses.language', 'language')
+      .leftJoinAndSelect('courses.curriculums', 'curriculum')
+      .leftJoinAndSelect('curriculum.lectures', 'lecture')
+      .leftJoinAndSelect('lecture.questionLectures', 'questionLecture')
+      .leftJoinAndSelect('lecture.assets', 'asset')
+      .leftJoinAndSelect('questionLecture.answerLectures', 'answerLecture')
+      .leftJoinAndSelect('courses.user', 'user')
+      .leftJoinAndSelect(
+        'courses.learnings',
+        'learnings',
+        'learnings.type IN (:...types)',
+      )
+      .where('courses.id = :courseID', { courseID })
+      .setParameter('types', [CourseUtil.STANDARD_TYPE, CourseUtil.ARCHIE])
+      .getOne();
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+    let totalReviewCountStar: number = 0;
+    let totalReviewCount: number = 0;
+    let totalStudent: number = 0;
+
+    course.learnings.forEach((learning) => {
+      if (learning.starCount) {
+        totalReviewCountStar += learning.starCount;
+        totalReviewCount++;
+      }
+      totalStudent++;
+    });
+    let averageReview: number;
+
+    if (totalReviewCount) {
+      averageReview = totalReviewCountStar / totalReviewCount;
+      averageReview = parseFloat(averageReview.toFixed(2));
+    }
+
+    const data: CourseCurriculum = {
+      id: course.id,
+      outComes: course.outComes,
+      intendedFor: course.intendedFor,
+      requirements: course.requirements,
+      productIdStripe: course.productIdStripe,
+      level: course.level,
+      category: course.category,
+      subCategory: course.subCategory,
+      title: course.title,
+      welcomeMessage: course.welcomeMessage,
+      congratulationsMessage: course.congratulationsMessage,
+      subtitle: course.subtitle,
+      primarilyTeach: course.primarilyTeach,
+      description: course.description,
+      reviewStatus: course.reviewStatus,
+      user: {
+        id: course.user.id,
+        name: course.user.name,
+      },
+      averageReview,
+      countReview: totalReviewCount,
+      countStudent: totalStudent,
+      promotionalVideo: course.promotionalVideo,
+      image: course.image,
+      curriculums: course.curriculums,
+      createdAt: course.createdAt,
+      updatedAt: course.updatedAt,
+    };
+    const responseData: ResponseData = {
+      message: 'Get curriculums by course successfully!',
+      data,
+    };
+
+    return responseData;
+  }
+
+  public async getCourseByID(
+    courseID: number,
+    userID: number,
+  ): Promise<ResponseData> {
+    const course = await this.courseRepository
+      .createQueryBuilder('courses')
+      .leftJoinAndSelect('courses.curriculums', 'curriculum')
+      .leftJoinAndSelect('curriculum.lectures', 'lecture')
+      .leftJoinAndSelect('courses.user', 'user')
+      .where('courses.id = :courseID', { courseID })
+      .getOne();
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+    const responseData: ResponseData = {
+      message: 'Get course by id successfully!',
+      data: course,
+    };
+
+    return responseData;
+  }
+
+  public async submitReviewCourseByID(
+    courseID: number,
+    userID: number,
+  ): Promise<ResponseData> {
+    const course = await this.courseRepository
+      .createQueryBuilder('courses')
+      .where('courses.id = :courseID', { courseID })
+      .getOne();
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    if (course.userID !== userID) {
+      throw new ForbiddenException();
+    }
+
+    if (course.reviewStatus !== CourseStatus.REVIEW_INIT) {
+      throw new ForbiddenException();
+    }
+
+    course.reviewStatus = CourseStatus.REVIEW_PENDING;
+    await this.courseRepository.save(course);
+    const responseData: ResponseData = {
+      message: 'Submit review course by id successfully!',
+      data: course,
+    };
+
+    return responseData;
+  }
+
+  public async getCoursesByUserID(
+    userID: number,
+    getCourseDto: GetCourseDto,
+  ): Promise<ResponseData> {
+    const { skip, filterOrder, search, page, size } = getCourseDto;
+    const queryBuilder = this.courseRepository
+      .createQueryBuilder('courses')
+      .leftJoinAndSelect('courses.price', 'price')
+      .leftJoinAndSelect('courses.level', 'level')
+      .leftJoinAndSelect('courses.category', 'category')
+      .leftJoinAndSelect('courses.subCategory', 'subCategory')
+      .leftJoinAndSelect('courses.language', 'language')
+      .leftJoinAndSelect('courses.curriculums', 'curriculum')
+      .leftJoinAndSelect('curriculum.lectures', 'lecture')
+      .leftJoinAndSelect('lecture.assets', 'asset')
+      .leftJoinAndSelect('courses.user', 'user')
+      .where('courses.userID = :userID', {
+        userID,
+      });
+    if (filterOrder) {
+      switch (filterOrder) {
+        case FilterOrderCourse.NEWEST_FILTER: {
+          queryBuilder.orderBy('courses.createdAt', Order.DESC);
+          break;
+        }
+        case FilterOrderCourse.OLDEST_FILTER: {
+          queryBuilder.orderBy('courses.createdAt', Order.ASC);
+          break;
+        }
+        case FilterOrderCourse.AZ_FILTER: {
+          queryBuilder.orderBy('courses.title', Order.ASC);
+          break;
+        }
+        case FilterOrderCourse.ZA_FILTER: {
+          queryBuilder.orderBy('courses.title', Order.ASC);
+          break;
+        }
+      }
+    }
+
+    if (search) {
+      queryBuilder.where('courses.title LIKE :searchQuery', {
+        searchQuery: `%${search}%`,
+      });
+    }
+
+    const itemCount = await queryBuilder.getCount();
+    queryBuilder.skip(skip).take(size);
+
+    const { entities: courses } = await queryBuilder.getRawAndEntities();
+
+    const coursesData = courses.map((course) => {
+      const data: CourseCurriculum = {
+        id: course.id,
+        outComes: course.outComes,
+        intendedFor: course.intendedFor,
+        requirements: course.requirements,
+        productIdStripe: course.productIdStripe,
+        level: course.level,
+        category: course.category,
+        subCategory: course.subCategory,
+        title: course.title,
+        welcomeMessage: course.welcomeMessage,
+        congratulationsMessage: course.congratulationsMessage,
+        subtitle: course.subtitle,
+        primarilyTeach: course.primarilyTeach,
+        description: course.description,
+        reviewStatus: course.reviewStatus,
+        user: {
+          id: course.user.id,
+          name: course.user.name,
+        },
+        promotionalVideo: course.promotionalVideo,
+        image: course.image,
+        curriculums: course.curriculums,
+        createdAt: course.createdAt,
+        updatedAt: course.updatedAt,
+      };
+      return data;
+    });
+
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: {
+        skip,
+        order: Order.DESC,
+        page,
+        size,
+      },
+    });
+
+    const data = new PageDto(coursesData, pageMetaDto);
+
+    const responseData: ResponseData = {
+      message: 'Get courses successfully!',
+      data,
+    };
+    return responseData;
+  }
+
+  public async getCoursesTop(
+    // userID: number,
+    // getCourseDto: GetCourseDto,
+  ): Promise<ResponseData> {
+    // const { skip, filterOrder, search, page, size } = getCourseDto;
+    // const queryBuilder = this.courseRepository
+    //   .createQueryBuilder('courses')
+    //   .leftJoinAndSelect('courses.price', 'price')
+    //   .leftJoinAndSelect('courses.level', 'level')
+    //   .leftJoinAndSelect('courses.category', 'category')
+    //   .leftJoinAndSelect('courses.subCategory', 'subCategory')
+    //   .leftJoinAndSelect('courses.language', 'language')
+    //   .leftJoinAndSelect('courses.curriculums', 'curriculum')
+    //   .leftJoinAndSelect('curriculum.lectures', 'lecture')
+    //   .leftJoinAndSelect('lecture.assets', 'asset')
+    //   .leftJoinAndSelect('courses.user', 'user')
+    //   .where('courses.userID = :userID', {
+    //     userID,
+    //   });
+    // if (filterOrder) {
+    //   switch (filterOrder) {
+    //     case FilterOrderCourse.NEWEST_FILTER: {
+    //       queryBuilder.orderBy('courses.createdAt', Order.DESC);
+    //       break;
+    //     }
+    //     case FilterOrderCourse.OLDEST_FILTER: {
+    //       queryBuilder.orderBy('courses.createdAt', Order.ASC);
+    //       break;
+    //     }
+    //     case FilterOrderCourse.AZ_FILTER: {
+    //       queryBuilder.orderBy('courses.title', Order.ASC);
+    //       break;
+    //     }
+    //     case FilterOrderCourse.ZA_FILTER: {
+    //       queryBuilder.orderBy('courses.title', Order.ASC);
+    //       break;
+    //     }
+    //   }
+    // }
+
+    // if (search) {
+    //   queryBuilder.where('courses.title LIKE :searchQuery', {
+    //     searchQuery: `%${search}%`,
+    //   });
+    // }
+
+    // const itemCount = await queryBuilder.getCount();
+    // queryBuilder.skip(skip).take(size);
+
+    // const { entities: courses } = await queryBuilder.getRawAndEntities();
+
+    // const coursesData = courses.map((course) => {
+    //   const data: CourseCurriculum = {
+    //     id: course.id,
+    //     outComes: course.outComes,
+    //     intendedFor: course.intendedFor,
+    //     requirements: course.requirements,
+    //     productIdStripe: course.productIdStripe,
+    //     level: course.level,
+    //     category: course.category,
+    //     subCategory: course.subCategory,
+    //     title: course.title,
+    //     welcomeMessage: course.welcomeMessage,
+    //     congratulationsMessage: course.congratulationsMessage,
+    //     subtitle: course.subtitle,
+    //     primarilyTeach: course.primarilyTeach,
+    //     description: course.description,
+    //     reviewStatus: course.reviewStatus,
+    //     user: {
+    //       id: course.user.id,
+    //       name: course.user.name,
+    //     },
+    //     promotionalVideo: course.promotionalVideo,
+    //     image: course.image,
+    //     curriculums: course.curriculums,
+    //     createdAt: course.createdAt,
+    //     updatedAt: course.updatedAt,
+    //   };
+    //   return data;
+    // });
+
+    // const pageMetaDto = new PageMetaDto({
+    //   itemCount,
+    //   pageOptionsDto: {
+    //     skip,
+    //     order: Order.DESC,
+    //     page,
+    //     size,
+    //   },
+    // });
+
+    // const data = new PageDto(coursesData, pageMetaDto);
+
+    const responseData: ResponseData = {
+      message: 'Get courses successfully!',
+      // data,
+    };
     return responseData;
   }
 }

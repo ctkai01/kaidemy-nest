@@ -11,11 +11,19 @@ import { Category } from 'src/entities/category.entity';
 import { ResponseData } from '../../interface/response.interface';
 import { CategoryRepository } from './category.repository';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Course } from 'src/entities';
+import { In, Repository } from 'typeorm';
+import { CourseStatus } from 'src/constants';
 
 @Injectable()
 export class CategoryService {
   private logger = new Logger(CategoryService.name);
-  constructor(private readonly categoryRepository: CategoryRepository) {}
+  constructor(
+    private readonly categoryRepository: CategoryRepository,
+    @InjectRepository(Course)
+    private courseRepository: Repository<Course>,
+  ) {}
   async createCategory(
     createCategoryDto: CreateCategoryDto,
   ): Promise<ResponseData> {
@@ -144,6 +152,35 @@ export class CategoryService {
     const responseData: ResponseData = {
       message: 'Get categories successfully!',
       data,
+    };
+
+    return responseData;
+  }
+
+  async getTop5Categories(): Promise<ResponseData> {
+    const top5Categories = await this.courseRepository
+      .createQueryBuilder('courses')
+      .select('courses.subCategoryId', 'subcategoryID')
+      .addSelect('COUNT(*)', 'count')
+      .where('courses.reviewStatus = :reviewStatus', {
+        reviewStatus: CourseStatus.REVIEW_VERIFY,
+      })
+      .groupBy('courses.subCategoryId')
+      .orderBy('count', 'DESC')
+      .limit(5)
+      .getRawMany();
+
+    const categoriesID = top5Categories.map(
+      (category) => category.subcategoryID,
+    );
+
+    const categories = await this.categoryRepository.find({
+      where: { id: In([...categoriesID]) },
+    });
+    
+    const responseData: ResponseData = {
+      message: 'Get top categories successfully!',
+      data: categories,
     };
 
     return responseData;
