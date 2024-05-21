@@ -770,7 +770,7 @@ export class CourseService {
     }
 
     if (userID) {
-      queryBuilder.where('courses.userID = :userID', {
+      queryBuilder.andWhere('courses.userID = :userID', {
         userID,
       });
     }
@@ -796,7 +796,7 @@ export class CourseService {
     }
 
     if (search) {
-      queryBuilder.where('courses.title LIKE :searchQuery', {
+      queryBuilder.where('UPPER(courses.title) LIKE UPPER(:searchQuery)', {
         searchQuery: `%${search}%`,
       });
     }
@@ -888,14 +888,14 @@ export class CourseService {
       );
 
     if (starCount) {
-      queryBuilder.where('learnings.starCount = :starCount', {
+      queryBuilder.andWhere('learnings.starCount = :starCount', {
         starCount,
       });
     }
     queryBuilder.orderBy('learnings.updatedStarCount', Order.DESC);
 
     if (search) {
-      queryBuilder.where('learnings.comment LIKE :searchQuery', {
+      queryBuilder.andWhere('UPPER(learnings.comment) LIKE UPPER(:searchQuery)', {
         searchQuery: `%${search}%`,
       });
     }
@@ -1087,7 +1087,7 @@ export class CourseService {
       .setParameter('types', [CourseUtil.STANDARD_TYPE, CourseUtil.ARCHIE]);
 
     if (levels) {
-      queryBuilder.where('courses.levelId IN (:...levels)', { levels });
+      queryBuilder.andWhere('courses.levelId IN (:...levels)', { levels });
     }
 
     if (sortCourse) {
@@ -1329,16 +1329,15 @@ export class CourseService {
         reviewStatus: CourseStatus.REVIEW_VERIFY,
       })
       .setParameter('types', [CourseUtil.STANDARD_TYPE, CourseUtil.ARCHIE]);
-      if (search) {
-        console.log("Search: ", search)
-        // queryBuilder.where('courses.title LIKE :searchQuery', {
-        //   searchQuery: `%${search}%`,
-        // })           
-      } 
-      
-      queryBuilder.where('courses.title = :a', { a: "ds"})      
+    if (search) {
+      console.log('Search: ', search);
+      queryBuilder.andWhere('UPPER(courses.title) LIKE UPPER(:searchQuery)', {
+        searchQuery: `%${search}%`,
+      });
+    }
+
     if (levels) {
-      queryBuilder.where('courses.levelId IN (:...levels)', { levels });
+      queryBuilder.andWhere('courses.levelId IN (:...levels)', { levels });
     }
 
     if (sortCourse) {

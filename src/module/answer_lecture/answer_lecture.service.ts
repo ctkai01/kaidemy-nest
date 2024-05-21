@@ -177,9 +177,12 @@ export class AnswerLectureService {
       );
     }
     if (search) {
-      queryBuilder.andWhere('answer_lectures.answer LIKE :searchQuery', {
-        searchQuery: `%${search}%`,
-      });
+      queryBuilder.andWhere(
+        'UPPER(answer_lectures.answer) LIKE UPPER(:searchQuery)',
+        {
+          searchQuery: `%${search}%`,
+        },
+      );
     }
 
     const itemCount = await queryBuilder.getCount();
@@ -223,105 +226,4 @@ export class AnswerLectureService {
 
     return responseData;
   }
-
-  // async getQuestionLecturesAuthor(
-  //   getQuestionLectureDto: GetQuestionLectureDto,
-  //   userID: number,
-  // ): Promise<ResponseData> {
-  //   const { order, skip, size, page, courseID, search } = getQuestionLectureDto;
-
-  //   const queryBuilder =
-  //     this.questionLectureRepository.createQueryBuilder('question_lectures');
-  //   queryBuilder
-  //     .orderBy('question_lectures.createdAt', order)
-
-  //     .leftJoinAndSelect('question_lectures.user', 'user')
-  //     .leftJoinAndSelect('question_lectures.course', 'course');
-
-  //   if (search) {
-  //     queryBuilder.andWhere(function () {
-  //       this.where('question_lectures.title LIKE :searchQuery', {
-  //         searchQuery: `%${search}%`,
-  //       }).orWhere('question_lectures.description LIKE :searchQuery', {
-  //         searchQuery: `%${search}%`,
-  //       });
-  //     });
-  //   }
-  //   console.log('UUU', courseID);
-
-  //   if (courseID) {
-  //     // Check course belong to user
-  //     const course = await this.courseRepository.getCourseByID(courseID);
-
-  //     if (!course) {
-  //       throw new NotFoundException('Course not found');
-  //     }
-
-  //     if (course.userID != userID) {
-  //       throw new ForbiddenException();
-  //     }
-  //     queryBuilder.where('question_lectures.courseId = :courseId', {
-  //       courseId: courseID,
-  //     });
-  //   } else {
-  //     const courses = await this.courseRepository.find({
-  //       where: { userID },
-  //       select: ['id'],
-  //     });
-
-  //     const courseIdsByAuthor = courses.map((course) => course.id);
-  //     queryBuilder.where('question_lectures.courseId IN (:...courseIds)', {
-  //       courseIdsByAuthor,
-  //     });
-  //   }
-  //   const itemCount = await queryBuilder.getCount();
-
-  //   queryBuilder.skip(skip).take(size);
-  //   const { entities: questionLectures } =
-  //     await queryBuilder.getRawAndEntities();
-
-  //   const questionLecturesAuthorShow: QuestionLectureAuthorShow[] = [];
-
-  //   questionLectures.forEach((questionLecture) => {
-  //     questionLecturesAuthorShow.push({
-  //       course: {
-  //         id: questionLecture.course.id,
-  //         title: questionLecture.course.title,
-  //         image: questionLecture.course.image,
-  //       },
-  //       lectureID: questionLecture.lectureId,
-  //       createdAt: questionLecture.createdAt,
-  //       updatedAt: questionLecture.updatedAt,
-  //       description: questionLecture.description,
-  //       title: questionLecture.title,
-  //       id: questionLecture.id,
-  //       user: {
-  //         id: questionLecture.user.id,
-  //         name: questionLecture.user.name,
-  //         avatar: questionLecture.user.avatar,
-  //       },
-  //       totalAnswer: 0,
-  //     });
-  //   });
-
-  //   const pageMetaDto = new PageMetaDto({
-  //     itemCount,
-  //     pageOptionsDto: {
-  //       skip,
-  //       order,
-  //       page,
-  //       size,
-  //       search,
-  //     },
-  //   });
-
-  //   const data = new PageDto(questionLecturesAuthorShow, pageMetaDto);
-
-  //   const responseData: ResponseData = {
-  //     message: 'Get question lecture author successfully!',
-  //     data,
-  //   };
-
-  //   return responseData;
-  // }
 }

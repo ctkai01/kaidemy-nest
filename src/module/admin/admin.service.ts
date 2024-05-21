@@ -122,7 +122,7 @@ export class AdminService {
       });
 
     if (search) {
-      queryBuilder.where('users.name LIKE :searchQuery', {
+      queryBuilder.andWhere('UPPER(users.name) LIKE UPPER(:searchQuery)', {
         searchQuery: `%${search}%`,
       });
     }

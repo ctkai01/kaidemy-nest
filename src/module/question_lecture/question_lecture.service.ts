@@ -204,11 +204,14 @@ export class QuestionLectureService {
 
     if (search) {
       queryBuilder.andWhere(function () {
-        this.where('question_lectures.title LIKE :searchQuery', {
+        this.where('UPPER(question_lectures.title) LIKE UPPER(:searchQuery)', {
           searchQuery: `%${search}%`,
-        }).orWhere('question_lectures.description LIKE :searchQuery', {
-          searchQuery: `%${search}%`,
-        });
+        }).orWhere(
+          'UPPER(question_lectures.description) LIKE UPPER(:searchQuery)',
+          {
+            searchQuery: `%${search}%`,
+          },
+        );
       });
     }
 
@@ -286,11 +289,14 @@ export class QuestionLectureService {
 
     if (search) {
       queryBuilder.andWhere(function () {
-        this.where('question_lectures.title LIKE :searchQuery', {
+        this.where('UPPER(question_lectures.title) LIKE UPPER(:searchQuery)', {
           searchQuery: `%${search}%`,
-        }).orWhere('question_lectures.description LIKE :searchQuery', {
-          searchQuery: `%${search}%`,
-        });
+        }).orWhere(
+          'UPPER(question_lectures.description) LIKE UPPER(:searchQuery)',
+          {
+            searchQuery: `%${search}%`,
+          },
+        );
       });
     }
     console.log('UUU', courseID);

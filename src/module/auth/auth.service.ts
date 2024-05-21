@@ -287,31 +287,6 @@ export class AuthService {
     };
   }
 
-  // async updateRtHash(userId: number, rf: string): Promise<void> {
-  //   const hashRf = await this.hashData(rf);
-  //   const user = await this.userRepository.findOne({
-  //     where: [{ id: userId }],
-  //   });
-  //   user.refresh_token = hashRf;
-
-  //   await this.userRepository.save(user);
-  // }
-
-  // async getAllUser(): Promise<User[]> {
-  //   const users = await this.userRepository.find()
-  //   return users
-  // }
-
-  // async deleteUser(idUser: number): Promise<void> {
-  //   const user = await this.userRepository.findOne({
-  //     where: [{ id: idUser }],
-  //   });
-  //   if (!user) {
-  //     throw new NotFoundException('User not found');
-  //   }
-  //   const result = await this.userRepository.remove(user)
-  // }
-
   getJwtUser(jwt: string): Observable<Promise<User> | null> {
     return from(
       this.jwtService.verifyAsync(jwt, {

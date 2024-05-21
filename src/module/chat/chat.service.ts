@@ -121,13 +121,6 @@ export class ChatService {
 
     mainQuery.skip(skip).take(size);
 
-    // const queryBuilder = this.chatRepository.createQueryBuilder('chats');
-    // queryBuilder
-    //   .orderBy('chats.created_at', Order.DESC)
-    //   .leftJoinAndSelect('chats.toUser', 'toUser')
-    //   .where('chats.fromUserId = :fromUser', {
-    //     fromUser: userID,
-    //   })
 
     const { entities: chatsChannel } = await mainQuery.getRawAndEntities();
 
