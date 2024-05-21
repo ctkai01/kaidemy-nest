@@ -1346,7 +1346,6 @@ export class CourseService {
         queryBuilder.orderBy('courses.createdAt', Order.DESC);
       }
     }
-console.log('Generated SQL:', queryBuilder.getSql());
     const { entities: courses } = await queryBuilder.getRawAndEntities();
 
     let coursesCategory: CourseCategory[] = [];
