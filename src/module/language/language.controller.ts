@@ -23,6 +23,7 @@ import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter'
 import { ResponseData } from '../../interface/response.interface';
 import { CreateLanguageDto, UpdateLanguageDto } from './dto';
 import { LanguageService } from './language.service';
+import { Public } from 'src/decorators';
 
 @Controller('languages')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -58,6 +59,7 @@ export class LanguageController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @Public()
   getLanguages(
     @Query() pageCommonOptionsDto: PageCommonOptionsDto,
   ): Promise<ResponseData> {

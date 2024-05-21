@@ -20,4 +20,7 @@ export class GetQuestionLectureDto extends PageCommonOptionsDto {
   @Transform(({ value, key, obj, type }) => +value)
   courseID?: number;
 
+  @IsOptional()
+  @Transform(({ value, key, obj, type }) => +value)
+  lectureID?: number;
 }

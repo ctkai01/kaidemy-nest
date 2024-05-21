@@ -1,5 +1,5 @@
 import { Category, Curriculum, Level, Price } from 'src/entities';
-import { AuthorLearning, UserQuestionLecture } from './user';
+import { AuthorLearning, UserQuestionLecture, UserShowCommon } from './user';
 
 export enum LectureType {
   LECTURE = 1,
@@ -10,7 +10,7 @@ export enum FilterOrderCourse {
   NEWEST_FILTER = 1,
   OLDEST_FILTER,
   AZ_FILTER,
-  ZA_FILTER
+  ZA_FILTER,
 }
 
 export enum CourseStatus {
@@ -27,6 +27,14 @@ export enum AssetType {
 export enum UploadType {
   UPLOAD_ARTICLE,
   REMOVE_ASSET,
+}
+
+export enum StarCount {
+  ONE = 1,
+  TWO,
+  THREE,
+  FOUR,
+  FIVE,
 }
 
 export enum CourseUtil {
@@ -67,6 +75,39 @@ export interface LearningShow {
   course: CourseLearning;
   averageReview?: number;
   countReview?: number;
+}
+
+export enum CourseSort {
+  NEWEST_SORT = 'newest',
+  HIGHEST_SORT = 'highest_rated',
+  MOST_REVIEW_SORT = 'most_review',
+}
+
+export enum AverageRating {
+  ONE_RATING = 4.5,
+  TWO_RATING = 4.0,
+  THREE_RATING = 3.5,
+  FOUR_RATING = 3.0,
+}
+
+export interface OverallCourse {
+  tierOneRatingCount: number;
+  tierTwoRatingCount: number;
+  tierThreeRatingCount: number;
+  tierFourRatingCount: number;
+  tierOneDurationCount: number;
+  tierTwoDurationCount: number;
+  allLevelCount: number;
+  beginnerLevelCount: number;
+  intermediateLevelCount: number;
+  expertLevelCount: number;
+}
+
+
+
+export enum CourseDurationFilter {
+  SHORT_DURATION = 'short',
+  EXTRA_SHORT_DURATION = 'extraShort',
 }
 
 export interface TopicLearningShow {
@@ -199,8 +240,54 @@ export interface AssetPublic {
   type: number;
   duration?: number;
   size: number;
-  created_at?: string;
-  updated_at?: string;
+  updatedAt?: Date;
+  createdAt?: Date;
+}
+
+export interface LearningReview {
+  id?: number;
+  type: number;
+  starCount?: number;
+  comment?: string;
+  user: UserShowCommon;
+  updatedStarCount?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface OverallReviewsByCourseID {
+  averageReview: number;
+  totalReview: number;
+  overall: {
+    fiveStar: number;
+    fourStar: number;
+    threeStar: number;
+    twoStar: number;
+    oneStar: number;
+  };
+}
+
+export interface CourseCategory {
+  id: number;
+  level: Level;
+  title: string;
+  subtitle: string;
+  price: Price;
+  reviewStatus: number;
+  user: UserShowCommon;
+  outComes: string[];
+  intendedFor: string[];
+  requirements: string[];
+  isPurchased: boolean;
+  totalLecture: number;
+  duration: number;
+  averageRating: number;
+  totalRating: number;
+  category: Category;
+  subCategory: Category;
+  image: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 // export enum AssetKind {
 //   MEDIA = 1,

@@ -27,7 +27,9 @@ import { multerImageOptions } from './multer.config';
 import { GetCoursesOverviewAuthorDto } from './dto/get-courses-overview-author-dto';
 import { GuardsConsumer } from '@nestjs/core/guards';
 import { InstructorRoleGuard } from 'src/guards/author-role.guard';
+import { GetReviewsDto } from './dto/get-reviews-by-course-id-dto';
 import { GetCourseDto } from './dto/get-curriculum-by-course-id-dto';
+import { GetCoursesCategory } from './dto/get-courses-category-dto';
 
 @Controller('courses')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -110,21 +112,64 @@ export class CourseController {
     return this.courseService.submitReviewCourseByID(courseID, userID);
   }
 
+  @Get(':id/reviews')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  getReviews(
+    @Query() getCourseDto: GetReviewsDto,
+    @Param('id') courseID: number,
+  ): Promise<ResponseData> {
+    return this.courseService.getReviewsByCourseID(getCourseDto, courseID);
+  }
+
+  @Get(':id/reviews-overall')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  getReviewsOverall(@Param('id') courseID: number): Promise<ResponseData> {
+    return this.courseService.getOverallReviewByCourseID(courseID);
+  }
+
+  @Get('category-auth/:id')
+  @HttpCode(HttpStatus.OK)
+  getCoursesCategory(
+    @GetCurrentUserID() userID: number,
+    @Param('id') categoryID: number,
+    @Query() getCoursesCategory: GetCoursesCategory,
+  ): Promise<ResponseData> {
+    return this.courseService.getCoursesCategory(
+      getCoursesCategory,
+      categoryID,
+      userID,
+    );
+  }
+
+  @Get('category/:id')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  getNotAuthCoursesCategory(
+    @Param('id') categoryID: number,
+    @Query() getCoursesCategory: GetCoursesCategory,
+  ): Promise<ResponseData> {
+    return this.courseService.getCoursesCategory(
+      getCoursesCategory,
+      categoryID,
+      null,
+    );
+  }
+
   @Get('')
   @Public()
   @HttpCode(HttpStatus.OK)
-  getCourses(
-    @Query() getCourseDto: GetCourseDto,
-  ): Promise<ResponseData> {
+  getCourses(@Query() getCourseDto: GetCourseDto): Promise<ResponseData> {
     return this.courseService.getCourses(getCourseDto);
   }
 
-  @Get('top')
-  @HttpCode(HttpStatus.OK)
-  getCoursesTop(
-    @GetCurrentUserID() userID: number,
-    // @Query() getCourseDto: GetCourseDto,
-  ): Promise<ResponseData> {
-    return this.courseService.getCoursesTop();
-  }
+  // @Get('top')
+  // @HttpCode(HttpStatus.OK)
+  // getCoursesTop(
+  //   @GetCurrentUserID() userID: number,
+  //   // @Query() getCourseDto: GetCourseDto,
+  // ): Promise<ResponseData> {
+  //   return this.courseService.getCoursesTop();
+  // }
 }

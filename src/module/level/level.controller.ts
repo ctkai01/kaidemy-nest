@@ -23,6 +23,7 @@ import { ResponseData } from '../../interface/response.interface';
 import { CreateLevelDto, UpdateLevelDto } from './dto';
 import { GetLevelDto } from './dto/get-level-dto';
 import { LevelService } from './level.service';
+import { Public } from 'src/decorators';
 
 
 @Controller('levels')
@@ -56,6 +57,7 @@ export class LevelController {
   }
 
   @Get()
+  @Public()
   @HttpCode(HttpStatus.OK)
   getLevels(@Query() getLevelDto: GetLevelDto): Promise<ResponseData> {
     return this.levelService.getLevels(getLevelDto);

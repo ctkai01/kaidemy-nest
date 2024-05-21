@@ -17,7 +17,7 @@ import { CourseUtil } from 'src/constants';
 
 export class GetLearningDto extends PageCommonOptionsDto {
   @IsOptional()
-   @Transform(({ value }) => value.split(',').map(Number))
+  @Transform(({ value }) => value.split(',').map(Number))
   @IsEnum(CourseUtil, { each: true })
   types: CourseUtil[];
 }

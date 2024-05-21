@@ -23,6 +23,7 @@ import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter'
 import { ResponseData } from '../../interface/response.interface';
 import { CreatePriceDto, UpdatePriceDto } from './dto';
 import { PriceService } from './price.service';
+import { Public } from 'src/decorators';
 
 @Controller('prices')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -56,6 +57,7 @@ export class PriceController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @Public()
   getPrices(
     @Query() pageCommonOptionsDto: PageCommonOptionsDto,
   ): Promise<ResponseData> {

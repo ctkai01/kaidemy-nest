@@ -193,7 +193,8 @@ export class QuestionLectureService {
     getQuestionLectureDto: GetQuestionLectureDto,
     userID: number,
   ): Promise<ResponseData> {
-    const { order, skip, size, page, courseID, search } = getQuestionLectureDto;
+    const { order, skip, size, page, courseID, search, lectureID } =
+      getQuestionLectureDto;
     const queryBuilder =
       this.questionLectureRepository.createQueryBuilder('question_lectures');
     queryBuilder
@@ -214,6 +215,12 @@ export class QuestionLectureService {
     if (courseID) {
       queryBuilder.where('question_lectures.courseId = :courseId', {
         courseId: courseID,
+      });
+    }
+
+    if (lectureID) {
+      queryBuilder.where('question_lectures.lectureId = :lectureId', {
+        lectureId: lectureID,
       });
     }
     const itemCount = await queryBuilder.getCount();

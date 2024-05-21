@@ -30,6 +30,12 @@ export interface UserQuestionLecture {
   avatar?: string;
 }
 
+export interface UserShowCommon {
+  id: number;
+  name: string;
+  avatar?: string;
+}
+
 export interface AuthorStatistic {
   user: {
     id: number;

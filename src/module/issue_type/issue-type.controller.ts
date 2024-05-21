@@ -23,6 +23,7 @@ import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter'
 import { ResponseData } from '../../interface/response.interface';
 import { CreateIssueTypeDto, UpdateIssueTypeDto } from './dto';
 import { IssueTypeService } from './issue-type.service';
+import { Public } from 'src/decorators';
 
 @Controller('issue-types')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -60,6 +61,7 @@ export class IssueTypeController {
   }
 
   @Get()
+  @Public()
   @HttpCode(HttpStatus.OK)
   getIssueTypes(
     @Query() pageCommonOptionsDto: PageCommonOptionsDto,
