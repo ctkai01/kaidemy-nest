@@ -52,6 +52,7 @@ import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
 import { PageDto } from 'src/common/paginate/paginate.dto';
 import { GetCourseDto } from './dto/get-curriculum-by-course-id-dto';
 import { GetCoursesCategory } from './dto/get-courses-category-dto';
+import { GetCoursesSearch } from './dto/get-courses-search-dto';
 @Injectable()
 export class CourseService {
   private logger = new Logger(CourseService.name);
@@ -1088,7 +1089,12 @@ export class CourseService {
     if (levels) {
       queryBuilder.where('courses.levelId IN (:...levels)', { levels });
     }
-    queryBuilder.orderBy('courses.createdAt', Order.DESC);
+
+    if (sortCourse) {
+      if (sortCourse === CourseSort.NEWEST_SORT) {
+        queryBuilder.orderBy('courses.createdAt', Order.DESC);
+      }
+    }
 
     const { entities: courses } = await queryBuilder.getRawAndEntities();
 
@@ -1247,20 +1253,261 @@ export class CourseService {
       }
     });
 
-    // const pageMetaDto = new PageMetaDto({
-    //   itemCount: totalItem,
-    //   pageOptionsDto: {
-    //     skip,
-    //     order: Order.DESC,
-    //     page,
-    //     size,
-    //   },
-    // });
-    let totalPage = 0;
     let offset = 0;
 
     offset = (page - 1) * size;
-    // const data = new PageDto(learningReview, pageMetaDto);
+
+    if (offset >= totalItem) {
+      offset = totalItem - 1;
+    }
+
+    let limit = size;
+
+    let endIndex = offset + limit;
+
+    if (endIndex > totalItem) {
+      endIndex = totalItem;
+    }
+
+    coursesCategory = coursesCategory.slice(offset, endIndex);
+    const pageCount = Math.ceil(totalItem / size);
+    const hasPreviousPage = page > 1;
+    const hasNextPage = page < pageCount;
+    const data = {
+      item: coursesCategory,
+      overall: {
+        tierOneRatingCount,
+        tierTwoRatingCount,
+        tierThreeRatingCount,
+        tierFourRatingCount,
+        tierOneDurationCount,
+        tierTwoDurationCount,
+        allLevelCount,
+        beginnerLevelCount,
+        intermediateLevelCount,
+        expertLevelCount,
+      },
+      meta: {
+        page,
+        size,
+        itemCount: totalItem,
+        pageCount,
+        hasPreviousPage: hasPreviousPage,
+        hasNextPage,
+      },
+    };
+    const responseData: ResponseData = {
+      message: 'Get courses successfully!',
+      data,
+    };
+    return responseData;
+  }
+
+  public async getCoursesSearch(
+    getCoursesSearch: GetCoursesSearch,
+    userID: number | null,
+  ): Promise<ResponseData> {
+    const { durations, levels, rating, page, size, sortCourse, search } =
+      getCoursesSearch;
+    const queryBuilder = this.courseRepository
+      .createQueryBuilder('courses')
+      .leftJoinAndSelect('courses.price', 'price')
+      .leftJoinAndSelect('courses.level', 'level')
+      .leftJoinAndSelect('courses.category', 'category')
+      .leftJoinAndSelect('courses.subCategory', 'subCategory')
+      .leftJoinAndSelect('courses.language', 'language')
+      .leftJoinAndSelect('courses.curriculums', 'curriculum')
+      .leftJoinAndSelect('curriculum.lectures', 'lecture')
+      .leftJoinAndSelect('lecture.assets', 'asset')
+      .leftJoinAndSelect('courses.user', 'user')
+      .leftJoinAndSelect(
+        'courses.learnings',
+        'learnings',
+        'learnings.type IN (:...types)',
+      )
+      .where('courses.reviewStatus = :reviewStatus', {
+        reviewStatus: CourseStatus.REVIEW_VERIFY,
+      })
+      .setParameter('types', [CourseUtil.STANDARD_TYPE, CourseUtil.ARCHIE]);
+      if (search) {
+        console.log("Search: ", search)
+        // queryBuilder.where('courses.title LIKE :searchQuery', {
+        //   searchQuery: `%${search}%`,
+        // })           
+      } 
+      
+      queryBuilder.where('courses.title = :a', { a: "ds"})      
+    if (levels) {
+      queryBuilder.where('courses.levelId IN (:...levels)', { levels });
+    }
+
+    if (sortCourse) {
+      if (sortCourse === CourseSort.NEWEST_SORT) {
+        queryBuilder.orderBy('courses.createdAt', Order.DESC);
+      }
+    }
+console.log('Generated SQL:', queryBuilder.getSql());
+    const { entities: courses } = await queryBuilder.getRawAndEntities();
+
+    let coursesCategory: CourseCategory[] = [];
+    courses.forEach((course) => {
+      let totalRating = 0;
+      let isPurchased = false;
+      let totalReviewCount = 0;
+      let averageReview = 0;
+      let totalDuration = 0;
+
+      course.curriculums.forEach((curriculum) => {
+        curriculum.lectures.forEach((lecture) => {
+          lecture.assets.forEach((asset) => {
+            if (
+              lecture.type === LectureType.LECTURE &&
+              asset.type === AssetType.WATCH
+            ) {
+              totalDuration += asset.duration;
+            }
+          });
+        });
+      });
+
+      course.learnings.forEach((learning) => {
+        if (learning.starCount) {
+          totalReviewCount += learning.starCount;
+          totalRating++;
+        }
+
+        if (userID) {
+          if (learning.userId === userID) {
+            isPurchased = true;
+          }
+        }
+      });
+
+      if (totalRating) {
+        averageReview = parseFloat((totalReviewCount / totalRating).toFixed(2));
+      }
+      coursesCategory.push({
+        id: course.id,
+        level: course.level,
+        title: course.title,
+        subtitle: course.subtitle,
+        price: course.price,
+        reviewStatus: course.reviewStatus,
+        user: {
+          id: course.user.id,
+          name: course.user.name,
+          avatar: course.user.avatar,
+        },
+        outComes: course.outComes,
+        intendedFor: course.intendedFor,
+        requirements: course.requirements,
+        isPurchased,
+        duration: totalDuration,
+        totalLecture: course.curriculums.length,
+        averageRating: averageReview,
+        image: course.image,
+        category: course.category,
+        subCategory: course.subCategory,
+        totalRating: totalRating,
+        createdAt: course.createdAt,
+        updatedAt: course.updatedAt,
+      });
+    });
+
+    if (rating) {
+      coursesCategory = coursesCategory.filter((course) => {
+        return course.averageRating >= rating;
+      });
+    }
+    const HOUR = 3600;
+
+    if (durations) {
+      coursesCategory = coursesCategory.filter((course) => {
+        return durations.some((duration) => {
+          if (
+            duration === CourseDurationFilter.SHORT_DURATION &&
+            course.duration <= HOUR
+          ) {
+            return true;
+          }
+
+          if (
+            duration === CourseDurationFilter.EXTRA_SHORT_DURATION &&
+            course.duration > HOUR
+          ) {
+            return true;
+          }
+
+          return false;
+        });
+      });
+    }
+
+    if (sortCourse) {
+      if (sortCourse === CourseSort.MOST_REVIEW_SORT) {
+        coursesCategory.sort((a, b) => b.totalRating - a.totalRating); // sort DESC by TotalRating
+      }
+
+      if (sortCourse === CourseSort.HIGHEST_SORT) {
+        coursesCategory.sort((a, b) => b.averageRating - a.averageRating); // sort DESC by AverageRating
+      }
+    }
+
+    const totalItem = coursesCategory.length;
+
+    let tierOneRatingCount = 0;
+    let tierTwoRatingCount = 0;
+    let tierThreeRatingCount = 0;
+    let tierFourRatingCount = 0;
+    let tierOneDurationCount = 0;
+    let tierTwoDurationCount = 0;
+    let allLevelCount = 0;
+    let beginnerLevelCount = 0;
+    let intermediateLevelCount = 0;
+    let expertLevelCount = 0;
+
+    coursesCategory.forEach((item) => {
+      if (item.averageRating > AverageRating.ONE_RATING) {
+        tierOneRatingCount++;
+      }
+
+      if (item.averageRating > AverageRating.TWO_RATING) {
+        tierTwoRatingCount++;
+      }
+
+      if (item.averageRating > AverageRating.THREE_RATING) {
+        tierThreeRatingCount++;
+      }
+
+      if (item.averageRating > AverageRating.FOUR_RATING) {
+        tierFourRatingCount++;
+      }
+
+      if (item.duration < HOUR) {
+        tierOneDurationCount++;
+      } else {
+        tierTwoDurationCount++;
+      }
+      switch (item.level.name) {
+        case 'Beginner':
+          beginnerLevelCount++;
+          break;
+        case 'Intermediate':
+          intermediateLevelCount++;
+          break;
+        case 'Expert':
+          expertLevelCount++;
+          break;
+        case 'All':
+          allLevelCount++;
+          break;
+      }
+    });
+
+    let offset = 0;
+
+    offset = (page - 1) * size;
+
     if (offset >= totalItem) {
       offset = totalItem - 1;
     }

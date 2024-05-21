@@ -30,6 +30,7 @@ import { InstructorRoleGuard } from 'src/guards/author-role.guard';
 import { GetReviewsDto } from './dto/get-reviews-by-course-id-dto';
 import { GetCourseDto } from './dto/get-curriculum-by-course-id-dto';
 import { GetCoursesCategory } from './dto/get-courses-category-dto';
+import { GetCoursesSearch } from './dto/get-courses-search-dto';
 
 @Controller('courses')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -92,6 +93,18 @@ export class CourseController {
     @GetCurrentUserID() userID: number,
   ): Promise<ResponseData> {
     return this.courseService.getCurriculumByCourseIDAuth(courseID, userID);
+  }
+
+  @Get('search-auth')
+  @HttpCode(HttpStatus.OK)
+  getCoursesSearch(
+    @GetCurrentUserID() userID: number,
+    @Query() getCoursesSearch: GetCoursesSearch,
+  ): Promise<ResponseData> {
+    return this.courseService.getCoursesSearch(
+      getCoursesSearch,
+      userID,
+    );
   }
 
   @Get(':id')
@@ -164,12 +177,5 @@ export class CourseController {
     return this.courseService.getCourses(getCourseDto);
   }
 
-  // @Get('top')
-  // @HttpCode(HttpStatus.OK)
-  // getCoursesTop(
-  //   @GetCurrentUserID() userID: number,
-  //   // @Query() getCourseDto: GetCourseDto,
-  // ): Promise<ResponseData> {
-  //   return this.courseService.getCoursesTop();
-  // }
+  
 }
