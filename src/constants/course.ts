@@ -37,6 +37,11 @@ export enum StarCount {
   FIVE,
 }
 
+export enum Reply {
+  RESPONSE = 'response_reply',
+  NO_RESPONSE = 'no_response_reply',
+}
+
 export enum CourseUtil {
   STANDARD_TYPE = 1,
   WISH_LIST_TYPE = 2,
@@ -288,6 +293,35 @@ export interface CourseCategory {
   image: string;
   createdAt?: Date;
   updatedAt?: Date;
+}
+
+export interface SearchItem {
+  teacher?: UserShowCommon,
+  course?: {
+    id: number,
+    title: string,
+    nameAuthor: string,
+    image: string
+  }
+}
+
+export interface CourseAuthorReview {
+  id: number;
+  title: string
+}
+
+export interface ReviewUser {
+  course: {
+    id: number;
+    image: string;
+    title: string;
+  };
+  user: UserShowCommon;
+  comment: string;
+  starCount: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+  updatedStarCount?: Date;
 }
 // export enum AssetKind {
 //   MEDIA = 1,

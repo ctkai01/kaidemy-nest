@@ -31,6 +31,10 @@ import { GetReviewsDto } from './dto/get-reviews-by-course-id-dto';
 import { GetCourseDto } from './dto/get-curriculum-by-course-id-dto';
 import { GetCoursesCategory } from './dto/get-courses-category-dto';
 import { GetCoursesSearch } from './dto/get-courses-search-dto';
+import { GetCoursesSearchGlobal } from './dto/get-courses-search-global-dto';
+import { GetCoursesAuthorDto } from './dto/get-courses-author-dto';
+import { GetReviewAuthor } from './dto/get-review-author-dto';
+import { GetUsersAuthor } from './dto/get-users-author-dto';
 
 @Controller('courses')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -101,10 +105,55 @@ export class CourseController {
     @GetCurrentUserID() userID: number,
     @Query() getCoursesSearch: GetCoursesSearch,
   ): Promise<ResponseData> {
-    return this.courseService.getCoursesSearch(
-      getCoursesSearch,
-      userID,
-    );
+    return this.courseService.getCoursesSearch(getCoursesSearch, userID);
+  }
+
+  @Get('search')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  getCoursesSearchNotAuth(
+    @Query() getCoursesSearch: GetCoursesSearch,
+  ): Promise<ResponseData> {
+    return this.courseService.getCoursesSearch(getCoursesSearch, null);
+  }
+
+  @Get('author')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(InstructorRoleGuard)
+  getCoursesAuthor(
+    @Query() getCoursesAuthorDto: GetCoursesAuthorDto,
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.courseService.getCoursesAuthor(getCoursesAuthorDto, userID);
+  }
+
+  @Get('reviews/author')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(InstructorRoleGuard)
+  getReviewsAuthor(
+    @Query() getReviewAuthor: GetReviewAuthor,
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.courseService.getReviewAuthor(getReviewAuthor, userID);
+  }
+
+  @Get('users/author')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(InstructorRoleGuard)
+  getUsersAuthor(
+    @Query() getUsersAuthor: GetUsersAuthor,
+    @GetCurrentUserID() userID: number,
+  ): Promise<ResponseData> {
+    return this.courseService.getUsersAuthor(getUsersAuthor, userID);
+  }
+
+  @Get('search-global')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  getCoursesSearchGlobal(
+    @Query() getCoursesSearchGlobal: GetCoursesSearchGlobal,
+  ): Promise<ResponseData> {
+    return this.courseService.getCoursesSearchGlobal(getCoursesSearchGlobal);
   }
 
   @Get(':id')
@@ -176,6 +225,4 @@ export class CourseController {
   getCourses(@Query() getCourseDto: GetCourseDto): Promise<ResponseData> {
     return this.courseService.getCourses(getCourseDto);
   }
-
-  
 }

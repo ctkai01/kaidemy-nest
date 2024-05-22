@@ -7,7 +7,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { Cart, Course, Transaction, TransactionDetail } from 'src/entities';
+import {
+  Cart,
+  Course,
+  Transaction,
+  TransactionDetail,
+  User,
+} from 'src/entities';
 import Stripe from 'stripe';
 import { ResponseData } from '../../interface/response.interface';
 import { CategoryRepository } from '../category/category.repository';
@@ -20,6 +26,7 @@ import { UploadService } from '../upload/upload.service';
 import {
   AssetType,
   AverageRating,
+  CourseAuthorReview,
   CourseCategory,
   CourseCurriculum,
   CourseDurationFilter,
@@ -36,8 +43,13 @@ import {
   OverallReviewsByCourseID,
   OverviewCourseAuthor,
   RatingStats,
+  Reply,
+  ReviewUser,
+  SearchItem,
   StarCount,
+  TEACHER,
   UploadResource,
+  UserShowCommon,
 } from 'src/constants';
 import { Learning } from 'src/entities/learning.entity';
 import { TransactionRepository } from './transation.repository';
@@ -53,6 +65,10 @@ import { PageDto } from 'src/common/paginate/paginate.dto';
 import { GetCourseDto } from './dto/get-curriculum-by-course-id-dto';
 import { GetCoursesCategory } from './dto/get-courses-category-dto';
 import { GetCoursesSearch } from './dto/get-courses-search-dto';
+import { GetCoursesSearchGlobal } from './dto/get-courses-search-global-dto';
+import { GetCoursesAuthorDto } from './dto/get-courses-author-dto';
+import { GetReviewAuthor } from './dto/get-review-author-dto';
+import { GetUsersAuthor } from './dto/get-users-author-dto';
 @Injectable()
 export class CourseService {
   private logger = new Logger(CourseService.name);
@@ -71,6 +87,8 @@ export class CourseService {
     private readonly learningRepository: Repository<Learning>,
     @InjectRepository(TransactionDetail)
     private readonly transactionDetailRepository: Repository<TransactionDetail>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
   async createCourse(
     createCourseDto: CreateCourseDto,
@@ -895,9 +913,12 @@ export class CourseService {
     queryBuilder.orderBy('learnings.updatedStarCount', Order.DESC);
 
     if (search) {
-      queryBuilder.andWhere('UPPER(learnings.comment) LIKE UPPER(:searchQuery)', {
-        searchQuery: `%${search}%`,
-      });
+      queryBuilder.andWhere(
+        'UPPER(learnings.comment) LIKE UPPER(:searchQuery)',
+        {
+          searchQuery: `%${search}%`,
+        },
+      );
     }
 
     const itemCount = await queryBuilder.getCount();
@@ -1330,7 +1351,6 @@ export class CourseService {
       })
       .setParameter('types', [CourseUtil.STANDARD_TYPE, CourseUtil.ARCHIE]);
     if (search) {
-      console.log('Search: ', search);
       queryBuilder.andWhere('UPPER(courses.title) LIKE UPPER(:searchQuery)', {
         searchQuery: `%${search}%`,
       });
@@ -1547,6 +1567,344 @@ export class CourseService {
     };
     const responseData: ResponseData = {
       message: 'Get courses successfully!',
+      data,
+    };
+    return responseData;
+  }
+
+  public async getCoursesSearchGlobal(
+    getCoursesSearchGlobal: GetCoursesSearchGlobal,
+  ): Promise<ResponseData> {
+    const { page, size, search } = getCoursesSearchGlobal;
+
+    const queryBuilder = this.courseRepository
+      .createQueryBuilder('courses')
+      .leftJoinAndSelect('courses.user', 'user')
+      .where('UPPER(courses.title) LIKE UPPER(:searchQuery)', {
+        searchQuery: `%${search}%`,
+      })
+      .andWhere('courses.reviewStatus = :reviewStatus', {
+        reviewStatus: CourseStatus.REVIEW_VERIFY,
+      });
+    const { entities: courses } = await queryBuilder.getRawAndEntities();
+
+    const queryBuilderUser = this.userRepository
+      .createQueryBuilder('users')
+      .where('UPPER(users.name) LIKE UPPER(:searchQuery)', {
+        searchQuery: `%${search}%`,
+      })
+      .andWhere('users.role = :role', {
+        role: TEACHER,
+      });
+    const { entities: users } = await queryBuilderUser.getRawAndEntities();
+
+    let searchItems: SearchItem[] = [];
+
+    courses.forEach((course) => {
+      searchItems.push({
+        course: {
+          id: course.id,
+          image: course.image,
+          title: course.title,
+          nameAuthor: course.user.name,
+        },
+      });
+    });
+
+    users.forEach((user) => {
+      searchItems.push({
+        teacher: {
+          id: user.id,
+          name: user.name,
+          avatar: user.avatar,
+        },
+      });
+    });
+
+    const totalItem = searchItems.length;
+
+    let offset = 0;
+
+    offset = (page - 1) * size;
+
+    if (offset >= totalItem) {
+      offset = totalItem - 1;
+    }
+
+    let limit = size;
+
+    let endIndex = offset + limit;
+
+    if (endIndex > totalItem) {
+      endIndex = totalItem;
+    }
+
+    searchItems = searchItems.slice(offset, endIndex);
+    const pageCount = Math.ceil(totalItem / size);
+    const hasPreviousPage = page > 1;
+    const hasNextPage = page < pageCount;
+
+    const data = {
+      item: searchItems,
+      meta: {
+        page,
+        size,
+        itemCount: totalItem,
+        pageCount,
+        hasPreviousPage: hasPreviousPage,
+        hasNextPage,
+      },
+    };
+
+    const responseData: ResponseData = {
+      message: 'Get search successfully!',
+      data,
+    };
+    return responseData;
+  }
+
+  public async getCoursesAuthor(
+    getCoursesAuthorDto: GetCoursesAuthorDto,
+    userID: number,
+  ): Promise<ResponseData> {
+    const { page, size, skip } = getCoursesAuthorDto;
+
+    const queryBuilder = this.courseRepository
+      .createQueryBuilder('courses')
+      .where('courses.userID = :userID', {
+        userID,
+      })
+      .andWhere('courses.reviewStatus = :reviewStatus', {
+        reviewStatus: CourseStatus.REVIEW_VERIFY,
+      });
+    queryBuilder.orderBy('courses.createdAt', Order.DESC);
+
+    const itemCount = await queryBuilder.getCount();
+    queryBuilder.skip(skip).take(size);
+
+    const { entities: courses } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: {
+        skip,
+        order: Order.DESC,
+        page,
+        size,
+      },
+    });
+    const courseAuthorReviews = courses.map((course) => {
+      const courseAuthorReview: CourseAuthorReview = {
+        id: course.id,
+        title: course.title,
+      };
+      return courseAuthorReview;
+    });
+    const data = new PageDto(courseAuthorReviews, pageMetaDto);
+
+    const responseData: ResponseData = {
+      message: 'Get courses author successfully!',
+      data,
+    };
+    return responseData;
+  }
+
+  public async getReviewAuthor(
+    getReviewAuthor: GetReviewAuthor,
+    userID: number,
+  ): Promise<ResponseData> {
+    const { page, size, skip, courseID, reply, ratings } = getReviewAuthor;
+    const courseByAuthor = await this.courseRepository.find({
+      where: {
+        userID,
+      },
+      select: ['id'],
+    });
+
+    let courseIDs = courseByAuthor.map((course) => course.id);
+
+    if (courseID) {
+      if (!courseIDs.includes(courseID)) {
+        throw new ForbiddenException();
+      }
+      courseIDs = [courseID];
+    }
+
+    const queryBuilder = this.learningRepository
+      .createQueryBuilder('learnings')
+      .leftJoinAndSelect('learnings.course', 'course')
+      .leftJoinAndSelect('learnings.user', 'user')
+      .where('learnings.courseId IN (:...courseIDs)', { courseIDs })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('learnings.type = :standardType', {
+            standardType: CourseUtil.STANDARD_TYPE,
+          }).orWhere('learnings.type = :archieType', {
+            archieType: CourseUtil.ARCHIE,
+          });
+        }),
+      )
+      .andWhere('learnings.starCount IS NOT NULL')
+      .orderBy('learnings.updatedStarCount', Order.DESC);
+
+    if (reply) {
+      const includesNoResponse = reply.includes(Reply.NO_RESPONSE);
+      const includesResponse = reply.includes(Reply.RESPONSE);
+
+      if (!(includesNoResponse && includesResponse)) {
+        if (includesNoResponse) {
+          queryBuilder.andWhere('learnings.comment IS NULL');
+        }
+
+        if (includesResponse) {
+          queryBuilder.andWhere('learnings.comment IS NOT NULL');
+        }
+      }
+    }
+
+    if (ratings) {
+      queryBuilder.andWhere('learnings.starCount IN (:...ratings)', {
+        ratings,
+      });
+    }
+
+    const itemCount = await queryBuilder.getCount();
+    queryBuilder.skip(skip).take(size);
+
+    const { entities: learnings } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: {
+        skip,
+        order: Order.DESC,
+        page,
+        size,
+      },
+    });
+    const reviewUsers = learnings.map((learning) => {
+      const reviewUser: ReviewUser = {
+        course: {
+          id: learning.course.id,
+          image: learning.course.image,
+          title: learning.course.title,
+        },
+        user: {
+          id: learning.user.id,
+          name: learning.user.name,
+          avatar: learning.user.avatar,
+        },
+        comment: learning.comment,
+        starCount: learning.starCount,
+        updatedAt: learning.updatedAt,
+        createdAt: learning.createdAt,
+        updatedStarCount: learning.updatedStarCount,
+      };
+      return reviewUser;
+    });
+    const data = new PageDto(reviewUsers, pageMetaDto);
+
+    const responseData: ResponseData = {
+      message: 'Get reviews author successfully!',
+      data,
+    };
+    return responseData;
+  }
+
+  public async getUsersAuthor(
+    getUsersAuthor: GetUsersAuthor,
+    userID: number,
+  ): Promise<ResponseData> {
+    const { page, size, skip, courseID } = getUsersAuthor;
+    const courseByAuthor = await this.courseRepository.find({
+      where: {
+        userID,
+      },
+      select: ['id'],
+    });
+
+    let courseIDs = courseByAuthor.map((course) => course.id);
+
+    if (courseID) {
+      if (!courseIDs.includes(courseID)) {
+        throw new ForbiddenException();
+      }
+      courseIDs = [courseID];
+    }
+
+    const queryBuilder = this.learningRepository
+      .createQueryBuilder('learnings')
+      .select([
+        // 'learnings.userId',
+        'users.id AS user_id', // Note: This alias may need to be different if you need to differentiate
+        'users.name as user_name',
+        'users.avatar as user_avatar',
+      ])
+      .leftJoin('learnings.user', 'users')
+      .where('learnings.courseId IN (:...courseIDs)', { courseIDs })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('learnings.type = :standardType', {
+            standardType: CourseUtil.STANDARD_TYPE,
+          }).orWhere('learnings.type = :archieType', {
+            archieType: CourseUtil.ARCHIE,
+          });
+        }),
+      )
+      .andWhere('learnings.userId != :userID', { userID })
+      .groupBy('learnings.userId')
+      .addGroupBy('users.id'); // Add grouping for users.id to match the SQL query
+
+    // const itemCount = await queryBuilder.getCount();
+    // queryBuilder.skip(1).take(size);
+    // console.log('itemCount: ', itemCount);
+    let learnings = await queryBuilder.getRawMany();
+
+    const totalItem = learnings.length;
+
+    let offset = 0;
+
+    offset = (page - 1) * size;
+
+    if (offset >= totalItem) {
+      offset = totalItem - 1;
+    }
+
+    let limit = size;
+
+    let endIndex = offset + limit;
+
+    if (endIndex > totalItem) {
+      endIndex = totalItem;
+    }
+
+    learnings = learnings.slice(offset, endIndex);
+    const pageCount = Math.ceil(totalItem / size);
+    const hasPreviousPage = page > 1;
+    const hasNextPage = page < pageCount;
+
+    const userShowCommons = learnings.map((learning) => {
+      const userShowCommon: UserShowCommon = {
+        id: learning.user_id,
+        name: learning.user_name,
+        avatar: learning.user_avatar,
+      };
+      return userShowCommon;
+    });
+
+    const data = {
+      item: userShowCommons,
+      meta: {
+        page,
+        size,
+        itemCount: totalItem,
+        pageCount,
+        hasPreviousPage: hasPreviousPage,
+        hasNextPage,
+      },
+    };
+    const responseData: ResponseData = {
+      message: 'Get users enroll author successfully!',
       data,
     };
     return responseData;

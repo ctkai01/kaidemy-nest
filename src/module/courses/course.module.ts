@@ -31,6 +31,7 @@ import { QueueModule } from '../queues/queue.module';
       TransactionDetail,
       Transaction,
       Cart,
+      User
     ]),
     UserModule,
     StripeModule.forRootAsync(StripeModule, {
