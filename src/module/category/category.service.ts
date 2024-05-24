@@ -15,6 +15,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Course } from 'src/entities';
 import { In, Repository } from 'typeorm';
 import { CourseStatus } from 'src/constants';
+import { GetCategoryDto } from './dto/get-category-dto';
 
 @Injectable()
 export class CategoryService {
@@ -127,25 +128,41 @@ export class CategoryService {
     return responseData;
   }
 
-  async getCategories(
-    pageCommonOptionsDto: PageCommonOptionsDto,
-  ): Promise<ResponseData> {
+  async getCategories(getCategoryDto: GetCategoryDto): Promise<ResponseData> {
+    const { order, size, skip, page, parentID, search } = getCategoryDto;
     const queryBuilder = this.categoryRepository.createQueryBuilder('category');
     queryBuilder
-      .orderBy('category.created_at', pageCommonOptionsDto.order)
+      .orderBy('category.created_at', order)
       .leftJoinAndSelect('category.children', 'children');
+
+    if (parentID) {
+      if (parentID === -1) {
+        queryBuilder.where('category.parentID IS NULL');
+      } else {
+        queryBuilder.where('category.parentID = :parentID', { parentID });
+      }
+    }
+
+    if (search) {
+      queryBuilder.andWhere('UPPER(category.name) LIKE UPPER(:searchQuery)', {
+        searchQuery: `%${search}%`,
+      });
+    }
 
     const itemCount = await queryBuilder.getCount();
 
-    queryBuilder
-      .skip(pageCommonOptionsDto.skip)
-      .take(pageCommonOptionsDto.size);
+    queryBuilder.skip(skip).take(size);
 
     const { entities } = await queryBuilder.getRawAndEntities();
 
     const pageMetaDto = new PageMetaDto({
       itemCount,
-      pageOptionsDto: pageCommonOptionsDto,
+      pageOptionsDto: {
+        skip,
+        order,
+        page,
+        size,
+      },
     });
     const data = new PageDto(entities, pageMetaDto);
 
@@ -177,7 +194,7 @@ export class CategoryService {
     const categories = await this.categoryRepository.find({
       where: { id: In([...categoriesID]) },
     });
-    
+
     const responseData: ResponseData = {
       message: 'Get top categories successfully!',
       data: categories,

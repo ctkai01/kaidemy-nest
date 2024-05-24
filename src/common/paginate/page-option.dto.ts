@@ -16,7 +16,7 @@ export class PageCommonOptionsDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(50)
+  @Max(2000)
   @IsOptional()
   readonly size?: number = 10;
 

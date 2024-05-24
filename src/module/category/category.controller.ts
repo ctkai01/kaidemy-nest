@@ -24,6 +24,7 @@ import { ResponseData } from '../../interface/response.interface';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto';
 import { Public } from 'src/decorators';
+import { GetCategoryDto } from './dto/get-category-dto';
 
 @Controller('categories')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -75,8 +76,8 @@ export class CategoryController {
   @Public()
   @HttpCode(HttpStatus.OK)
   getCategories(
-    @Query() pageCommonOptionsDto: PageCommonOptionsDto,
+    @Query()getCategoryDto: GetCategoryDto,
   ): Promise<ResponseData> {
-    return this.categoryService.getCategories(pageCommonOptionsDto);
+    return this.categoryService.getCategories(getCategoryDto);
   }
 }
