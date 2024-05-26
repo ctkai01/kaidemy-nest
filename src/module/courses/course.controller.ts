@@ -35,6 +35,7 @@ import { GetCoursesSearchGlobal } from './dto/get-courses-search-global-dto';
 import { GetCoursesAuthorDto } from './dto/get-courses-author-dto';
 import { GetReviewAuthor } from './dto/get-review-author-dto';
 import { GetUsersAuthor } from './dto/get-users-author-dto';
+import { AdminRoleGuard } from 'src/guards/admin-role.guard';
 
 @Controller('courses')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -79,6 +80,13 @@ export class CourseController {
       userID,
       getCoursesOverviewAuthorDto,
     );
+  }
+
+  @UseGuards(AdminRoleGuard)
+  @Get('overview/admin')
+  @HttpCode(HttpStatus.OK)
+  getCourseOverviewAdmin(): Promise<ResponseData> {
+    return this.courseService.getOverviewAdmin();
   }
 
   @Public()

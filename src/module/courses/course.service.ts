@@ -38,6 +38,7 @@ import {
   FilterOrderCourse,
   LearningReview,
   LectureType,
+  NORMAL_USER,
   NotificationPayload,
   Order,
   OverallReviewsByCourseID,
@@ -1906,6 +1907,124 @@ export class CourseService {
     const responseData: ResponseData = {
       message: 'Get users enroll author successfully!',
       data,
+    };
+    return responseData;
+  }
+
+  public async getOverviewAdmin(): Promise<ResponseData> {
+    const currentYear = new Date().getFullYear();
+
+    const courses = await this.courseRepository
+      .createQueryBuilder('courses')
+      .where('courses.reviewStatus = :reviewStatus', {
+        reviewStatus: CourseStatus.REVIEW_VERIFY,
+      })
+      .andWhere('EXTRACT(YEAR FROM courses.createdAt) = :currentYear', {
+        currentYear,
+      })
+      .getMany();
+
+    const users = await this.userRepository
+      .createQueryBuilder('users')
+      .where('users.role IN (:...roles)', { roles: [NORMAL_USER, TEACHER] })
+      .andWhere('EXTRACT(YEAR FROM users.created_at) = :currentYear', {
+        currentYear,
+      })
+      .getMany();
+
+    const transactionDetails = await this.transactionDetailRepository
+      .createQueryBuilder('transaction_details')
+      .leftJoinAndSelect('transaction_details.transaction', 'transaction')
+      .andWhere(
+        'EXTRACT(YEAR FROM transaction_details.createdAt) = :currentYear',
+        {
+          currentYear,
+        },
+      )
+      .getMany();
+
+    const currentMonth = new Date().getMonth() + 1;
+
+    let revenue = 0;
+
+    let totalFeeThisMonth = 0;
+    let totalFee = 0;
+    const monthlyFeeCount = new Array(12).fill(0);
+
+    let totalNet = 0;
+    let totalNetThisMonth = 0;
+    const monthlyNetCount = new Array(12).fill(0);
+
+    transactionDetails.forEach((transactionDetail) => {
+      const month = new Date(transactionDetail.createdAt).getMonth() + 1;
+      const transaction = transactionDetail.transaction;
+      const stripeFee = +transaction.fee_stripe / 100;
+      const actualFee =
+        (transaction.actual - stripeFee - transactionDetail.fee_buy) / 100;
+      if (month === currentMonth) {
+        totalFeeThisMonth += stripeFee;
+        totalNetThisMonth += actualFee;
+      }
+      monthlyFeeCount[month - 1] += stripeFee;
+      monthlyNetCount[month - 1] += actualFee;
+
+      totalFee += stripeFee;
+      totalNet += actualFee;
+
+      revenue += +transaction.actual;
+    });
+
+    const monthlyCourseCount = new Array(12).fill(0);
+    let totalCourseThisMonth = 0;
+
+    courses.forEach((course) => {
+      const month = new Date(course.createdAt).getMonth() + 1;
+      if (month === currentMonth) {
+        totalCourseThisMonth++;
+      }
+      monthlyCourseCount[month - 1]++;
+    });
+
+    // Get User
+    const monthlyUserCount = new Array(12).fill(0);
+    let totalUserThisMonth = 0;
+    users.forEach((user) => {
+      const month = new Date(user.created_at).getMonth() + 1;
+      if (month === currentMonth) {
+        totalUserThisMonth++;
+      }
+      monthlyUserCount[month - 1]++;
+    });
+
+    const result = {
+      courses: {
+        total: courses.length,
+        totalThisMonth: totalCourseThisMonth,
+        detailStats: monthlyCourseCount,
+      },
+      users: {
+        total: users.length,
+        totalThisMonth: totalUserThisMonth,
+        detailStats: monthlyUserCount,
+      },
+      revenue: {
+        total: revenue / 100,
+        fee: {
+          total: totalFee,
+          totalThisMonth: totalFeeThisMonth,
+          detailStats: monthlyFeeCount,
+        },
+        net: {
+          total: totalNet,
+          totalThisMonth: totalNetThisMonth,
+          detailStats: monthlyNetCount,
+        },
+      },
+    };
+
+    const responseData: ResponseData = {
+      message: 'Get overview admin successfully!',
+      data: result,
     };
     return responseData;
   }
