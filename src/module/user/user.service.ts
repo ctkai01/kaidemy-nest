@@ -136,6 +136,20 @@ export class UserService {
         searchQuery: `%${getUserDto.search}%`,
       });
     }
+
+    if (getUserDto.roles) {
+      queryBuilder.andWhere('user.role IN (:...roles)', {
+        roles: getUserDto.roles,
+      });
+    }
+
+    console.log('getUserDto.isBlock: ', getUserDto.isBlock);
+     if (getUserDto.isBlock !== undefined) {
+       queryBuilder.andWhere('user.is_block = :isBlock', {
+         isBlock: getUserDto.isBlock,
+       });
+     }
+
     queryBuilder.skip(getUserDto.skip).take(getUserDto.size);
 
     const itemCount = await queryBuilder.getCount();

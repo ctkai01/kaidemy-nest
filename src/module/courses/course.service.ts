@@ -1,5 +1,6 @@
 import { InjectStripeClient } from '@golevelup/nestjs-stripe';
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -70,6 +71,8 @@ import { GetCoursesSearchGlobal } from './dto/get-courses-search-global-dto';
 import { GetCoursesAuthorDto } from './dto/get-courses-author-dto';
 import { GetReviewAuthor } from './dto/get-review-author-dto';
 import { GetUsersAuthor } from './dto/get-users-author-dto';
+import { GetCoursesReviewsDto } from './dto/get-courses-reviews-dto';
+import { ApprovalCourseReviewDto } from './dto/approval-course-review-dto';
 @Injectable()
 export class CourseService {
   private logger = new Logger(CourseService.name);
@@ -708,6 +711,42 @@ export class CourseService {
     const responseData: ResponseData = {
       message: 'Get curriculums by course successfully!',
       data,
+    };
+
+    return responseData;
+  }
+
+  public async approvalReview(
+    courseID: number,
+    approvalCourseReviewDto: ApprovalCourseReviewDto,
+  ): Promise<ResponseData> {
+    const { approval } = approvalCourseReviewDto
+
+    const course = await this.courseRepository.findOne({
+      where: {
+        id: courseID,
+      },
+    });
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    if (course.reviewStatus !== CourseStatus.REVIEW_PENDING) {
+      throw new BadRequestException('Course not review pending status');
+    }
+
+    if (approval) {
+      course.reviewStatus = CourseStatus.REVIEW_VERIFY
+    } else {
+      course.reviewStatus = CourseStatus.REVIEW_INIT;
+    }
+
+    await this.courseRepository.save(course);
+
+    const responseData: ResponseData = {
+      message: 'Approval course review successfully!',
+      data: course,
     };
 
     return responseData;
@@ -1705,6 +1744,43 @@ export class CourseService {
 
     const responseData: ResponseData = {
       message: 'Get courses author successfully!',
+      data,
+    };
+    return responseData;
+  }
+
+  public async getCoursesReview(
+    getCoursesReviewsDto: GetCoursesReviewsDto,
+  ): Promise<ResponseData> {
+    const { page, size, skip, order } = getCoursesReviewsDto;
+
+    const queryBuilder = this.courseRepository
+      .createQueryBuilder('courses')
+      .where('courses.reviewStatus = :reviewStatus', {
+        reviewStatus: CourseStatus.REVIEW_PENDING,
+      })
+   
+    queryBuilder.orderBy('courses.createdAt', order);
+
+    const itemCount = await queryBuilder.getCount();
+    queryBuilder.skip(skip).take(size);
+
+    const { entities: courses } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: {
+        skip,
+        order: Order.DESC,
+        page,
+        size,
+      },
+    });
+
+    const data = new PageDto(courses, pageMetaDto);
+
+    const responseData: ResponseData = {
+      message: 'Get courses reviews successfully!',
       data,
     };
     return responseData;

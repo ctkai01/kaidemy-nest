@@ -36,6 +36,8 @@ import { GetCoursesAuthorDto } from './dto/get-courses-author-dto';
 import { GetReviewAuthor } from './dto/get-review-author-dto';
 import { GetUsersAuthor } from './dto/get-users-author-dto';
 import { AdminRoleGuard } from 'src/guards/admin-role.guard';
+import { GetCoursesReviewsDto } from './dto/get-courses-reviews-dto';
+import { ApprovalCourseReviewDto } from './dto/approval-course-review-dto';
 
 @Controller('courses')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -135,6 +137,15 @@ export class CourseController {
     return this.courseService.getCoursesAuthor(getCoursesAuthorDto, userID);
   }
 
+  @Get('reviews')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AdminRoleGuard)
+  getCoursesReviews(
+    @Query() getCoursesReviewsDto: GetCoursesReviewsDto,
+  ): Promise<ResponseData> {
+    return this.courseService.getCoursesReview(getCoursesReviewsDto);
+  }
+
   @Get('reviews/author')
   @HttpCode(HttpStatus.OK)
   @UseGuards(InstructorRoleGuard)
@@ -162,6 +173,15 @@ export class CourseController {
     @Query() getCoursesSearchGlobal: GetCoursesSearchGlobal,
   ): Promise<ResponseData> {
     return this.courseService.getCoursesSearchGlobal(getCoursesSearchGlobal);
+  }
+
+  @Post(':id/approval-review')
+  @HttpCode(HttpStatus.OK)
+  approvalReview(
+    @Param('id') courseID: number,
+    @Body() approvalCourseReviewDto: ApprovalCourseReviewDto,
+  ): Promise<ResponseData> {
+    return this.courseService.approvalReview(courseID, approvalCourseReviewDto);
   }
 
   @Get(':id')

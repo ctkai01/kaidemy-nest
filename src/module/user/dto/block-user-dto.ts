@@ -1,8 +1,11 @@
+import { Transform } from 'class-transformer';
 import {
   IsBoolean
 } from 'class-validator';
 
 export class BlockUserDto {
-  @IsBoolean()
-  isBlock: boolean;
+  @Transform(({ value }) => {
+    return Boolean(+value);
+  })
+  isBlock?: boolean;
 }
