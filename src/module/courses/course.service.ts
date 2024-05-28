@@ -593,6 +593,8 @@ export class CourseService {
         id: course.user.id,
         name: course.user.name,
       },
+      price: course.price,
+      language: course.language,
       averageReview,
       countReview: totalReviewCount,
       countStudent: totalStudent,
@@ -699,6 +701,8 @@ export class CourseService {
         id: course.user.id,
         name: course.user.name,
       },
+      price: course.price,
+      language: course.language,
       averageReview,
       countReview: totalReviewCount,
       countStudent: totalStudent,
@@ -720,7 +724,7 @@ export class CourseService {
     courseID: number,
     approvalCourseReviewDto: ApprovalCourseReviewDto,
   ): Promise<ResponseData> {
-    const { approval } = approvalCourseReviewDto
+    const { approval } = approvalCourseReviewDto;
 
     const course = await this.courseRepository.findOne({
       where: {
@@ -732,12 +736,12 @@ export class CourseService {
       throw new NotFoundException('Course not found');
     }
 
-    if (course.reviewStatus !== CourseStatus.REVIEW_PENDING) {
-      throw new BadRequestException('Course not review pending status');
-    }
+    // if (course.reviewStatus !== CourseStatus.REVIEW_PENDING) {
+    //   throw new BadRequestException('Course not review pending status');
+    // }
 
     if (approval) {
-      course.reviewStatus = CourseStatus.REVIEW_VERIFY
+      course.reviewStatus = CourseStatus.REVIEW_VERIFY;
     } else {
       course.reviewStatus = CourseStatus.REVIEW_INIT;
     }
@@ -885,6 +889,8 @@ export class CourseService {
           id: course.user.id,
           name: course.user.name,
         },
+        price: course.price,
+        language: course.language,
         promotionalVideo: course.promotionalVideo,
         image: course.image,
         curriculums: course.curriculums,
@@ -1758,8 +1764,8 @@ export class CourseService {
       .createQueryBuilder('courses')
       .where('courses.reviewStatus = :reviewStatus', {
         reviewStatus: CourseStatus.REVIEW_PENDING,
-      })
-   
+      });
+
     queryBuilder.orderBy('courses.createdAt', order);
 
     const itemCount = await queryBuilder.getCount();

@@ -1,4 +1,4 @@
-import { Category, Curriculum, Level, Price } from 'src/entities';
+import { Category, Curriculum, Language, Level, Price } from 'src/entities';
 import { AuthorLearning, UserQuestionLecture, UserShowCommon } from './user';
 
 export enum LectureType {
@@ -108,8 +108,6 @@ export interface OverallCourse {
   expertLevelCount: number;
 }
 
-
-
 export enum CourseDurationFilter {
   SHORT_DURATION = 'short',
   EXTRA_SHORT_DURATION = 'extraShort',
@@ -193,6 +191,8 @@ export interface CourseCurriculum {
   requirements: string[];
   productIdStripe: string;
   level: Level;
+  language: Language;
+  price: Price;
   category: Category;
   subCategory: Category;
   title: string;
@@ -296,18 +296,18 @@ export interface CourseCategory {
 }
 
 export interface SearchItem {
-  teacher?: UserShowCommon,
+  teacher?: UserShowCommon;
   course?: {
-    id: number,
-    title: string,
-    nameAuthor: string,
-    image: string
-  }
+    id: number;
+    title: string;
+    nameAuthor: string;
+    image: string;
+  };
 }
 
 export interface CourseAuthorReview {
   id: number;
-  title: string
+  title: string;
 }
 
 export interface ReviewUser {
