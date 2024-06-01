@@ -15,4 +15,9 @@ export class GetCategoryDto extends PageCommonOptionsDto {
   @Transform(({ value, key, obj, type }) => +value)
   @IsNumber()
   parentID?: number;
+
+  @Transform(({ value }) => {
+    return Boolean(+value);
+  })
+  menu?: boolean;
 }

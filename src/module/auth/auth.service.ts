@@ -97,9 +97,9 @@ export class AuthService {
           throw new ForbiddenException('user being blocked');
         }
 
-        if (user.typeAccount !== ACCOUNT_GOOGLE) {
-          throw new InternalServerErrorException('user not has account google');
-        }
+        // if (user.typeAccount !== ACCOUNT_GOOGLE) {
+        //   throw new InternalServerErrorException('user not has account google');
+        // }
       }
 
       const tokens = await this.getTokens(user.id, user.email);
@@ -116,6 +116,7 @@ export class AuthService {
 
       return responseData;
     } catch (err) {
+      console.log("Err: ", err)
       throw new InternalServerErrorException('Login google failed');
     }
   }

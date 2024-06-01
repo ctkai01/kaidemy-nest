@@ -323,6 +323,18 @@ export interface ReviewUser {
   updatedAt?: Date;
   updatedStarCount?: Date;
 }
+
+
+export interface MenuCategory {
+  name: string,
+  parentID: number | null,
+  groupName: string
+  children: MenuCategory[]
+}
+
+export interface MenuClass {
+  [key: string]: string;
+}
 // export enum AssetKind {
 //   MEDIA = 1,
 //   RESOURCE

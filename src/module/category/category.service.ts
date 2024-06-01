@@ -14,7 +14,7 @@ import { CreateCategoryDto, UpdateCategoryDto } from './dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Course } from 'src/entities';
 import { In, Repository } from 'typeorm';
-import { CourseStatus } from 'src/constants';
+import { CourseStatus, MenuCategory, MenuClass } from 'src/constants';
 import { GetCategoryDto } from './dto/get-category-dto';
 
 @Injectable()
@@ -129,49 +129,94 @@ export class CategoryService {
   }
 
   async getCategories(getCategoryDto: GetCategoryDto): Promise<ResponseData> {
-    const { order, size, skip, page, parentID, search } = getCategoryDto;
-    const queryBuilder = this.categoryRepository.createQueryBuilder('category');
-    queryBuilder
-      .orderBy('category.created_at', order)
-      .leftJoinAndSelect('category.children', 'children');
+    const { order, size, skip, page, parentID, search, menu } = getCategoryDto;
 
-    if (parentID) {
-      if (parentID === -1) {
-        queryBuilder.where('category.parentID IS NULL');
-      } else {
-        queryBuilder.where('category.parentID = :parentID', { parentID });
-      }
-    }
+    if (menu) {
+      const queryBuilder =
+        this.categoryRepository.createQueryBuilder('category');
+      queryBuilder
+        .orderBy('category.created_at', order)
+        .leftJoinAndSelect('category.children', 'children')
+        .where('category.parentID IS NULL');
 
-    if (search) {
-      queryBuilder.andWhere('UPPER(category.name) LIKE UPPER(:searchQuery)', {
-        searchQuery: `%${search}%`,
+      const { entities: categories } = await queryBuilder.getRawAndEntities();
+
+      const menus = categories.map((category) => {
+        const groupName = category.name.toLowerCase().split(' ').join('_');
+        const children = this.mapCategoriesToMenuCategories(category.children);
+
+        const menu: MenuCategory = {
+          name: category.name,
+          parentID: category.parentID,
+          groupName,
+          children: children,
+        };
+
+        return menu;
       });
+
+      const menusCategories: MenuCategory[] = [];
+      const groupCategories = 'categories';
+      menusCategories.push({
+        name: 'Categories',
+        parentID: null,
+        groupName: groupCategories,
+        children: menus,
+      });
+      const menuClass: MenuClass = {};
+
+      this.genClass(menusCategories, menuClass);
+      console.log('menuClass: ', menuClass);
+      const responseData: ResponseData = {
+        message: 'Get categories successfully!',
+        data: { item: categories, class: menuClass },
+      };
+      return responseData;
+    } else {
+      const queryBuilder =
+        this.categoryRepository.createQueryBuilder('category');
+      queryBuilder
+        .orderBy('category.created_at', order)
+        .leftJoinAndSelect('category.children', 'children');
+
+      if (parentID) {
+        if (parentID === -1) {
+          queryBuilder.where('category.parentID IS NULL');
+        } else {
+          queryBuilder.where('category.parentID = :parentID', { parentID });
+        }
+      }
+
+      if (search) {
+        queryBuilder.andWhere('UPPER(category.name) LIKE UPPER(:searchQuery)', {
+          searchQuery: `%${search}%`,
+        });
+      }
+
+      const itemCount = await queryBuilder.getCount();
+
+      queryBuilder.skip(skip).take(size);
+
+      const { entities } = await queryBuilder.getRawAndEntities();
+
+      const pageMetaDto = new PageMetaDto({
+        itemCount,
+        pageOptionsDto: {
+          skip,
+          order,
+          page,
+          size,
+        },
+      });
+      const data = new PageDto(entities, pageMetaDto);
+
+      const responseData: ResponseData = {
+        message: 'Get categories successfully!',
+        data,
+      };
+
+      return responseData;
     }
-
-    const itemCount = await queryBuilder.getCount();
-
-    queryBuilder.skip(skip).take(size);
-
-    const { entities } = await queryBuilder.getRawAndEntities();
-
-    const pageMetaDto = new PageMetaDto({
-      itemCount,
-      pageOptionsDto: {
-        skip,
-        order,
-        page,
-        size,
-      },
-    });
-    const data = new PageDto(entities, pageMetaDto);
-
-    const responseData: ResponseData = {
-      message: 'Get categories successfully!',
-      data,
-    };
-
-    return responseData;
   }
 
   async getTop5Categories(): Promise<ResponseData> {
@@ -201,5 +246,32 @@ export class CategoryService {
     };
 
     return responseData;
+  }
+
+  private mapCategoriesToMenuCategories(
+    categories: Category[],
+  ): MenuCategory[] {
+    return categories.map((category) => {
+      const menuCategory: MenuCategory = {
+        name: category.name,
+        parentID: category.parentID,
+        groupName: category.name.toLowerCase().split(' ').join('_'),
+        children: [],
+      };
+      return menuCategory;
+    });
+  }
+
+  private genClass(menus: MenuCategory[], menuClass: MenuClass) {
+    menus.forEach((menu) => {
+      if (menu.children.length && menu.groupName) {
+        menuClass[`group/${menu.groupName}`] = `group/${menu.groupName}`;
+        menuClass[`group-hover/${menu.groupName}:block`] =
+          `group-hover/${menu.groupName}:block`;
+
+        // Recursively call genClass for children
+        this.genClass(menu.children, menuClass);
+      }
+    });
   }
 }
