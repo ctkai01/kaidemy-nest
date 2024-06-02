@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { Learning } from './learning.entity';
 import { Question } from './question.entity';
 import { User } from './user.entity';
@@ -14,7 +21,7 @@ export class TopicLearning {
   @Column({ nullable: true })
   description: string;
 
-  @Column({ name: 'user_id', nullable: false })
+  @Column({ name: 'userId', nullable: false })
   userId: number;
 
   @ManyToOne(() => User, (user) => user.topicLearnings)

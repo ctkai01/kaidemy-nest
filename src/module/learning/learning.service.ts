@@ -48,11 +48,10 @@ export class LearningService {
     }
 
     learning.comment = comment;
-  
+
     if (starCount !== learning.starCount) {
       learning.updatedStarCount = new Date();
       learning.starCount = starCount;
-
     }
     learning.type = type;
 
@@ -83,7 +82,13 @@ export class LearningService {
     );
 
     if (learning) {
-      throw new NotFoundException('You are purchased this course');
+      if (learning.type === CourseUtil.WISH_LIST_TYPE) {
+        throw new NotFoundException(
+          'You have been added this course to wish list',
+        );
+      } else {
+        throw new NotFoundException('You are purchased this course');
+      }
     }
 
     const learningCreate: Learning = {
@@ -181,20 +186,17 @@ export class LearningService {
       .leftJoinAndSelect('course.curriculums', 'curriculum')
       .leftJoinAndSelect('course.learnings', 'learnings')
       .leftJoinAndSelect('curriculum.lectures', 'lecture')
-      .leftJoinAndSelect('lecture.assets', 'asset');
-      
+      .leftJoinAndSelect('lecture.assets', 'asset')
+      .where('learning.userId = :userID', { userID });
 
     if (getLearningDto.types) {
-      queryBuilder.where('learning.type IN (:...types)', {
+      queryBuilder.andWhere('learning.type IN (:...types)', {
         types: getLearningDto.types,
       });
     }
     const itemCount = await queryBuilder.getCount();
 
-    queryBuilder
-      .skip(getLearningDto.skip)
-      .take(getLearningDto.size);
-
+    queryBuilder.skip(getLearningDto.skip).take(getLearningDto.size);
 
     const { entities: learnings } = await queryBuilder.getRawAndEntities();
 
@@ -224,9 +226,8 @@ export class LearningService {
 
       if (totalReviewCount) {
         averageReview = totalReviewCountStar / totalReviewCount;
-      console.log('averageReview 1: ', totalReviewCountStar);
-      console.log('averageReview 12: ', totalReviewCount);
-
+        console.log('averageReview 1: ', totalReviewCountStar);
+        console.log('averageReview 12: ', totalReviewCount);
       }
 
       let percent: number = 0;
@@ -299,17 +300,17 @@ export class LearningService {
     // }
 
     // await this.learningRepository.delete(learning.id);
-  const pageMetaDto = new PageMetaDto({
-    itemCount,
-    pageOptionsDto: {
-      skip: getLearningDto.skip,
-      order: getLearningDto.order,
-      page: getLearningDto.page,
-      size: getLearningDto.size
-    },
-  });
+    const pageMetaDto = new PageMetaDto({
+      itemCount,
+      pageOptionsDto: {
+        skip: getLearningDto.skip,
+        order: getLearningDto.order,
+        page: getLearningDto.page,
+        size: getLearningDto.size,
+      },
+    });
 
-  const data = new PageDto(learningShows, pageMetaDto);
+    const data = new PageDto(learningShows, pageMetaDto);
     const responseData: ResponseData = {
       message: 'Get learnings successfully!',
       data,

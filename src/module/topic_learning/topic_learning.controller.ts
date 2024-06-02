@@ -1,7 +1,16 @@
 import {
   Body,
-  Controller, Delete, Get, HttpCode,
-  HttpStatus, Param, Post, Put, Query, UseFilters, UseInterceptors
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseFilters,
+  UseInterceptors,
 } from '@nestjs/common';
 import { GetCurrentUserID } from 'src/decorators';
 import { TransformInterceptor } from 'src/response/custom';
@@ -10,7 +19,11 @@ import { TransformInterceptor } from 'src/response/custom';
 // import { TransformInterceptor } from '../../custom-response/core.response';
 import { HttpExceptionValidateFilter } from '../../filter/http-exception.filter';
 import { ResponseData } from '../../interface/response.interface';
-import { CreateTopicLearningDto, RemoveLearningTopicLearningDto, UpdateTopicLearningDto } from './dto';
+import {
+  CreateTopicLearningDto,
+  RemoveLearningTopicLearningDto,
+  UpdateTopicLearningDto,
+} from './dto';
 import { CreateLearningTopicLearningDto } from './dto/create-learning-topic-learning-dto';
 import { GetTopicLearningDto } from './dto/get-topic-learning-dto';
 import { TopicLearningService } from './topic_learning.service';
@@ -71,14 +84,16 @@ export class TopicLearningController {
     );
   }
 
-  @Delete('course')
-  @HttpCode(HttpStatus.CREATED)
+  @Delete('course/:id/:learningID')
+  @HttpCode(HttpStatus.OK)
   removeCourseToTopic(
-    @Body() createLearningTopicLearningDto: RemoveLearningTopicLearningDto,
+    @Param('id') topicLearningID: number,
+    @Param('learningID') learningID: number,
     @GetCurrentUserID() userID: number,
   ): Promise<ResponseData> {
     return this.topicLearningService.removeLearningToTopicLearning(
-      createLearningTopicLearningDto,
+      topicLearningID,
+      learningID,
       userID,
     );
   }

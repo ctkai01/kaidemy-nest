@@ -283,16 +283,18 @@ export interface CourseCategory {
   outComes: string[];
   intendedFor: string[];
   requirements: string[];
+  curriculums?: Curriculum[]
   isPurchased: boolean;
   totalLecture: number;
   duration: number;
-  averageRating: number;
-  totalRating: number;
   category: Category;
   subCategory: Category;
   image: string;
   createdAt?: Date;
   updatedAt?: Date;
+  averageReview?: number;
+  countReview?: number;
+  countStudent?: number;
 }
 
 export interface SearchItem {

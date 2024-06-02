@@ -222,11 +222,10 @@ export class TopicLearningService {
   }
 
   async removeLearningToTopicLearning(
-    removeLearningTopicLearningDto: RemoveLearningTopicLearningDto,
+    topicLearningID: number,
+    learningID: number,
     userID: number,
   ): Promise<ResponseData> {
-    const { learningID, topicLearningID } = removeLearningTopicLearningDto;
-
     // Check learning
     const learning = await this.learningRepository.getLearningByID(learningID);
 
@@ -289,7 +288,7 @@ export class TopicLearningService {
     const queryBuilder =
       this.topicLearningRepository.createQueryBuilder('topic_learnings');
     queryBuilder
-      .where('topic_learnings.user_id = :userId', { userId: userID })
+      .where('topic_learnings.userId = :userId', { userId: userID })
       .orderBy('topic_learnings.created_at', order)
       .leftJoinAndSelect('topic_learnings.learnings', 'learning')
       .leftJoinAndSelect('learning.course', 'course')
@@ -301,9 +300,7 @@ export class TopicLearningService {
 
     const itemCount = await queryBuilder.getCount();
 
-    queryBuilder
-      .skip(getTopicLearningDto.skip)
-      .take(getTopicLearningDto.size);
+    queryBuilder.skip(getTopicLearningDto.skip).take(getTopicLearningDto.size);
 
     const { entities: topicLearnings } = await queryBuilder.getRawAndEntities();
     // console.log(topicLearnings);
@@ -352,7 +349,7 @@ export class TopicLearningService {
       pageOptionsDto: getTopicLearningDto,
     });
 
-  const data = new PageDto(topicLearningShow, pageMetaDto);
+    const data = new PageDto(topicLearningShow, pageMetaDto);
 
     const responseData: ResponseData = {
       message: 'Get topic learnings successfully!',
@@ -361,179 +358,4 @@ export class TopicLearningService {
 
     return responseData;
   }
-  // async updateAnswer(
-  //   updateAnswerDto: UpdateAnswerDto,
-  //   userID: number,
-  //   answerID: number,
-  // ): Promise<ResponseData> {
-  //   const { questionID, answerText, explain, isCorrect } = updateAnswerDto;
-  //   // Check answer exist
-  //   const answer = await this.answerRepository.getAnswerById(answerID);
-
-  //   //  Check question exist
-  //   const question = await this.questionRepository.getQuestionById(questionID);
-
-  //   if (!question) {
-  //     throw new NotFoundException('Question not found');
-  //   }
-
-  //   const lecture = await this.lectureRepository.getLectureById(
-  //     question.lectureId,
-  //   );
-
-  //   if (!lecture) {
-  //     throw new NotFoundException('Lecture not found');
-  //   }
-
-  //   if (lecture.type !== LectureType.QUIZ) {
-  //     throw new BadRequestException('Must quiz');
-  //   }
-
-  //   //  Check curriculum exist
-  //   const curriculum =
-  //     await this.curriculumRepository.getCurriculumByIdWithRelation(
-  //       lecture.curriculumID,
-  //       ['course'],
-  //     );
-
-  //   if (!curriculum) {
-  //     throw new NotFoundException('Curriculum not found');
-  //   }
-
-  //   // Check permission author course
-  //   if (userID !== curriculum.course.userID) {
-  //     throw new ForbiddenException('Not author of course');
-  //   }
-
-  //   (answer.answerText = answerText),
-  //     (answer.explain = explain || ''),
-  //     (answer.isCorrect = isCorrect || false);
-
-  //   await this.answerRepository.save(answer);
-
-  //   // Update course status
-  //   const course = curriculum.course;
-  //   course.reviewStatus = CourseStatus.REVIEW_INIT;
-
-  //   await this.courseRepository.save(course);
-
-  //   const responseData: ResponseData = {
-  //     message: 'Update answer successfully!',
-  //     data: answer,
-  //   };
-
-  //   return responseData;
-  // }
-
-  // async deleteAnswer(userID: number, answerID: number): Promise<ResponseData> {
-  //   // Check answer exist
-  //   const answer = await this.answerRepository.getAnswerById(answerID);
-
-  //   //  Check question exist
-  //   const question = await this.questionRepository.getQuestionById(
-  //     answer.questionId,
-  //   );
-
-  //   if (!question) {
-  //     throw new NotFoundException('Question not found');
-  //   }
-
-  //   const lecture = await this.lectureRepository.getLectureById(
-  //     question.lectureId,
-  //   );
-
-  //   if (!lecture) {
-  //     throw new NotFoundException('Lecture not found');
-  //   }
-
-  //   if (lecture.type !== LectureType.QUIZ) {
-  //     throw new BadRequestException('Must quiz');
-  //   }
-
-  //   //  Check curriculum exist
-  //   const curriculum =
-  //     await this.curriculumRepository.getCurriculumByIdWithRelation(
-  //       lecture.curriculumID,
-  //       ['course'],
-  //     );
-
-  //   if (!curriculum) {
-  //     throw new NotFoundException('Curriculum not found');
-  //   }
-
-  //   // Check permission author course
-  //   if (userID !== curriculum.course.userID) {
-  //     throw new ForbiddenException('Not author of course');
-  //   }
-
-  //   await this.answerRepository.delete(answerID);
-
-  //   // Update course status
-  //   const course = curriculum.course;
-  //   course.reviewStatus = CourseStatus.REVIEW_INIT;
-
-  //   await this.courseRepository.save(course);
-
-  //   const responseData: ResponseData = {
-  //     message: 'Delete answer successfully!',
-  //     data: answer,
-  //   };
-
-  //   return responseData;
-  // }
-
-  // async deleteQuestion(
-  //   userID: number,
-  //   questionID: number,
-  // ): Promise<ResponseData> {
-  //   // Check question exist
-  //   const question = await this.questionRepository.getQuestionById(questionID);
-
-  //   if (!question) {
-  //     throw new NotFoundException('Question not found');
-  //   }
-
-  //   // Check lecture exist
-  //   const lecture = await this.lectureRepository.getLectureById(
-  //     question.lectureId,
-  //   );
-
-  //   if (!lecture) {
-  //     throw new NotFoundException('Lecture not found');
-  //   }
-
-  //   if (lecture.type !== LectureType.QUIZ) {
-  //     throw new BadRequestException('Must quiz');
-  //   }
-
-  //   // Check curriculum exist
-  //   const curriculum =
-  //     await this.curriculumRepository.getCurriculumByIdWithRelation(
-  //       lecture.curriculumID,
-  //       ['course'],
-  //     );
-
-  //   if (!curriculum) {
-  //     throw new NotFoundException('Curriculum not found');
-  //   }
-
-  //   // Check permission author course
-  //   if (userID !== curriculum.course.userID) {
-  //     throw new ForbiddenException('Not author of course');
-  //   }
-
-  //   await this.questionRepository.delete(questionID);
-
-  //   // Update status
-  //   const course = curriculum.course;
-  //   course.reviewStatus = CourseStatus.REVIEW_INIT;
-
-  //   await this.courseRepository.save(course);
-
-  //   const responseData: ResponseData = {
-  //     message: 'Delete question successfully!',
-  //   };
-
-  //   return responseData;
-  // }
 }

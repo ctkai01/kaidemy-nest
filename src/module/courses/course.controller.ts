@@ -38,6 +38,7 @@ import { GetUsersAuthor } from './dto/get-users-author-dto';
 import { AdminRoleGuard } from 'src/guards/admin-role.guard';
 import { GetCoursesReviewsDto } from './dto/get-courses-reviews-dto';
 import { ApprovalCourseReviewDto } from './dto/approval-course-review-dto';
+import { GetCoursesCategoryShow } from './dto/get-courses-category-showdto';
 
 @Controller('courses')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -206,10 +207,10 @@ export class CourseController {
   @Public()
   @HttpCode(HttpStatus.OK)
   getReviews(
-    @Query() getCourseDto: GetReviewsDto,
+    @Query() etReviewsDto: GetReviewsDto,
     @Param('id') courseID: number,
   ): Promise<ResponseData> {
-    return this.courseService.getReviewsByCourseID(getCourseDto, courseID);
+    return this.courseService.getReviewsByCourseID(etReviewsDto, courseID);
   }
 
   @Get(':id/reviews-overall')
@@ -247,10 +248,45 @@ export class CourseController {
     );
   }
 
+  @Get('category/:id/show')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  getNotAuthCoursesCategoryShow(
+    @Param('id') categoryID: number,
+    @Query() getCoursesCategoryShow: GetCoursesCategoryShow,
+  ): Promise<ResponseData> {
+    return this.courseService.getCoursesCategoryShow(
+      getCoursesCategoryShow,
+      categoryID,
+      null,
+    );
+  }
+
+  @Get('category-auth/:id/show')
+  @HttpCode(HttpStatus.OK)
+  getCoursesCategoryShow(
+    @Param('id') categoryID: number,
+    @GetCurrentUserID() userID: number,
+    @Query() getCoursesCategoryShow: GetCoursesCategoryShow,
+  ): Promise<ResponseData> {
+    return this.courseService.getCoursesCategoryShow(
+      getCoursesCategoryShow,
+      categoryID,
+      userID,
+    );
+  }
+
   @Get('')
   @Public()
   @HttpCode(HttpStatus.OK)
   getCourses(@Query() getCourseDto: GetCourseDto): Promise<ResponseData> {
     return this.courseService.getCourses(getCourseDto);
   }
+
+  //  @Get('')
+  // @Public()
+  // @HttpCode(HttpStatus.OK)
+  // getCoursesCategory(@Query() getCourseDto: GetCourseDto): Promise<ResponseData> {
+  //   return this.courseService.getCourses(getCourseDto);
+  // }
 }

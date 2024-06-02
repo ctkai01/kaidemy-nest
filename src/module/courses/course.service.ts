@@ -73,6 +73,7 @@ import { GetReviewAuthor } from './dto/get-review-author-dto';
 import { GetUsersAuthor } from './dto/get-users-author-dto';
 import { GetCoursesReviewsDto } from './dto/get-courses-reviews-dto';
 import { ApprovalCourseReviewDto } from './dto/approval-course-review-dto';
+import { GetCoursesCategoryShow } from './dto/get-courses-category-showdto';
 @Injectable()
 export class CourseService {
   private logger = new Logger(CourseService.name);
@@ -1220,11 +1221,11 @@ export class CourseService {
         isPurchased,
         duration: totalDuration,
         totalLecture: course.curriculums.length,
-        averageRating: averageReview,
+        averageReview,
         image: course.image,
         category: course.category,
         subCategory: course.subCategory,
-        totalRating: totalRating,
+        countReview: totalRating,
         createdAt: course.createdAt,
         updatedAt: course.updatedAt,
       });
@@ -1232,7 +1233,7 @@ export class CourseService {
 
     if (rating) {
       coursesCategory = coursesCategory.filter((course) => {
-        return course.averageRating >= rating;
+        return course.averageReview >= rating;
       });
     }
     const HOUR = 3600;
@@ -1261,11 +1262,11 @@ export class CourseService {
 
     if (sortCourse) {
       if (sortCourse === CourseSort.MOST_REVIEW_SORT) {
-        coursesCategory.sort((a, b) => b.totalRating - a.totalRating); // sort DESC by TotalRating
+        coursesCategory.sort((a, b) => b.countReview - a.countReview); // sort DESC by TotalRating
       }
 
       if (sortCourse === CourseSort.HIGHEST_SORT) {
-        coursesCategory.sort((a, b) => b.averageRating - a.averageRating); // sort DESC by AverageRating
+        coursesCategory.sort((a, b) => b.averageReview - a.averageReview); // sort DESC by AverageRating
       }
     }
 
@@ -1283,19 +1284,19 @@ export class CourseService {
     let expertLevelCount = 0;
 
     coursesCategory.forEach((item) => {
-      if (item.averageRating > AverageRating.ONE_RATING) {
+      if (item.averageReview > AverageRating.ONE_RATING) {
         tierOneRatingCount++;
       }
 
-      if (item.averageRating > AverageRating.TWO_RATING) {
+      if (item.averageReview > AverageRating.TWO_RATING) {
         tierTwoRatingCount++;
       }
 
-      if (item.averageRating > AverageRating.THREE_RATING) {
+      if (item.averageReview > AverageRating.THREE_RATING) {
         tierThreeRatingCount++;
       }
 
-      if (item.averageRating > AverageRating.FOUR_RATING) {
+      if (item.averageReview > AverageRating.FOUR_RATING) {
         tierFourRatingCount++;
       }
 
@@ -1354,6 +1355,160 @@ export class CourseService {
         intermediateLevelCount,
         expertLevelCount,
       },
+      meta: {
+        page,
+        size,
+        itemCount: totalItem,
+        pageCount,
+        hasPreviousPage: hasPreviousPage,
+        hasNextPage,
+      },
+    };
+    const responseData: ResponseData = {
+      message: 'Get courses successfully!',
+      data,
+    };
+    return responseData;
+  }
+
+  public async getCoursesCategoryShow(
+    getCoursesCategoryShow: GetCoursesCategoryShow,
+    categoryID: number,
+    userID: number | null,
+  ): Promise<ResponseData> {
+    const category = await this.categoryRepository.getCategoryById(categoryID);
+
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    const { page, size } =
+      getCoursesCategoryShow;
+    const queryBuilder = this.courseRepository
+      .createQueryBuilder('courses')
+      .leftJoinAndSelect('courses.price', 'price')
+      .leftJoinAndSelect('courses.level', 'level')
+      .leftJoinAndSelect('courses.category', 'category')
+      .leftJoinAndSelect('courses.subCategory', 'subCategory')
+      .leftJoinAndSelect('courses.language', 'language')
+      .leftJoinAndSelect('courses.curriculums', 'curriculum')
+      .leftJoinAndSelect('curriculum.lectures', 'lecture')
+      .leftJoinAndSelect('lecture.assets', 'asset')
+      .leftJoinAndSelect('courses.user', 'user')
+      .leftJoinAndSelect(
+        'courses.learnings',
+        'learnings',
+        'learnings.type IN (:...types)',
+      )
+      .where('courses.reviewStatus = :reviewStatus', {
+        reviewStatus: CourseStatus.REVIEW_VERIFY,
+      })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('courses.categoryId = :categoryId', {
+            categoryId: categoryID,
+          }).orWhere('courses.subCategoryId = :subCategoryId', {
+            subCategoryId: categoryID,
+          });
+        }),
+      )
+      .setParameter('types', [CourseUtil.STANDARD_TYPE, CourseUtil.ARCHIE]);
+
+    
+    const { entities: courses } = await queryBuilder.getRawAndEntities();
+
+    let coursesCategory: CourseCategory[] = [];
+    courses.forEach((course) => {
+      let totalRating = 0;
+      let isPurchased = false;
+      let totalReviewCount = 0;
+      let averageReview = 0;
+      let totalDuration = 0;
+      let totalStudent: number = 0;
+
+      course.curriculums.forEach((curriculum) => {
+        curriculum.lectures.forEach((lecture) => {
+          lecture.assets.forEach((asset) => {
+            if (
+              lecture.type === LectureType.LECTURE &&
+              asset.type === AssetType.WATCH
+            ) {
+              totalDuration += asset.duration;
+            }
+          });
+        });
+      });
+
+      course.learnings.forEach((learning) => {
+        if (learning.starCount) {
+          totalReviewCount += learning.starCount;
+          totalRating++;
+        }
+        totalStudent++;
+        if (userID) {
+          if (learning.userId === userID) {
+            isPurchased = true;
+          }
+        }
+      });
+
+      if (totalRating) {
+        averageReview = parseFloat((totalReviewCount / totalRating).toFixed(2));
+      }
+      coursesCategory.push({
+        id: course.id,
+        level: course.level,
+        title: course.title,
+        subtitle: course.subtitle,
+        price: course.price,
+        reviewStatus: course.reviewStatus,
+        user: {
+          id: course.user.id,
+          name: course.user.name,
+          avatar: course.user.avatar,
+        },
+        outComes: course.outComes,
+        intendedFor: course.intendedFor,
+        requirements: course.requirements,
+        isPurchased,
+        duration: totalDuration,
+        totalLecture: course.curriculums.length,
+        averageReview: averageReview,
+        image: course.image,
+        category: course.category,
+        subCategory: course.subCategory,
+        countReview: totalRating,
+        countStudent: totalStudent,
+        createdAt: course.createdAt,
+        updatedAt: course.updatedAt,
+      });
+    });
+
+
+    const totalItem = coursesCategory.length;
+
+    let offset = 0;
+
+    offset = (page - 1) * size;
+
+    if (offset >= totalItem) {
+      offset = totalItem - 1;
+    }
+
+    let limit = size;
+
+    let endIndex = offset + limit;
+
+    if (endIndex > totalItem) {
+      endIndex = totalItem;
+    }
+
+    coursesCategory = coursesCategory.slice(offset, endIndex);
+    const pageCount = Math.ceil(totalItem / size);
+    const hasPreviousPage = page > 1;
+    const hasNextPage = page < pageCount;
+    const data = {
+      item: coursesCategory,
       meta: {
         page,
         size,
@@ -1468,11 +1623,11 @@ export class CourseService {
         isPurchased,
         duration: totalDuration,
         totalLecture: course.curriculums.length,
-        averageRating: averageReview,
+        averageReview,
         image: course.image,
         category: course.category,
         subCategory: course.subCategory,
-        totalRating: totalRating,
+        countReview: totalRating,
         createdAt: course.createdAt,
         updatedAt: course.updatedAt,
       });
@@ -1480,7 +1635,7 @@ export class CourseService {
 
     if (rating) {
       coursesCategory = coursesCategory.filter((course) => {
-        return course.averageRating >= rating;
+        return course.averageReview >= rating;
       });
     }
     const HOUR = 3600;
@@ -1509,11 +1664,11 @@ export class CourseService {
 
     if (sortCourse) {
       if (sortCourse === CourseSort.MOST_REVIEW_SORT) {
-        coursesCategory.sort((a, b) => b.totalRating - a.totalRating); // sort DESC by TotalRating
+        coursesCategory.sort((a, b) => b.countReview - a.countReview); // sort DESC by TotalRating
       }
 
       if (sortCourse === CourseSort.HIGHEST_SORT) {
-        coursesCategory.sort((a, b) => b.averageRating - a.averageRating); // sort DESC by AverageRating
+        coursesCategory.sort((a, b) => b.averageReview - a.averageReview); // sort DESC by AverageRating
       }
     }
 
@@ -1531,19 +1686,19 @@ export class CourseService {
     let expertLevelCount = 0;
 
     coursesCategory.forEach((item) => {
-      if (item.averageRating > AverageRating.ONE_RATING) {
+      if (item.averageReview > AverageRating.ONE_RATING) {
         tierOneRatingCount++;
       }
 
-      if (item.averageRating > AverageRating.TWO_RATING) {
+      if (item.averageReview > AverageRating.TWO_RATING) {
         tierTwoRatingCount++;
       }
 
-      if (item.averageRating > AverageRating.THREE_RATING) {
+      if (item.averageReview > AverageRating.THREE_RATING) {
         tierThreeRatingCount++;
       }
 
-      if (item.averageRating > AverageRating.FOUR_RATING) {
+      if (item.averageReview > AverageRating.FOUR_RATING) {
         tierFourRatingCount++;
       }
 
