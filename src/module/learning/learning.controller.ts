@@ -64,10 +64,7 @@ export class LearningController {
 
   @Get('')
   @HttpCode(HttpStatus.OK)
-  getLearning(
-    @GetCurrentUserID() userID: number,
-    @Query() getLearningDto: GetLearningDto,
-  ): Promise<ResponseData> {
-    return this.learningService.getLearning(userID, getLearningDto);
+  getLearning(@Query() getLearningDto: GetLearningDto): Promise<ResponseData> {
+    return this.learningService.getLearning(getLearningDto);
   }
 }

@@ -20,4 +20,8 @@ export class GetLearningDto extends PageCommonOptionsDto {
   @Transform(({ value }) => value.split(',').map(Number))
   @IsEnum(CourseUtil, { each: true })
   types: CourseUtil[];
+
+  @Transform(({ value, key, obj, type }) => +value)
+  @IsNumber()
+  userID: number;
 }

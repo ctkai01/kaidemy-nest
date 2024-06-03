@@ -852,7 +852,7 @@ export class CourseService {
           break;
         }
         case FilterOrderCourse.ZA_FILTER: {
-          queryBuilder.orderBy('courses.title', Order.ASC);
+          queryBuilder.orderBy('courses.title', Order.DESC);
           break;
         }
       }
@@ -1382,8 +1382,7 @@ export class CourseService {
       throw new NotFoundException('Category not found');
     }
 
-    const { page, size } =
-      getCoursesCategoryShow;
+    const { page, size } = getCoursesCategoryShow;
     const queryBuilder = this.courseRepository
       .createQueryBuilder('courses')
       .leftJoinAndSelect('courses.price', 'price')
@@ -1414,7 +1413,6 @@ export class CourseService {
       )
       .setParameter('types', [CourseUtil.STANDARD_TYPE, CourseUtil.ARCHIE]);
 
-    
     const { entities: courses } = await queryBuilder.getRawAndEntities();
 
     let coursesCategory: CourseCategory[] = [];
@@ -1483,7 +1481,6 @@ export class CourseService {
         updatedAt: course.updatedAt,
       });
     });
-
 
     const totalItem = coursesCategory.length;
 

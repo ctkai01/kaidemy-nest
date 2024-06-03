@@ -164,10 +164,11 @@ export class LectureService {
     }
 
     if (typeUpdate === UploadType.UPLOAD_ARTICLE) {
-      lecture.article = article || '';
-      lecture.title = title;
-      lecture.isPromotional = isPromotional || false;
-      lecture.description = description || '';
+      if (article != undefined) lecture.article = article || '';
+      if (title != undefined) lecture.title = title;
+      if (isPromotional != undefined)
+        lecture.isPromotional = isPromotional || false;
+      if (description != undefined) lecture.description = description || '';
 
       await this.lectureRepository.save(lecture);
     }
@@ -266,7 +267,8 @@ export class LectureService {
     }
 
     //Upload resource
-    const queryRunnerAsset = this.assetRepository.manager.connection.createQueryRunner();
+    const queryRunnerAsset =
+      this.assetRepository.manager.connection.createQueryRunner();
     try {
       const url = await this.uploadService.uploadResource(
         asset,
@@ -382,7 +384,7 @@ export class LectureService {
 
     return responseData;
   }
-  
+
   async uploadVideoLecture(
     userID: number,
     lectureID: number,
@@ -450,7 +452,7 @@ export class LectureService {
         size: videoBunny.storageSize,
         duration: videoBunny.duration,
         name: asset.filename,
-        bunnyId: videoBunny.videoID
+        bunnyId: videoBunny.videoID,
       };
       await this.assetRepository.save(assetCreate);
 

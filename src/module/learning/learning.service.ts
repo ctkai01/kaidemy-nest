@@ -16,7 +16,7 @@ import { PriceRepository } from '../price/price.repository';
 import { UserRepository } from '../user/user.repository';
 import { LearningRepository } from './learning.repository';
 import { UpdateLearningDto } from './dto';
-import { CourseUtil, LearningShow } from 'src/constants';
+import { AssetType, CourseUtil, LearningShow, LectureType } from 'src/constants';
 import { GetLearningDto } from './dto/get-learning-dto';
 import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
 import { PageDto } from 'src/common/paginate/paginate.dto';
@@ -170,10 +170,7 @@ export class LearningService {
     return responseData;
   }
 
-  async getLearning(
-    userID: number,
-    getLearningDto: GetLearningDto,
-  ): Promise<ResponseData> {
+  async getLearning(getLearningDto: GetLearningDto): Promise<ResponseData> {
     const queryBuilder = this.learningRepository.createQueryBuilder('learning');
     queryBuilder
       .orderBy('learning.createdAt', getLearningDto.order)
@@ -187,7 +184,7 @@ export class LearningService {
       .leftJoinAndSelect('course.learnings', 'learnings')
       .leftJoinAndSelect('curriculum.lectures', 'lecture')
       .leftJoinAndSelect('lecture.assets', 'asset')
-      .where('learning.userId = :userID', { userID });
+      .where('learning.userId = :userID', { userID: getLearningDto.userID });
 
     if (getLearningDto.types) {
       queryBuilder.andWhere('learning.type IN (:...types)', {
@@ -206,6 +203,7 @@ export class LearningService {
       let totalReviewCountStar: number = 0;
       let totalReviewCount: number = 0;
       let totalStudent: number = 0;
+      let totalDuration = 0;
 
       learning.course.learnings.forEach((learningCourse) => {
         if (learningCourse.starCount) {
@@ -220,6 +218,19 @@ export class LearningService {
         ) {
           totalStudent++;
         }
+      });
+
+      learning.course.curriculums.forEach((curriculum) => {
+        curriculum.lectures.forEach((lecture) => {
+          lecture.assets.forEach((asset) => {
+            if (
+              lecture.type === LectureType.LECTURE &&
+              asset.type === AssetType.WATCH
+            ) {
+              totalDuration += asset.duration;
+            }
+          });
+        });
       });
 
       let averageReview: number = 0;
@@ -273,6 +284,7 @@ export class LearningService {
           image: learning.course.image,
           level: learning.course.level,
           price: learning.course.price,
+          duration: totalDuration,
           author: {
             id: learning.course.user.id,
             name: learning.course.user.name,

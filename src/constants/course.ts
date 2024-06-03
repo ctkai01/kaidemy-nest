@@ -67,6 +67,7 @@ export interface CourseLearning {
   author: AuthorLearning;
   category: Category;
   subCategory: Category;
+  duration?: number;
 }
 
 export interface LearningShow {
@@ -283,7 +284,7 @@ export interface CourseCategory {
   outComes: string[];
   intendedFor: string[];
   requirements: string[];
-  curriculums?: Curriculum[]
+  curriculums?: Curriculum[];
   isPurchased: boolean;
   totalLecture: number;
   duration: number;
@@ -326,12 +327,11 @@ export interface ReviewUser {
   updatedStarCount?: Date;
 }
 
-
 export interface MenuCategory {
-  name: string,
-  parentID: number | null,
-  groupName: string
-  children: MenuCategory[]
+  name: string;
+  parentID: number | null;
+  groupName: string;
+  children: MenuCategory[];
 }
 
 export interface MenuClass {

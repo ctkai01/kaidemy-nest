@@ -116,7 +116,7 @@ export class AuthService {
 
       return responseData;
     } catch (err) {
-      console.log("Err: ", err)
+      console.log('Err: ', err);
       throw new InternalServerErrorException('Login google failed');
     }
   }

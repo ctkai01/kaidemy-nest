@@ -16,10 +16,12 @@ export class UpdateLectureDto {
   @MaxLength(2000)
   description: string;
 
+  @IsOptional()
   @Transform(({ value, key, obj, type }) => +value)
   @IsEnum(UploadType)
   typeUpdate: UploadType;
 
+  @IsOptional()
   @Transform(({ value, key, obj, type }) => +value)
   @IsEnum(AssetType)
   assetType: AssetType;
@@ -30,7 +32,9 @@ export class UpdateLectureDto {
   assetID: number;
 
   @IsOptional()
-  @IsBoolean()
+  @Transform(({ value }) => {
+    return Boolean(+value);
+  })
   isPromotional: boolean;
 
   @IsString()

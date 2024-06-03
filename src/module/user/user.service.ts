@@ -144,11 +144,11 @@ export class UserService {
     }
 
     console.log('getUserDto.isBlock: ', getUserDto.isBlock);
-     if (getUserDto.isBlock !== undefined) {
-       queryBuilder.andWhere('user.is_block = :isBlock', {
-         isBlock: getUserDto.isBlock,
-       });
-     }
+    if (getUserDto.isBlock !== undefined) {
+      queryBuilder.andWhere('user.is_block = :isBlock', {
+        isBlock: getUserDto.isBlock,
+      });
+    }
 
     queryBuilder.skip(getUserDto.skip).take(getUserDto.size);
 
@@ -205,32 +205,32 @@ export class UserService {
         UploadResource.Avatar,
       );
       user.avatar = avatarURL;
+    } else {
+      user.name = updateProfileDto.name ? updateProfileDto.name : user.name;
+
+      user.biography = updateProfileDto.biography
+        ? updateProfileDto.biography
+        : null;
+      user.headline = updateProfileDto.headline
+        ? updateProfileDto.headline
+        : null;
+      user.linkedInURL = updateProfileDto.linkedInURL
+        ? updateProfileDto.linkedInURL
+        : null;
+      user.twitterURL = updateProfileDto.twitterURL
+        ? updateProfileDto.twitterURL
+        : null;
+      user.websiteURL = updateProfileDto.websiteURL
+        ? updateProfileDto.websiteURL
+        : null;
+      user.youtubeURL = updateProfileDto.youtubeURL
+        ? updateProfileDto.youtubeURL
+        : null;
+
+      user.facebookURL = updateProfileDto.facebookURL
+        ? updateProfileDto.facebookURL
+        : null;
     }
-
-    user.name = updateProfileDto.name;
-
-    user.biography = updateProfileDto.biography
-      ? updateProfileDto.biography
-      : null;
-    user.headline = updateProfileDto.headline
-      ? updateProfileDto.headline
-      : null;
-    user.linkedInURL = updateProfileDto.linkedInURL
-      ? updateProfileDto.linkedInURL
-      : null;
-    user.twitterURL = updateProfileDto.twitterURL
-      ? updateProfileDto.twitterURL
-      : null;
-    user.websiteURL = updateProfileDto.websiteURL
-      ? updateProfileDto.websiteURL
-      : null;
-    user.youtubeURL = updateProfileDto.youtubeURL
-      ? updateProfileDto.youtubeURL
-      : null;
-
-    user.facebookURL = updateProfileDto.facebookURL
-      ? updateProfileDto.facebookURL
-      : null;
 
     this.userRepository.save(user);
 
