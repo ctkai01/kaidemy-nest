@@ -216,13 +216,13 @@ export class QuestionLectureService {
     }
 
     if (courseID) {
-      queryBuilder.where('question_lectures.courseId = :courseId', {
+      queryBuilder.andWhere('question_lectures.courseId = :courseId', {
         courseId: courseID,
       });
     }
 
     if (lectureID) {
-      queryBuilder.where('question_lectures.lectureId = :lectureId', {
+      queryBuilder.andWhere('question_lectures.lectureId = :lectureId', {
         lectureId: lectureID,
       });
     }
@@ -312,7 +312,7 @@ export class QuestionLectureService {
       if (course.userID != userID) {
         throw new ForbiddenException();
       }
-      queryBuilder.where('question_lectures.courseId = :courseId', {
+      queryBuilder.andWhere('question_lectures.courseId = :courseId', {
         courseId: courseID,
       });
     } else {
@@ -322,7 +322,7 @@ export class QuestionLectureService {
       });
 
       const courseIdsByAuthor = courses.map((course) => course.id);
-      queryBuilder.where('question_lectures.courseId IN (:...courseIds)', {
+      queryBuilder.andWhere('question_lectures.courseId IN (:...courseIds)', {
         courseIdsByAuthor,
       });
     }

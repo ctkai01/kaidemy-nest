@@ -183,13 +183,33 @@ export class CourseService {
 
     course.title = title;
 
-    course.outComes = outcomes || [];
-    course.requirements = requirements || [];
-    course.intendedFor = intendedFor || [];
+    if (title != undefined) {
+      course.title = title || course.title;
+    }
 
-    course.description = description || '';
-    course.subtitle = subtitle || '';
-    course.primarilyTeach = primarilyTeach || '';
+    if (outcomes != undefined) {
+      course.outComes = outcomes || [];
+    }
+
+    if (requirements != undefined) {
+      course.requirements = requirements || [];
+    }
+
+    if (intendedFor != undefined) {
+      course.intendedFor = intendedFor || [];
+    }
+
+    if (description != undefined) {
+      course.description = description || '';
+    }
+
+    if (subtitle != undefined) {
+      course.subtitle = subtitle || '';
+    }
+
+    if (primarilyTeach != undefined) {
+      course.primarilyTeach = primarilyTeach || '';
+    }
 
     const productParams: Stripe.ProductUpdateParams = {
       name: title,
@@ -222,7 +242,7 @@ export class CourseService {
       course.subCategoryId = null;
     }
 
-    if (languageID) {
+    if (languageID && languageID !== -1) {
       // Check language
       const language =
         await this.languageRepository.getLanguageById(languageID);
@@ -232,11 +252,11 @@ export class CourseService {
       }
 
       course.languageId = languageID;
-    } else {
+    } else if (languageID === -1) {
       course.languageId = null;
     }
 
-    if (levelID) {
+    if (levelID && levelID !== -1) {
       // Check level
       const level = await this.levelRepository.getLevelById(levelID);
 
@@ -245,11 +265,11 @@ export class CourseService {
       }
 
       course.levelId = levelID;
-    } else {
+    } else if (levelID === -1) {
       course.levelId = null;
     }
-
-    if (priceID) {
+    console.log(course);
+    if (priceID && priceID !== -1) {
       // Check price
       const price = await this.priceRepository.getPriceById(priceID);
 
@@ -272,8 +292,8 @@ export class CourseService {
           'Failed to create Stripe price: ' + error.message,
         );
       }
-    } else {
-      course.levelId = null;
+    } else if (priceID === -1) {
+      course.price = null;
     }
 
     if (image) {

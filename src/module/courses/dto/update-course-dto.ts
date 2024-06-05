@@ -59,11 +59,9 @@ export class UpdateCourseDto {
   priceID: number;
 
   @Transform(({ value, key, obj, type }) => +value)
-  @IsNumber()
   categoryID: number;
 
   @Transform(({ value, key, obj, type }) => +value)
-  @IsNumber()
   subCategoryID: number;
 
   @IsOptional()
@@ -72,23 +70,32 @@ export class UpdateCourseDto {
   levelID: number;
 
   @IsOptional()
-  @IsArray()
+  // @IsArray()
   @IsString({ each: true })
   @MinLength(1, { each: true })
   @MaxLength(150, { each: true })
+  @Transform(({ value, key, obj, type }) =>
+    Array.isArray(value) ? value : [value],
+  )
   outcomes: string[];
 
   @IsOptional()
-  @IsArray()
+  // @IsArray()
   @IsString({ each: true })
   @MinLength(1, { each: true })
   @MaxLength(150, { each: true })
+  @Transform(({ value, key, obj, type }) =>
+    Array.isArray(value) ? value : [value],
+  )
   requirements: string[];
 
   @IsOptional()
-  @IsArray()
+  // @IsArray()
   @IsString({ each: true })
   @MinLength(1, { each: true })
   @MaxLength(150, { each: true })
+  @Transform(({ value, key, obj, type }) =>
+    Array.isArray(value) ? value : [value],
+  )
   intendedFor: string[];
 }
