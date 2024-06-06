@@ -1,5 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Answer } from './answer.entity';
+import { Lecture } from './lecture.entity';
 
 @Entity({ name: 'questions' })
 export class Question {
@@ -9,8 +17,12 @@ export class Question {
   @Column({ nullable: false })
   title: string;
 
-  @Column({ name: 'lecture_id', nullable: false })
+  @Column({ nullable: false })
   lectureId: number;
+
+  @ManyToOne(() => Lecture, (lecture) => lecture.questions)
+  @JoinColumn({ name: 'lectureId' })
+  lecture?: Lecture;
 
   @OneToMany(() => Answer, (answer) => answer.question, { cascade: true })
   answers?: Answer[];

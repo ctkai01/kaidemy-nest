@@ -38,6 +38,7 @@ export class UpdateLectureDto {
   isPromotional: boolean;
 
   @IsString()
+  @IsOptional()
   @MinLength(1)
   @MaxLength(150)
   title: string;

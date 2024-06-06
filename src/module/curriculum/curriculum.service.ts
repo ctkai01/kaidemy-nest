@@ -4,6 +4,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { CourseStatus } from 'src/constants';
 import { Curriculum } from 'src/entities';
 import { ResponseData } from '../../interface/response.interface';
 import { CourseRepository } from '../courses/course.repository';
@@ -42,6 +43,10 @@ export class CurriculumService {
     const curriculumCreate =
       await this.curriculumRepository.createCurriculum(curriculum);
 
+    course.reviewStatus = CourseStatus.REVIEW_INIT;
+
+    await this.courseRepository.save(course);
+
     const responseData: ResponseData = {
       message: 'Create curriculum successfully!',
       data: curriculumCreate,
@@ -62,7 +67,7 @@ export class CurriculumService {
     const curriculum =
       await this.curriculumRepository.getCurriculumByIdWithRelation(
         curriculumID,
-        ["course"]
+        ['course'],
       );
     if (!curriculum) {
       throw new NotFoundException('Curriculum not found');
@@ -78,7 +83,11 @@ export class CurriculumService {
 
     await this.curriculumRepository.save(curriculum);
 
-    delete curriculum.course;
+    curriculum.course.reviewStatus = CourseStatus.REVIEW_INIT;
+
+    await this.courseRepository.save(curriculum.course);
+
+    // delete curriculum.course;
     const responseData: ResponseData = {
       message: 'Update curriculum successfully!',
       data: curriculum,
@@ -96,7 +105,7 @@ export class CurriculumService {
     const curriculum =
       await this.curriculumRepository.getCurriculumByIdWithRelation(
         curriculumID,
-        ["course"]
+        ['course'],
       );
     if (!curriculum) {
       throw new NotFoundException('Curriculum not found');
@@ -108,6 +117,11 @@ export class CurriculumService {
     }
 
     await this.curriculumRepository.delete(curriculumID);
+
+    curriculum.course.reviewStatus = CourseStatus.REVIEW_INIT;
+
+    await this.courseRepository.save(curriculum.course);
+
     const responseData: ResponseData = {
       message: 'Delete curriculum successfully!',
     };

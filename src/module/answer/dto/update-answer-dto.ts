@@ -20,7 +20,9 @@ export class UpdateAnswerDto {
   @IsNumber()
   questionID: number;
 
-  @IsBoolean()
+  @Transform(({ value }) => {
+    return Boolean(+value);
+  })
   isCorrect: boolean;
 
   @IsOptional()

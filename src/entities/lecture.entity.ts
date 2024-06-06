@@ -10,6 +10,7 @@ import {
 import { Asset } from './asset.entity';
 import { Curriculum } from './curriculum.entity';
 import { QuestionLecture } from './question_lecture.entity';
+import { Question } from './question.entity';
 
 @Entity('lectures')
 export class Lecture {
@@ -42,7 +43,13 @@ export class Lecture {
   //   })
   //   questions: Question[];
 
-  @OneToMany(() => QuestionLecture, (questionLecture) => questionLecture.lecture)
+  @OneToMany(() => Question, (question) => question.lecture)
+  questions?: Question[];
+
+  @OneToMany(
+    () => QuestionLecture,
+    (questionLecture) => questionLecture.lecture,
+  )
   questionLectures?: QuestionLecture[];
 
   @Column({ type: 'boolean', default: false })

@@ -181,8 +181,6 @@ export class CourseService {
     course.welcomeMessage = welcomeMessage || '';
     course.congratulationsMessage = congratulationsMessage || '';
 
-    course.title = title;
-
     if (title != undefined) {
       course.title = title || course.title;
     }
@@ -560,9 +558,9 @@ export class CourseService {
       .leftJoinAndSelect('courses.language', 'language')
       .leftJoinAndSelect('courses.curriculums', 'curriculum')
       .leftJoinAndSelect('curriculum.lectures', 'lecture')
-      .leftJoinAndSelect('lecture.questionLectures', 'questionLecture')
+      .leftJoinAndSelect('lecture.questions', 'question')
       .leftJoinAndSelect('lecture.assets', 'asset')
-      .leftJoinAndSelect('questionLecture.answerLectures', 'answerLecture')
+      .leftJoinAndSelect('question.answers', 'answers')
       .leftJoinAndSelect('courses.user', 'user')
       .leftJoinAndSelect(
         'courses.learnings',
@@ -571,6 +569,7 @@ export class CourseService {
       )
       .where('courses.id = :courseID', { courseID })
       .setParameter('types', [CourseUtil.STANDARD_TYPE, CourseUtil.ARCHIE])
+      .addOrderBy('lecture.createdAt', 'ASC')
       .getOne();
 
     if (!course) {

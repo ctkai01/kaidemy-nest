@@ -37,6 +37,7 @@ export class UpdateCourseDto {
   @MaxLength(120)
   primarilyTeach: string;
 
+  @IsOptional()
   @IsString()
   @MinLength(1)
   @MaxLength(100)

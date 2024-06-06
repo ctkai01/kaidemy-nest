@@ -160,15 +160,14 @@ export class AnswerService {
     return responseData;
   }
 
-  async deleteAnswer(
-    userID: number,
-    answerID: number,
-  ): Promise<ResponseData> {
+  async deleteAnswer(userID: number, answerID: number): Promise<ResponseData> {
     // Check answer exist
     const answer = await this.answerRepository.getAnswerById(answerID);
 
     //  Check question exist
-    const question = await this.questionRepository.getQuestionById(answer.questionId);
+    const question = await this.questionRepository.getQuestionById(
+      answer.questionId,
+    );
 
     if (!question) {
       throw new NotFoundException('Question not found');
@@ -202,7 +201,6 @@ export class AnswerService {
       throw new ForbiddenException('Not author of course');
     }
 
-    
     await this.answerRepository.delete(answerID);
 
     // Update course status

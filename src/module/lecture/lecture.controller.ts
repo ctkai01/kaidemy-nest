@@ -24,6 +24,7 @@ import { LectureService } from './lecture.service';
 import { multerImageOptions, multerResourceOptions, multerVideoOptions } from './multer.config';
 import { MarkLectureDto } from './dto/mark-lecture-dto';
 import { TransformInterceptor } from 'src/response/custom';
+import { UploadVideoDto } from './dto/upload-video-dto';
 
 @Controller('lectures')
 @UseFilters(new HttpExceptionValidateFilter())
@@ -76,9 +77,15 @@ export class LectureController {
   updateLectureUploadVideo(
     @Param('id') lectureID: number,
     @GetCurrentUserID() userID: number,
+    @Body() uploadVideoDto: UploadVideoDto,
     @UploadedFile() asset: Express.Multer.File,
   ): Promise<ResponseData> {
-    return this.lectureService.uploadVideoLecture(userID, lectureID, asset);
+    return this.lectureService.uploadVideoLecture(
+      userID,
+      lectureID,
+      asset,
+      uploadVideoDto,
+    );
   }
 
   @Post(':id/mark')

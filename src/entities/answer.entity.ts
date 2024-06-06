@@ -6,19 +6,21 @@ export class Answer {
   @PrimaryGeneratedColumn()
   id?: number;
 
-  @Column({ name: 'answer_text', nullable: false, length: 200 })
+  @Column({ name: 'answerText', nullable: false, length: 200 })
   answerText: string;
 
-  @Column({ name: 'is_correct', nullable: false })
+  @Column({ name: 'isCorrect', nullable: false })
   isCorrect: boolean;
 
   @Column({ nullable: true })
   explain: string;
 
-  @Column({ name: 'question_id', nullable: false })
+  @Column({ nullable: false })
   questionId: number;
 
-  @ManyToOne(() => Question, (question) => question.answers)
+  @ManyToOne(() => Question, (question) => question.answers, {
+    onDelete: 'CASCADE',
+  })
   question?: Question;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

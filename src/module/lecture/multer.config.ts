@@ -42,6 +42,7 @@ export const multerVideoOptions = {
   storage: diskStorage({
     destination: './uploads',
     filename: (req, file, cb) => {
+      console.log('File: ', file);
       const randomName = Array(32)
         .fill(null)
         .map(() => Math.round(Math.random() * 16).toString(16))

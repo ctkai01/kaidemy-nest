@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConsoleLogger,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -24,6 +25,7 @@ import { UploadService } from '../upload/upload.service';
 import { CreateLectureDto, UpdateLectureDto } from './dto';
 import { LectureRepository } from './lecture.repository';
 import { MarkLectureDto } from './dto/mark-lecture-dto';
+import { UploadVideoDto } from './dto/upload-video-dto';
 
 @Injectable()
 export class LectureService {
@@ -92,6 +94,7 @@ export class LectureService {
       assetType,
       assetID,
     } = updateLectureDto;
+    console.log('updateLectureDto: ', updateLectureDto);
 
     // Check lecture exist
     const lecture = await this.lectureRepository.getLectureByIdWithRelation(
@@ -169,7 +172,7 @@ export class LectureService {
       if (isPromotional != undefined)
         lecture.isPromotional = isPromotional || false;
       if (description != undefined) lecture.description = description || '';
-
+      console.log('lecture: ', lecture);
       await this.lectureRepository.save(lecture);
     }
 
@@ -389,7 +392,10 @@ export class LectureService {
     userID: number,
     lectureID: number,
     asset: Express.Multer.File,
+    uploadVideoDto: UploadVideoDto,
   ): Promise<ResponseData> {
+    const { isReplace } = uploadVideoDto;
+
     if (!asset) {
       throw new BadRequestException('Asset required');
     }
@@ -431,8 +437,14 @@ export class LectureService {
       }
     });
 
-    if (assetWatchType) {
+    if (assetWatchType && !isReplace) {
       throw new BadRequestException('Limit upload video');
+    }
+
+    //Delete old Video
+    if (assetWatchType && isReplace) {
+      await this.uploadService.deleteVideo(assetWatchType.bunnyId);
+      await this.assetRepository.delete(assetWatchType.id);
     }
 
     //Upload resource
