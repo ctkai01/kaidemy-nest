@@ -9,6 +9,7 @@ import { PageMetaDto } from 'src/common/paginate/page-meta.dto';
 import { PageDto } from 'src/common/paginate/paginate.dto';
 import { QuestionLectureAuthorShow, QuestionLectureShow } from 'src/constants';
 import { QuestionLecture } from 'src/entities';
+import { Brackets } from 'typeorm';
 import { ResponseData } from '../../interface/response.interface';
 import { CourseRepository } from '../courses/course.repository';
 import { CurriculumRepository } from '../curriculum/curriculum.repository';
@@ -195,24 +196,26 @@ export class QuestionLectureService {
   ): Promise<ResponseData> {
     const { order, skip, size, page, courseID, search, lectureID } =
       getQuestionLectureDto;
-    const queryBuilder =
-      this.questionLectureRepository.createQueryBuilder('question_lectures');
-    queryBuilder
+    const queryBuilder = this.questionLectureRepository
+      .createQueryBuilder('question_lectures')
       .orderBy('question_lectures.createdAt', order)
       .leftJoinAndSelect('question_lectures.user', 'user')
       .leftJoinAndSelect('question_lectures.answerLectures', 'answerLectures');
 
     if (search) {
-      queryBuilder.andWhere(function () {
-        this.where('UPPER(question_lectures.title) LIKE UPPER(:searchQuery)', {
-          searchQuery: `%${search}%`,
-        }).orWhere(
-          'UPPER(question_lectures.description) LIKE UPPER(:searchQuery)',
-          {
+      console.log('Search:', search);
+      queryBuilder.where(
+        new Brackets((qb) => {
+          qb.where('UPPER(question_lectures.title) LIKE UPPER(:searchQuery)', {
             searchQuery: `%${search}%`,
-          },
-        );
-      });
+          }).orWhere(
+            'UPPER(question_lectures.description) LIKE UPPER(:searchQuery)',
+            {
+              searchQuery: `%${search}%`,
+            },
+          );
+        }),
+      );
     }
 
     if (courseID) {

@@ -118,7 +118,7 @@ export class LearningService {
       userID: learningData.userId,
       comment: learningData.comment,
       process: learningData.process,
-      startCount: learningData.starCount,
+      starCount: learningData.starCount,
       course: {
         author: {
           id: learningData.course.user.id,
@@ -275,7 +275,7 @@ export class LearningService {
         courseID: learning.courseId,
         process: percent,
         type: learning.type,
-        startCount: learning.starCount,
+        starCount: learning.starCount,
         comment: learning.comment,
         course: {
           id: learning.course.id,

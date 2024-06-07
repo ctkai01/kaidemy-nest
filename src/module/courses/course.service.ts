@@ -669,6 +669,8 @@ export class CourseService {
       .leftJoinAndSelect('curriculum.lectures', 'lecture')
       .leftJoinAndSelect('lecture.questionLectures', 'questionLecture')
       .leftJoinAndSelect('lecture.assets', 'asset')
+      .leftJoinAndSelect('lecture.questions', 'question')
+      .leftJoinAndSelect('question.answers', 'answer')
       .leftJoinAndSelect('questionLecture.answerLectures', 'answerLecture')
       .leftJoinAndSelect('courses.user', 'user')
       .leftJoinAndSelect(
@@ -678,6 +680,7 @@ export class CourseService {
       )
       .where('courses.id = :courseID', { courseID })
       .setParameter('types', [CourseUtil.STANDARD_TYPE, CourseUtil.ARCHIE])
+      .orderBy('lecture.createdAt', 'ASC')
       .getOne();
 
     if (!course) {
@@ -948,8 +951,8 @@ export class CourseService {
     if (!course) {
       throw new NotFoundException('Course not found');
     }
-
     const { skip, starCount, search, page, size } = getReviewsDto;
+    console.log("starCount: ", starCount)
     const queryBuilder = this.learningRepository
       .createQueryBuilder('learnings')
       .leftJoinAndSelect('learnings.user', 'user')

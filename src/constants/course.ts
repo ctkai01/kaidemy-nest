@@ -34,7 +34,7 @@ export enum StarCount {
   TWO,
   THREE,
   FOUR,
-  FIVE,
+  FIVE
 }
 
 export enum Reply {
@@ -76,7 +76,7 @@ export interface LearningShow {
   courseID: number;
   process?: number;
   type: CourseUtil;
-  startCount?: number;
+  starCount?: number;
   comment?: string;
   course: CourseLearning;
   averageReview?: number;

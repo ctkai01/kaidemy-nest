@@ -202,7 +202,7 @@ export class TopicLearningService {
         type: learning.type,
         userID: learning.userId,
         comment: learning.comment,
-        startCount: learning.starCount,
+        starCount: learning.starCount,
       });
     });
 
@@ -316,7 +316,7 @@ export class TopicLearningService {
           courseID: learning.courseId,
           type: learning.type,
           userID: learning.userId,
-          startCount: learning.starCount,
+          starCount: learning.starCount,
           comment: learning.comment,
           course: {
             id: learning.course.id,
