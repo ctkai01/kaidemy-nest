@@ -81,6 +81,7 @@ export interface LearningShow {
   course: CourseLearning;
   averageReview?: number;
   countReview?: number;
+  createdAt?: Date;
 }
 
 export enum CourseSort {

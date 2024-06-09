@@ -294,6 +294,7 @@ export class LearningService {
         },
         averageReview: averageReview,
         countReview: totalReviewCount,
+        createdAt: learning.createdAt,
       });
     });
 

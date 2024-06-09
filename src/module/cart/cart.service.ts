@@ -59,7 +59,7 @@ export class CartService {
     courseID: number,
   ): Promise<ResponseData> {
     // Check course
-    const course = await this.courseRepository.getCourseByID(courseID);
+    const course = await this.courseRepository.getCourseByIDWithRelation(courseID, ["user"]);
 
     if (!course) {
       throw new NotFoundException('Course not found');
@@ -83,10 +83,14 @@ export class CartService {
 
     cart.courses.push(course);
 
-    this.cartRepository.save(cart);
-
+    await this.cartRepository.save(cart);
+    const data: CartItem = {
+      cartID: cart.id,
+      course
+    }
     const responseData: ResponseData = {
       message: 'Add course to cart successfully!',
+      data
     };
 
     return responseData;
@@ -135,7 +139,8 @@ export class CartService {
   async getCart(userID: number): Promise<ResponseData> {
     // Get cart by user id
     const cart = await this.cartRepository.getCartByUserIDRelation(userID, [
-      'courses',
+      'courses.user',
+      'courses.price',
     ]);
 
     if (!cart) {

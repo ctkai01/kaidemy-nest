@@ -204,7 +204,7 @@ export class QuestionLectureService {
 
     if (search) {
       console.log('Search:', search);
-      queryBuilder.where(
+      queryBuilder.andWhere(
         new Brackets((qb) => {
           qb.where('UPPER(question_lectures.title) LIKE UPPER(:searchQuery)', {
             searchQuery: `%${search}%`,
@@ -219,6 +219,7 @@ export class QuestionLectureService {
     }
 
     if (courseID) {
+      console.log("Hey course: ", courseID)
       queryBuilder.andWhere('question_lectures.courseId = :courseId', {
         courseId: courseID,
       });

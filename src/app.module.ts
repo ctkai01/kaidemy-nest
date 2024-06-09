@@ -32,7 +32,6 @@ import {
   TopicLearning,
   TransactionDetail,
   Transaction,
-
 } from './entities';
 import { AuthGuard } from './guards/auth.guard';
 import { AuthModule } from './module/auth/auth.module';
@@ -96,7 +95,10 @@ import { NotificationModule } from './module/notification/notification.module';
           database: configService.get('DB_NAME'),
           logging: true,
           keepConnectionAlive: true,
-          extra: { insecureAuth: true, charset: 'utf8mb4_unicode_ci' },
+          extra: {
+            insecureAuth: true,
+            charset: 'utf8mb4_unicode_ci',
+          },
           entities: [
             User,
             Price,
@@ -152,7 +154,7 @@ import { NotificationModule } from './module/notification/notification.module';
     AnswerLectureModule,
     AdminModule,
     ChatModule,
-    NotificationModule
+    NotificationModule,
   ],
   providers: [
     {
